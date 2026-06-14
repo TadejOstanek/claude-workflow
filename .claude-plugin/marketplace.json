@@ -1,0 +1,11 @@
+{
+  "name": "claude-workflow",
+  "owner": { "name": "tadej.ostanek" },
+  "plugins": [
+    {
+      "name": "workflow",
+      "source": ".",
+      "description": "Reusable, resumable multi-agent software-development workflow: spec → architecture → code design → parallel implement+test → test/lint → review → docs+QA → draft PR."
+    }
+  ]
+}
