@@ -24,7 +24,7 @@ design (no function/class names).
 Identify whether the work splits into phases. A phase is independent if it can run in a fresh session needing only
 the epic spec + architecture (+ prior sequential phases' outputs). Each phase runs the full stage pipeline from
 code-design on, and usually becomes its own PR.
-- **Tidy-first** (Kent Beck): refactors that make the change easier → schedule as initial sequential phase(s).
+- **Tidy-first**: refactors that make the change easier → schedule as initial sequential phase(s).
 - **Feature** phases: the change itself, marked independent / parallel / sequential.
 - **Tidy-after**: cleanup enabled once the feature lands → final phase(s).
 
