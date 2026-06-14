@@ -6,7 +6,9 @@ description: Shared file layout, state schema, GATE format, and naming for the m
 # Workflow Conventions (shared handoff contract)
 
 Every workflow stage reads prior stages' files and writes its own. Stages share **no conversation context** — the
-files in `.workflow/` are the only handoff. Keep all produced `.md` terse; prefer adding later over cutting.
+files in `.workflow/` are the only handoff. Keep produced `.md` terse in *wording*, but **never drop content to be
+terse**: capture every requirement, criterion, and decision the prior stage or the user provided. Losing a
+requirement in a handoff silently breaks every stage after it. Prefer adding more over cutting.
 
 ## Folder layout (in the target repo)
 

@@ -7,6 +7,13 @@ description: Methodology for the workflow's Specification stage — establish th
 
 Goal: reach shared understanding of **why** and **what** — never **how**. Build what's actually needed.
 
+## Capture EVERYTHING — non-negotiable
+Write down and define **every** requirement, acceptance criterion, constraint, and non-goal the user gives —
+completely and explicitly. If their input is itself a detailed spec, **preserve all of it**: restructure it into the
+four headers, but **never drop, merge away, generalize, or summarize criteria into vaguer ones**. The spec is the
+exhaustive, authoritative contract every later stage and the final review are validated against — a criterion you
+omit here silently never gets built or checked.
+
 ## Method
 - Do **NOT** read code or implementation. You may read repo **documentation** (README, docs/) for business context.
 - Ask the user clarifying questions until the goal and business context are genuinely clear. Challenge their
@@ -25,7 +32,8 @@ Four headers:
 - **Non-goals** — explicitly out of scope.
 
 If the change is complex, split into sub-sections (feature parts, or non-functional specs), each repeating the four
-headers. Keep it terse. End with the standard `## GATE` (see `workflow-conventions`).
+headers. Be concise per criterion, but **complete in coverage** — terseness means tight wording, never fewer specs.
+End with the standard `## GATE` (see `workflow-conventions`).
 
 ## Done when
 The user agrees the spec captures the why/what. Then they `/clear` and run `/workflow:arch`.
