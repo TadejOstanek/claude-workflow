@@ -186,11 +186,17 @@ if (todo('review') && !result.escalation) {
   result.stageGates.review = review
 }
 
-// Don't ship docs/QA/PR if the change isn't committed-clean or we're escalating.
-const reviewClean = !!(review && review.clean) || (!todo('review') && !result.escalation)
+// Don't ship docs/QA/PR unless the change is review-clean AND committed (or review already passed in a prior run),
+// and we're not escalating. clean-but-not-committed must NOT proceed to a PR on uncommitted code.
+const reviewPassed = !result.escalation && (todo('review')
+  ? !!(review && review.clean && review.committed)
+  : true)
+if (todo('review') && review && review.clean && !review.committed) {
+  log('Review clean but commit did NOT happen — holding docs/QA/PR. Investigate before shipping.')
+}
 
 // ============ DOCS + QA (parallel) ============
-if ((todo('docs') || todo('qa')) && reviewClean && !result.escalation) {
+if ((todo('docs') || todo('qa')) && reviewPassed) {
   phase('Docs+QA')
   const jobs = []
   if (todo('docs')) jobs.push(() => agent(`${CTX}\nWrite ONLY the docs flagged in ${FEATURE_DIR}/architecture.md; update any stale docs. Write ${PHASE_DIR}/documentation.md (list only).`,
@@ -202,11 +208,11 @@ if ((todo('docs') || todo('qa')) && reviewClean && !result.escalation) {
 }
 
 // ============ PR (draft) ============
-if (todo('pr') && reviewClean && !result.escalation) {
+if (todo('pr') && reviewPassed) {
   phase('PR')
-  const pr = await agent(`${CTX}\nPush the branch and open a DRAFT PR against main using the repo's pull_request_template.md. Why-first description; changes in plain English (no file paths); paste ${PHASE_DIR}/qa.md verbatim as the QA section. Write the PR url to ${PHASE_DIR}/pr.md.`,
+  const pr = await agent(`${CTX}\n(Override: the PR stage writes NO file — return opened+url as your structured output.)\nPush the branch and open a DRAFT PR against main using the repo's pull_request_template.md. Why-first description; changes in plain English (no file paths); paste ${PHASE_DIR}/qa.md verbatim as the QA section.`,
     { agentType: 'workflow:pr-author', model: M.doc, phase: 'PR', label: `pr:${SCOPE}`, schema: PR_SCHEMA })
-  if (pr && pr.opened) { result.prUrl = pr.url || null; log(`Draft PR: ${pr.url || '(see pr.md)'}`) }
+  if (pr && pr.opened) { result.prUrl = pr.url || null; log(`Draft PR: ${pr.url || '(opened)'}`) }
   result.stageGates.pr = pr
 }
 

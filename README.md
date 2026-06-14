@@ -15,7 +15,7 @@ input, hands off between stages via files, and resumes cleanly after interruptio
 | Test & lint | auto (haiku) | `test-runner` | `test-lint.md` |
 | Review | auto (opus) | `reviewer` | `review.md` (+ commit) |
 | Documentation ‖ QA | auto (sonnet) | `documenter` ‖ `qa-author` | `documentation.md`, `qa.md` |
-| Pull request | auto (sonnet) | `pr-author` | draft PR, `pr.md` |
+| Pull request | auto (sonnet) | `pr-author` | draft PR (link reported by `/workflow:build`) |
 
 The three interactive stages run in your main session. Everything from implementation on runs as a background
 **Workflow** (launched by `/workflow:build`): isolated subagents, per-stage models, file-based handoff, failure
@@ -58,8 +58,9 @@ argument any time to see status and the next command (also printed as a banner o
 .workflow/<feature>/
   state.json  OVERVIEW.md  spec.md  architecture.md
   <NN>-<phase>/  code-design.md  implementation.md  tests.md  test-lint.md
-                 review.md  documentation.md  qa.md  pr.md
+                 review.md  documentation.md  qa.md
 ```
+(The PR stage writes no file — its draft-PR link is reported by `/workflow:build`.)
 
 `state.json` is the source of truth for resume; `OVERVIEW.md` is the human-readable mirror. See the
 `workflow-conventions` skill for the full contract.

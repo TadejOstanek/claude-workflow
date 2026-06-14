@@ -13,7 +13,9 @@ This command **authorizes** running the Workflow tool. Read `workflow:workflow-c
    Its `code-design` must be `done` — if not, stop and tell the user to run `/workflow:design` first.
 2. Build `pendingStages` for `[build, test-lint, review, docs, qa, pr]`: a stage is **done** (omit it) if `state.json`
    says `done` **or** its output file exists in the phase folder with a `## GATE` of `status: pass`. Read those files
-   to check — this makes a re-run after a lost session resume mid-loop instead of redoing work. Everything else is pending.
+   to check — this makes a re-run after a lost session resume mid-loop instead of redoing work. Everything else is
+   pending. (`pr` writes no file — treat it done if `state.json` says so or a draft PR already exists for the branch
+   via `gh pr view`.)
 3. Detect the runner by scanning the repo: `peel.yml` → `peel test ...` (set `isPeel:true`); else a `Makefile`
    `test` target → `make test`; else `pyproject.toml`/`pytest.ini` → `pytest`; else `package.json` test script →
    `npm test`; else ask. Detect a migrate command only if the phase touches models (e.g. `peel makemigrations <app>`).
@@ -39,9 +41,10 @@ tell the user the loop is running in the background (they can watch with `/workf
 loop returns later via a task notification.
 
 ## 3. When the loop finishes (you'll be notified) — verify, don't trust
-Read the loop's returned result, then **confirm against disk** (read the phase's `review.md`, `test-lint.md`,
-`pr.md`): mark each stage `done` only if its file's GATE is `pass`; otherwise `failed`. Update `state.json` +
-`OVERVIEW.md` accordingly with transitions.
+Read the loop's returned result, then **confirm against disk**: for each stage that ran, read its output file
+(`implementation.md`, `tests.md`, `test-lint.md`, `review.md`, `documentation.md`, `qa.md`) and mark the stage
+`done` only if its `## GATE` is `status: pass`; otherwise `failed`. The draft PR link comes from the loop result
+(no file). Update `state.json` + `OVERVIEW.md` accordingly with transitions.
 Report to the user: tests green / skipped, review committed?, draft PR url, and any open non-critical findings.
 - If the result has an **escalation** (`returnTo`), set that stage back to `pending`, tell the user what decision is
   needed, and point them to `/workflow:design` or `/workflow:arch`.

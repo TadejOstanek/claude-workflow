@@ -41,7 +41,8 @@ Ask **where** docs should live if not obvious. List the docs-to-write in the out
 - Architectural patterns the code design + implementation must follow.
 - Phase breakdown (with type + order + dependencies).
 - Docs-to-write list.
-Use checkboxes. Keep terse. End with the standard `## GATE`.
+Write as concise prose and plain bullet lists — no checkboxes here (this is description, not a checklist). End with
+the standard `## GATE`.
 
 ## Done when
 User agrees the approach. Then `/clear` and run `/workflow:design` (per phase). If a phase is complex, the user may

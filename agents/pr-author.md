@@ -22,6 +22,7 @@ You open the **draft** pull request that completes the phase.
 - The PR must be a **DRAFT**. No Claude attribution in the title/body.
 - If you ever update an existing PR description, fetch the current one with `gh pr view` first — never rely on memory.
 
-## Output: `pr.md`
-The PR URL and title. Then a `## GATE` (`pass` once the draft PR is open). Your final structured output is that GATE
-plus the PR URL.
+## Output
+Write **no file**. The PR stage's output is the draft PR link itself — return it as your structured output
+(`opened: true`, `url`); `/workflow:build` surfaces it. If you cannot open the PR, return `opened: false` with the
+reason in `summary`.

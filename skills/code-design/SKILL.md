@@ -32,7 +32,8 @@ is the last interactive stage — the user approves before the autonomous loop r
 - **Tests** — functions/methods under test + the behaviors each must verify (the test agent's contract).
 - **Conventions** — the repo patterns/conventions you discovered, so downstream agents don't re-derive them
   (saves tokens). Name the canonical files to mirror.
-Use checkboxes. Keep terse. End with the standard `## GATE`.
+Use checkboxes only for the **Tests** list (each behavior to verify); interfaces, components, and conventions are
+concise prose/plain lists. End with the standard `## GATE`.
 
 ## Done when
 The user approves the design. Then `/clear` and run `/workflow:build` to start the autonomous loop for this phase.

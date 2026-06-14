@@ -91,7 +91,7 @@ at `~/.claude/plans/we-are-creating-a-federated-clover.md`.
 - [x] Implements the code specified in the code design doc
 - [x] On insurmountable issues fails and reports; otherwise succeeds but reports what was sub-optimal for the user
 - [x] Looks at lint config so the code won't massively fail lint
-- [x] Not allowed to touch test code (tool restriction + guard hook)
+- [x] Not allowed to touch test code (hard rule in the agent; guard hooks removed per user — trusted to comply)
 - [x] Output doc states discoveries/deviations from the code design (not a description of what was implemented)
 
 ### Test implementation — `agents/test-author.md`
@@ -103,7 +103,7 @@ at `~/.claude/plans/we-are-creating-a-federated-clover.md`.
 - [x] Not interactive; runs in a subagent; runs sonnet even if the caller is higher
 - [x] Follows codebase test conventions (folder/file organization, test-data setup and where it lives)
 - [x] Output doc states discoveries/deviations from the code design
-- [x] Not allowed to touch non-test code except configuration files (tool restriction + guard hook)
+- [x] Not allowed to touch non-test code except configuration files (hard rule in the agent)
 - [x] Mocks only external dependencies; does not mock repo code; tests full code paths
 - [x] No complex tests built on introspection of internals; tests publicly described behavior
 
@@ -175,7 +175,7 @@ at `~/.claude/plans/we-are-creating-a-federated-clover.md`.
 - [x] Changes section describes major changes and their meaning
 - [x] Changes section never references file paths — plain simple English
 - [x] PR opened in DRAFT
-- [x] Output is a link to the PR
+- [x] Output is the draft-PR link, surfaced by `/workflow:build` from the loop result — **no `pr.md` file** (user change)
 
 ### Orchestration — `workflows/autonomous-loop.js` + `commands/build.md`
 
@@ -196,7 +196,7 @@ at `~/.claude/plans/we-are-creating-a-federated-clover.md`.
 - [x] Workflow state, all transitions, and transition reasons tracked in a dedicated file
 - [x] On stage start: read prior outputs + parent-phase docs; if this stage's doc already exists, also read the
       next stages' outputs to learn why it failed and contextualize the rework
-- [x] Each stage output has a dedicated GATE section indicating pass so the workflow can continue
+- [x] Each stage output has a dedicated GATE section indicating pass (except PR — its result is the loop's PR link)
 - [x] Manual QA and documentation stages run in parallel
 - [x] Implementation always runs two parallel agents (code + tests); never modified by the same agent
 - [x] Non-interactive orchestration verifies each stage's output (doc + code) against requirements — doesn't trust
@@ -211,7 +211,7 @@ at `~/.claude/plans/we-are-creating-a-federated-clover.md`.
 - [x] All workflow files in a `.workflow` folder in the repo
 - [x] Each workflow/feature gets a dedicated, meaningfully-named subfolder
 - [x] Each sub-phase gets a subfolder within the main workflow folder
-- [x] Each stage outputs its own file
+- [x] Each stage outputs its own file (exception: the PR stage writes no file — its output is the build-step link)
 - [x] Stage filenames are consistent and do not contain the workflow name
 - [x] State tracking + transitions stored in a dedicated file
 - [x] Stage outputs are for agents and may be optimized for Claude
@@ -220,7 +220,7 @@ at `~/.claude/plans/we-are-creating-a-federated-clover.md`.
 
 ### Claude mechanics
 
-- [x] Non-interactive stages use agents so models can be specified *(D2: real agent files, chosen over inline)*
+- [x] Non-interactive stages use agents so models can be specified *(D2: real agent files; tool-restricted, guard hooks removed)*
 - [x] Interactive stages use commands
 
 ## Non-obvious constraints
@@ -236,7 +236,8 @@ at `~/.claude/plans/we-are-creating-a-federated-clover.md`.
 ## Deviations (confirmed with user)
 
 - **D1** "force compaction via hook" → **lossless `/clear`** (no hook can trigger `/compact`).
-- **D2** "use agents to specify models" → **real `agents/*.md` files** with restricted tools + guard hooks.
+- **D2** "use agents to specify models" → **real `agents/*.md` files** with restricted tools; guard hooks removed
+  (the agents are trusted to follow their hard rules).
 
 ## Non-goals
 

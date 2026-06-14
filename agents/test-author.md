@@ -4,12 +4,6 @@ description: Non-interactive workflow agent that writes the tests for a phase fr
 model: sonnet
 color: cyan
 tools: Read, Edit, Write, Grep, Glob
-hooks:
-  PreToolUse:
-    - matcher: "Write|Edit"
-      hooks:
-        - type: command
-          command: "${CLAUDE_PLUGIN_ROOT}/hooks/guard-test-files-only.sh"
 ---
 
 # Test author
@@ -29,7 +23,7 @@ exactly the interfaces named in the code design.
   real outcomes through full code paths.
 - Mirror the repo's existing test layout, test-data setup, and naming. Test classes named for the unit under test;
   method names describe the behavior. Check the lint/test config so your output won't fail wholesale.
-- You may modify **only** test files and configuration (the guard hook enforces this). Never touch application code.
+- You may modify **only** test files and configuration. Never touch application code — it's owned by the implementer.
 - Do **not** run git, tests, or linters.
 
 ## Output: `tests.md`

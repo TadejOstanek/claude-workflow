@@ -28,12 +28,19 @@ requirement in a handoff silently breaks every stage after it. Prefer adding mor
     review.md         # review verdict + findings
     documentation.md  # list of docs produced
     qa.md             # manual QA instructions
-    pr.md             # PR link
 ```
 
 - `<feature-slug>` and `<phase-slug>`: short kebab-case. Stage filenames are fixed and **never** contain the
   feature/phase name (the folder already carries it).
-- A phase `type` is `feature`, `tidy-first` (refactor before features), or `tidy-after` (cleanup after).
+- A phase `type` is `feature` or `refactor`.
+- The **pull request** stage writes no file — its output (the draft PR link) is surfaced by `/workflow:build` from
+  the loop result.
+
+## Checkboxes vs prose
+
+Use checkboxes (`- [ ]`) only for: the spec's **acceptance criteria**, and any **list of steps to perform** or
+**conditions that must be true** (QA steps, planned test behaviors, the OVERVIEW per-phase stage list). Everything
+else — descriptions, decisions, discoveries, findings, rationale, the GATE block — is normal prose.
 
 ## state.json schema
 
@@ -52,7 +59,7 @@ requirement in a handoff silently breaks every stage after it. Prefer adding mor
       "slug": "01-data-model", "type": "feature", "order": 1, "depends_on": [],
       "stages": {
         "code-design": "pending", "build": "pending", "test-lint": "pending",
-        "review": "pending", "documentation": "pending", "qa": "pending", "pr": "pending"
+        "review": "pending", "docs": "pending", "qa": "pending", "pr": "pending"
       }
     }
   ],
@@ -64,7 +71,7 @@ requirement in a handoff silently breaks every stage after it. Prefer adding mor
 
 - Stage status values: `pending` · `in_progress` · `done` · `failed` · `na` (not applicable).
 - `epic` holds the two interactive epic-level stages. Each phase holds the remaining stages.
-- `build` covers the parallel implement + test-author pair (both green = `done`).
+- `build` covers the parallel implement + test-author pair (both green = `done`). The `docs` stage writes `documentation.md`.
 - A stage is marked `done` **only when its output file exists and its GATE is `pass`** — so an interrupted stage
   re-runs cleanly. Append a `transitions` entry on every status change with a one-line reason.
 
@@ -82,8 +89,10 @@ On `fail`, also add:
 - reason: <what's wrong>
 - instructions: <what the owning stage must change>
 ```
-Non-interactive stages also return this gate as structured output to the loop; the loop verifies the on-disk file
-matches before trusting it (verify, don't trust).
+Non-interactive stages also return this gate as structured output. Verification is layered, not blind trust: the
+opus **review** stage independently re-derives correctness from the actual `git diff` (not the implementer's
+report), the **test-runner** judges by real tool output (not exit code), and `/workflow:build` re-checks each
+stage's on-disk GATE after the loop before marking it `done`.
 
 ## OVERVIEW.md format
 

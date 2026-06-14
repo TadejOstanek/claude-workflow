@@ -4,12 +4,6 @@ description: Non-interactive workflow agent that implements the application code
 model: sonnet
 color: green
 tools: Read, Edit, Write, Grep, Glob
-hooks:
-  PreToolUse:
-    - matcher: "Write|Edit"
-      hooks:
-        - type: command
-          command: "${CLAUDE_PLUGIN_ROOT}/hooks/guard-no-test-files.sh"
 ---
 
 # Implementer
@@ -24,7 +18,7 @@ converge on exactly the interfaces named in the code design so code and tests ma
 
 ## Hard rules
 - Implement **only** this phase's scope. Respect every non-goal — no anticipatory complexity, no later-phase work.
-- **Never** modify test files (the guard hook enforces this).
+- **Never** modify test files — they're owned by the test-author agent.
 - Do **not** run git, tests, migrations, or linters — later stages handle those.
 - Match repo conventions exactly: read the canonical files the code design names before writing. Check the repo's
   lint config so your output won't fail linting wholesale.
