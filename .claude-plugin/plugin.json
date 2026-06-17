@@ -1,6 +1,6 @@
 {
   "name": "workflow",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Reusable, resumable multi-agent software-development workflow: specification → architectural design → code design → parallel implement+test → test/lint → review → docs+QA → pull request. File-based handoff, cross-session resume, per-stage models.",
   "author": { "name": "Tadej Ostanek", "email": "tadej.ostanek@slice.com" },
   "repository": "https://github.com/TadejOstanek/claude-workflow",
