@@ -89,7 +89,7 @@ const REVIEW_SCHEMA = {
 const PR_SCHEMA = {
   type: 'object', additionalProperties: false,
   required: ['opened', 'summary'],
-  properties: { opened: { type: 'boolean' }, url: { type: 'string' }, summary: { type: 'string' } },
+  properties: { opened: { type: 'boolean' }, committed: { type: 'boolean', description: 'true if you committed the change here (e.g. review was skipped)' }, url: { type: 'string' }, summary: { type: 'string' } },
 }
 
 // ---------- shared prompt context ----------
@@ -216,11 +216,18 @@ if ((todo('docs') || todo('qa')) && reviewPassed) {
 // ============ PR (draft) ============
 if (todo('pr') && reviewPassed) {
   phase('PR')
-  const pr = await agent(`${CTX}\n(Override: the PR stage writes NO file — return opened+url as your structured output.)\nPush the branch and open a DRAFT PR against main using the repo's pull_request_template.md. Why-first description; changes in plain English (no file paths); paste ${PHASE_DIR}/qa.md verbatim as the QA section.`,
+  const COMMIT_NOTE = result.committed
+    ? `First ensure every file of this change is committed — if docs or other change files are still uncommitted, commit them now (scoped to this change's code/test/doc files + its OpenSpec change; never \`.workflow/\`, \`openspec/specs/\`, or unrelated edits). Then `
+    : `Nothing has been committed yet (the review stage was skipped). FIRST commit this change yourself — stage only this change's code/test/doc files plus its OpenSpec change at ${CHANGE_DIR || 'openspec/changes/<change>'} (never \`.workflow/\`, \`openspec/specs/\`, \`git add -A\`, or unrelated edits) and commit with a concise why-focused message (no Claude attribution). Then `
+  const pr = await agent(`${CTX}\n(Override: the PR stage writes NO file — return opened+committed+url as your structured output.)\n${COMMIT_NOTE}push the branch and open a DRAFT PR against main using the repo's pull_request_template.md. Why-first description; changes in plain English (no file paths); paste ${PHASE_DIR}/qa.md verbatim as the QA section if it exists.`,
     { agentType: 'workflow:pr-author', model: M.doc, phase: 'PR', label: `pr:${SCOPE}`, schema: PR_SCHEMA })
+  if (pr && pr.committed) result.committed = true
   if (pr && pr.opened) { result.prUrl = pr.url || null; log(`Draft PR: ${pr.url || '(opened)'}`) }
   result.stageGates.pr = pr
 }
 
+if (!result.escalation && !result.committed && !result.prUrl) {
+  log('Light build complete — changes are in the working tree, uncommitted (no review or PR ran). Review, commit, and run /workflow:archive when ready.')
+}
 if (result.escalation) log(`ESCALATION → ${result.escalation.returnTo}: ${result.escalation.reason}`)
 return result

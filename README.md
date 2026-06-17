@@ -76,7 +76,9 @@ Or add to `~/.claude/settings.json`:
 /workflow:propose                           # why/what + capabilities → OpenSpec change; /clear optional
 /workflow:specify                           # requirement/scenario deltas → OpenSpec change; then /clear
 /workflow:design                            # interfaces + tests → code-design.md; then /clear
-/workflow:build                             # autonomous loop → draft PR
+/workflow:build                             # full autonomous loop → draft PR
+/workflow:build light                       #   …or light: just implement + tests (skip test-run/review/QA/PR)
+/workflow:build skip review                 #   …or full minus named stages (only/skip/light)
 /workflow:archive                           # WHEN you're sure it's done → canonical openspec/specs/
 
 # epic (multi-change): run /workflow:arch right after start to break it into changes,
@@ -85,6 +87,10 @@ Or add to `~/.claude/settings.json`:
 
 `/clear` between stages is lossless — each command re-reads `.workflow/` + the OpenSpec change. Run
 `/workflow:start` with no argument any time to see status and the next command.
+
+`/workflow:build` always runs implement‖test together; `test-lint`, `review`, `docs`, `qa`, and `pr` are optional
+(`light` = none of them). Skip `review` and the change is left uncommitted for you to review/commit yourself (or,
+if you keep `pr`, the PR step commits it). Handy when you just want code+tests, or everything-but-review.
 
 ## Layout (created in the target repo)
 

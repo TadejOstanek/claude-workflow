@@ -101,6 +101,10 @@ format. Everything else — descriptions, decisions, discoveries, findings, rati
 - Per-change stages run: `propose` → `specify` → `design` → `build` (the parallel implement + test-author pair,
   both green = `done`) → `test-lint` → `review` → `docs` → `qa` → `pr` → `archive`. `docs` writes
   `documentation.md`. **`archive` is `done` only once you've run `/workflow:archive`** — a deliberate manual step.
+- `/workflow:build` runs **`build` always** (the implement + test-author pair); `test-lint`, `review`, `docs`,
+  `qa`, `pr` are **optional** per build (`full` / `light` / `only <stages>` / `skip <stages>`). The change is
+  committed by `review` if it runs, else by `pr`; skip **both** (a pure light build) and the loop leaves it
+  uncommitted for you. Unselected stages stay `pending` (run them in a later build, or mark `na` if never wanted).
 - A stage is marked `done` only when its output file exists and its GATE is `pass` (where it has one). Append a
   `transitions` entry on every status change with a one-line reason.
 
