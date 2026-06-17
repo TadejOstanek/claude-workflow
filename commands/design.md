@@ -7,11 +7,14 @@ argument-hint: [phase slug] — blank to use the next phase needing design
 
 Apply the `workflow:code-design` skill. Read `workflow:workflow-conventions` for the file/GATE format.
 
-1. Resolve the active workflow from `state.json`. Read `state.json`, `spec.md`, `architecture.md`. If a phase slug
-   is given in `$ARGUMENTS` use it; else pick the lowest-`order` phase whose `code-design` stage is `pending`
-   (respecting `depends_on`). Also read that phase's own `spec.md`/`architecture.md` if present.
-2. Offer the user the option to add a phase-specific `spec.md`/`architecture.md` for this phase before designing —
-   do not skip the offer, even if they'll inherit the epic docs.
+1. Resolve the active workflow from `state.json`. Read `state.json`, the epic `spec.md` + `architecture.md`, and
+   **this phase's behavioral spec — the OpenSpec change at `openspec/changes/<change>/`** (`proposal.md` +
+   `specs/**/*.md`; the `change` id is in `state.json`). If a phase slug is given in `$ARGUMENTS` use it; else pick
+   the lowest-`order` phase whose `code-design` stage is `pending` (respect `depends_on`). The phase's `stages.spec`
+   must be `done` (its OpenSpec change must exist) — if not, stop and tell the user to run `/workflow:phase-spec`
+   first. Also read that phase's own `architecture.md` if present.
+2. Offer the user the option to add a phase-specific `architecture.md` for this phase before designing (the
+   behavioral spec already lives in the OpenSpec change) — do not skip the offer.
 3. If `<phase>/code-design.md` already exists (returning), read it + later files to learn why, then refine.
 4. Run the stage interactively per the skill — exact interfaces, components, test behaviors, discovered conventions.
    If the architecture proves infeasible, stop and send the user back to `/workflow:arch`.

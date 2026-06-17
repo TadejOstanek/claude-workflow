@@ -22,8 +22,8 @@ design (no function/class names).
 
 ## Phase breakdown (important)
 Identify whether the work splits into phases. A phase is independent if it can run in a fresh session needing only
-the epic spec + architecture (+ prior sequential phases' outputs). Each phase runs the full stage pipeline from
-code-design on, and usually becomes its own PR.
+the epic spec + architecture (+ prior sequential phases' outputs). Each phase runs the full pipeline from its
+OpenSpec spec (`/workflow:phase-spec`) and code-design on, and becomes its own PR (= one OpenSpec change).
 - **Tidy-first**: refactors that make the change easier → schedule as initial sequential phase(s).
 - **Feature** phases: the change itself, marked independent / parallel / sequential.
 - **Tidy-after**: cleanup enabled once the feature lands → final phase(s).
@@ -45,5 +45,5 @@ Write as concise prose and plain bullet lists — no checkboxes here (this is de
 the standard `## GATE`.
 
 ## Done when
-User agrees the approach. Then `/clear` and run `/workflow:design` (per phase). If a phase is complex, the user may
-add a phase-specific `spec.md`/`architecture.md` first.
+User agrees the approach. Then `/clear` and run `/workflow:phase-spec` (per phase — authors its behavioral spec as
+an OpenSpec change), then `/workflow:design`. A complex phase may also get a phase-specific `architecture.md`.

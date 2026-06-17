@@ -1,6 +1,6 @@
 ---
 name: specification
-description: Methodology for the workflow's Specification stage — establish the why and what of a change with the user before any code or design. Use when running /workflow-spec.
+description: Methodology for the workflow's spec stages — establish the why and what of a change with the user before any code or design. Use when running /workflow:spec (epic) or /workflow:phase-spec (per-phase OpenSpec change).
 ---
 
 # Specification stage
@@ -24,16 +24,18 @@ omit here silently never gets built or checked.
   **given** (situation) / **when** (action) / **then** (outcome) wherever it fits.
 - Use the `orchestration:request-clarification` skill to structure the questioning if helpful.
 
-## Output: `spec.md`
-Four headers:
-- **Goals / Why** — the problem and intended outcome.
-- **Acceptance criteria** — testable, given/when/then where possible. Checkboxes.
-- **Non-obvious constraints** — things that aren't apparent from the request.
-- **Non-goals** — explicitly out of scope.
+## Output — same method, different home per stage
 
-If the change is complex, split into sub-sections (feature parts, or non-functional specs), each repeating the four
-headers. Be concise per criterion, but **complete in coverage** — terseness means tight wording, never fewer specs.
-End with the standard `## GATE` (see `workflow-conventions`).
+- **Epic spec** (`/workflow:spec`): write `.workflow/<feature>/spec.md` with four headers — **Goals / Why**,
+  **Acceptance criteria** (testable, given/when/then, checkboxes), **Non-obvious constraints**, **Non-goals**.
+  Split complex specs into sub-sections, each repeating the four headers. End with the standard `## GATE` (see
+  `workflow-conventions`). This is the epic intent + the contract the phase breakdown is drawn from.
+- **Phase spec** (`/workflow:phase-spec`): write the phase's behavioral spec as an **OpenSpec change** —
+  `proposal.md` + capability `### Requirement:` / `#### Scenario:` deltas — exactly as that command specifies. Each
+  scenario is a testable acceptance criterion; the given/when/then above maps to WHEN/THEN.
+
+Either way: be concise per criterion but **complete in coverage** — terseness means tight wording, never fewer specs.
 
 ## Done when
-The user agrees the spec captures the why/what. Then they `/clear` and run `/workflow:arch`.
+The user agrees the spec captures the why/what. Epic spec → `/clear`, then `/workflow:arch`. Phase spec →
+`openspec validate` passes and the user agrees → `/clear`, then `/workflow:design`.

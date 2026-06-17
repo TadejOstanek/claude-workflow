@@ -20,6 +20,7 @@ const TITLE = A.title || A.scope || 'phase'
 const SCOPE = A.scope || TITLE
 const FEATURE_DIR = A.featureDir   // .workflow/<feature>/   (epic spec.md + architecture.md live here)
 const PHASE_DIR = A.phaseDir       // .workflow/<feature>/<NN>-slug/  (this phase's stage files)
+const CHANGE_DIR = A.changeDir || null  // openspec/changes/<change-id>/ — this phase's behavioral spec (OpenSpec change)
 const WORKDIR = A.workdir || '.'   // repo root OR the worktree path — ALL git/test/gh commands run here
 const BASE_REF = A.baseRef || 'main'
 const APP_DIR = A.appDir || '.'
@@ -92,9 +93,14 @@ const PR_SCHEMA = {
 }
 
 // ---------- shared prompt context ----------
+const SPEC_LINE = CHANGE_DIR
+  ? `Behavioral spec: ${CHANGE_DIR}/  (OpenSpec change — read proposal.md + specs/**/*.md; the requirement
+  scenarios there ARE the acceptance criteria this phase must satisfy)`
+  : `Behavioral spec: ${FEATURE_DIR}/spec.md`
 const CTX = `Workflow phase "${TITLE}" (scope: ${SCOPE}).
 Epic docs:   ${FEATURE_DIR}/spec.md , ${FEATURE_DIR}/architecture.md
-Phase docs:  ${PHASE_DIR}/  (read this phase's spec.md/architecture.md if present)
+${SPEC_LINE}
+Phase docs:  ${PHASE_DIR}/  (this phase's code-design.md + an optional architecture.md)
 Working dir: ${WORKDIR}  — run ALL shell/git/test/gh commands here (use \`git -C ${WORKDIR}\` or cd first).
 Read your role's agent instructions; read only what you need. Write your output file in ${PHASE_DIR}/ and end it
 with a \`## GATE\`. Your final structured output IS that gate.`
@@ -159,7 +165,7 @@ if (TEST_CMD && todo('test-lint') && !result.escalation) {
 let review = null
 if (todo('review') && !result.escalation) {
   phase('Review')
-  const RUN = `${CTX}\nStrict senior review. Inspect \`git -C ${WORKDIR} diff ${BASE_REF} -- ${APP_DIR}\` plus new untracked files. Judge: (1) no regressions/bugs, (2) every spec + code-design criterion met. Write ${PHASE_DIR}/review.md. If clean, COMMIT the change (stage only the code/test files of this change — never \`.workflow/\` or unrelated edits). If a fix is a design decision, set escalate=true.`
+  const RUN = `${CTX}\nStrict senior review. Inspect \`git -C ${WORKDIR} diff ${BASE_REF} -- ${APP_DIR}\` plus new untracked files. Judge: (1) no regressions/bugs, (2) every spec + code-design criterion met. Write ${PHASE_DIR}/review.md. If clean, COMMIT the change (stage only this change's files — the code/test files plus the phase's OpenSpec change at ${CHANGE_DIR || 'openspec/changes/<change>'} — never \`.workflow/\`, never \`openspec/specs/\` which merges only at archive, never unrelated edits). If a fix is a design decision, set escalate=true.`
   const MAX = 2
   for (let i = 1; i <= MAX; i++) {
     review = await agent(RUN, { agentType: 'workflow:reviewer', model: M.review, phase: 'Review', label: `review #${i}:${SCOPE}`, schema: REVIEW_SCHEMA })

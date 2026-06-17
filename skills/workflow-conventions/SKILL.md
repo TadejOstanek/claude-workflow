@@ -10,17 +10,20 @@ files in `.workflow/` are the only handoff. Keep produced `.md` terse in *wordin
 terse**: capture every requirement, criterion, and decision the prior stage or the user provided. Losing a
 requirement in a handoff silently breaks every stage after it. Prefer adding more over cutting.
 
-## Folder layout (in the target repo)
+## Folder layout
+
+Two homes, one clean seam: **`.workflow/`** holds planning + execution state (this engine); **`openspec/`** holds
+the behavioral spec as a per-phase *change* plus the accumulating canonical library (the thin seam — see "OpenSpec
+integration" below).
 
 ```
 .workflow/<feature-slug>/
   state.json          # machine state — source of truth for resume (schema below)
   OVERVIEW.md         # human-readable mirror, one section per phase, checkboxes
-  spec.md             # epic specification (interactive)
-  architecture.md     # epic architectural design (interactive)
-  <NN>-<phase-slug>/  # one folder per phase (always ≥1, zero-padded order: 01-, 02-)
-    spec.md           # OPTIONAL phase-specific spec (inherits epic; only if user adds detail)
-    architecture.md   # OPTIONAL phase-specific arch (inherits epic; only if user adds detail)
+  spec.md             # EPIC spec — why/what + the phase breakdown (interactive; planning intent)
+  architecture.md     # EPIC architectural design (interactive)
+  <NN>-<phase-slug>/  # one folder per phase (always ≥1, zero-padded order: 01-, 02-) — execution state
+    architecture.md   # OPTIONAL phase-specific arch (inherits epic; only if the user adds detail)
     code-design.md    # interactive
     implementation.md # code agent's discoveries/deviations
     tests.md          # test agent's discoveries/deviations
@@ -28,13 +31,22 @@ requirement in a handoff silently breaks every stage after it. Prefer adding mor
     review.md         # review verdict + findings
     documentation.md  # list of docs produced
     qa.md             # manual QA instructions
+
+openspec/             # OpenSpec home (created once by `openspec init`)
+  changes/<change-id>/          # ONE change per phase = one PR — the phase's behavioral spec
+    proposal.md                 # why/what for this phase (authored by /workflow:phase-spec)
+    specs/<capability>/spec.md  # ADDED/MODIFIED/REMOVED deltas: `### Requirement:` + `#### Scenario:` (4 hashes)
+  specs/<capability>/spec.md    # CANONICAL living library — accumulates as each phase's PR merges + archives
+  changes/archive/YYYY-MM-DD-<change-id>/   # archived changes (full history)
 ```
 
-- `<feature-slug>` and `<phase-slug>`: short kebab-case. Stage filenames are fixed and **never** contain the
-  feature/phase name (the folder already carries it).
+- `<feature-slug>` and `<phase-slug>`: short kebab-case. `.workflow/` stage filenames are fixed and **never**
+  contain the feature/phase name (the folder already carries it).
+- The per-phase **behavioral spec is the OpenSpec change**, not a `.workflow/` file. Each phase's `change` id is
+  recorded in `state.json`; the epic `spec.md` stays planning intent + the phase breakdown.
 - A phase `type` is `feature` or `refactor`.
-- The **pull request** stage writes no file — its output (the draft PR link) is surfaced by `/workflow:build` from
-  the loop result.
+- The **pull request** stage writes no file — its draft-PR link is surfaced by `/workflow:build` from the loop
+  result. The **archive** (canonical-spec merge) runs post-**merge** via `/workflow:archive`, never in the loop.
 
 ## Checkboxes vs prose
 
@@ -57,9 +69,10 @@ else — descriptions, decisions, discoveries, findings, rationale, the GATE blo
   "phases": [
     {
       "slug": "01-data-model", "type": "feature", "order": 1, "depends_on": [],
+      "change": null,
       "stages": {
-        "code-design": "pending", "build": "pending", "test-lint": "pending",
-        "review": "pending", "docs": "pending", "qa": "pending", "pr": "pending"
+        "spec": "pending", "code-design": "pending", "build": "pending", "test-lint": "pending",
+        "review": "pending", "docs": "pending", "qa": "pending", "pr": "pending", "archive": "pending"
       }
     }
   ],
@@ -71,7 +84,12 @@ else — descriptions, decisions, discoveries, findings, rationale, the GATE blo
 
 - Stage status values: `pending` · `in_progress` · `done` · `failed` · `na` (not applicable).
 - `epic` holds the two interactive epic-level stages. Each phase holds the remaining stages.
-- `build` covers the parallel implement + test-author pair (both green = `done`). The `docs` stage writes `documentation.md`.
+- `change` is the phase's OpenSpec change id (kebab-case), set by `/workflow:phase-spec` when it runs
+  `openspec new change`. Null until then.
+- `spec` (per phase) is the interactive OpenSpec-change authoring (proposal + capability deltas) — the phase's
+  behavioral spec. `code-design` follows it. `build` covers the parallel implement + test-author pair (both green
+  = `done`). The `docs` stage writes `documentation.md`. `archive` is the post-**merge** canonical-spec merge run
+  by `/workflow:archive` (`done` once `openspec archive` has folded this change's deltas into `openspec/specs/`).
 - A stage is marked `done` **only when its output file exists and its GATE is `pass`** — so an interrupted stage
   re-runs cleanly. Append a `transitions` entry on every status change with a one-line reason.
 
@@ -99,8 +117,25 @@ stage's on-disk GATE after the loop before marking it `done`.
 One `##` section per phase (plus an epic section), each a checkbox list of stages with a one-line status. This is
 the only file written for the human; keep it scannable.
 
+## OpenSpec integration (the thin seam)
+
+OpenSpec sits **underneath** this workflow as a passive spec store + canonical library, driven by the engine —
+it does not drive the workflow. Grain: **one OpenSpec change = one phase = one PR.**
+
+- **Authoring** (`/workflow:phase-spec`, interactive, per phase): `openspec new change <change-id>`, then write
+  `proposal.md` + `specs/<capability>/spec.md` deltas using the exact format from
+  `openspec instructions <artifact> --change <id> --json` (capability-scoped `### Requirement:` + `#### Scenario:`
+  with **exactly four** hashes; ADDED/MODIFIED/REMOVED/RENAMED sections). Record the `change` id in `state.json`.
+- **Consumption**: downstream stages (code-design, the loop's implementer/test/reviewer) read the phase's
+  behavioral spec from `openspec/changes/<change>/` instead of a `.workflow/` spec file.
+- **Archive** (`/workflow:archive`, after the PR **merges**): `openspec archive -y <change>` validates, merges the
+  change's deltas into the canonical `openspec/specs/<capability>/`, and moves the change to `changes/archive/`.
+  Never archive on the draft PR — the canonical library must reflect only merged behavior.
+- Requires the `openspec` CLI (`@fission-ai/openspec`, Node ≥20.19) and a one-time `openspec init` in the repo.
+
 ## Resume
 
 `state.json` is the sole cross-session recovery path. On entering any stage: read `state.json`, the epic `spec.md`
-+ `architecture.md`, and the current phase's prior files. If this stage's own file already exists, also read the
-*next* stages' files to learn why it was sent back, then fix accordingly.
++ `architecture.md`, the phase's OpenSpec change (`openspec/changes/<change>/` — its behavioral spec), and the
+current phase's prior `.workflow/` files. If this stage's own file already exists, also read the *next* stages'
+files to learn why it was sent back, then fix accordingly.

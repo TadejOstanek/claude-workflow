@@ -9,7 +9,8 @@ Goal: specify the **exact** code so the non-interactive implement + test agents 
 is the last interactive stage — the user approves before the autonomous loop runs.
 
 ## Method
-- Read `spec.md` + `architecture.md` (and the parent epic's versions if this is a sub-phase).
+- Read the phase's behavioral spec — its **OpenSpec change** (`openspec/changes/<change>/`: `proposal.md` +
+  `specs/**/*.md`) — plus the epic `spec.md` + `architecture.md` for context.
 - Follow existing repo conventions; prioritize target conventions over deprecated ones.
 - Design for change — **good code is easy to change**. Favor **deep modules** (small interface, real functionality);
   a large interface for little behavior is a smell.

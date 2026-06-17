@@ -10,7 +10,9 @@ This command **authorizes** running the Workflow tool. Read `workflow:workflow-c
 ## 1. Resolve the phase + compute what's left (you have filesystem access — the loop does not)
 1. Find the active workflow under `.workflow/` from `state.json`. Pick the phase from `$ARGUMENTS`, else the
    lowest-`order` phase whose `code-design` is `done` and whose later stages aren't all `done` (respect `depends_on`).
-   Its `code-design` must be `done` — if not, stop and tell the user to run `/workflow:design` first.
+   Both `stages.spec` and `code-design` must be `done` — if not, stop and point the user to `/workflow:phase-spec`
+   then `/workflow:design`. Note the phase's `change` id; its OpenSpec change at `openspec/changes/<change>/` holds
+   the behavioral spec the loop's agents read.
 2. Build `pendingStages` for `[build, test-lint, review, docs, qa, pr]`: a stage is **done** (omit it) if `state.json`
    says `done` **or** its output file exists in the phase folder with a `## GATE` of `status: pass`. Read those files
    to check — this makes a re-run after a lost session resume mid-loop instead of redoing work. Everything else is
@@ -30,6 +32,7 @@ Call the **Workflow** tool with `scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/au
   "title": "<feature + phase title>", "scope": "<phase title>",
   "featureDir": "<abs path to .workflow/<feature>/>",
   "phaseDir": "<abs path to the phase folder>",
+  "changeDir": "<abs path to openspec/changes/<change>/ , or null>",
   "workdir": "<abs repo root or worktree path>",
   "baseRef": "main", "appDir": "<dir or .>",
   "testCmd": "<detected or null>", "migrateCmd": "<or null>", "isPeel": <bool>,

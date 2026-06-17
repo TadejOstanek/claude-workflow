@@ -24,3 +24,6 @@ Do not read code or design anything — only scaffold:
 4. Write `OVERVIEW.md`: the title, an **Epic** section listing the two interactive stages as unchecked boxes, and a
    note that phases appear after architecture.
 5. Tell the user: created — run `/workflow:spec` to begin (no `/clear` needed; spec is the first stage).
+6. **OpenSpec prerequisite** (the per-phase spec layer): if the repo has no `openspec/` directory, tell the user to
+   run `openspec init --tools claude` (installing `@fission-ai/openspec` if needed) before `/workflow:phase-spec`.
+   Epic `spec`/`arch` don't need it; it's required from `/workflow:phase-spec` onward.
