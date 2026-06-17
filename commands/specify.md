@@ -11,8 +11,10 @@ the testable requirement/scenario deltas — into the OpenSpec change created by
 
 ## 1. Resolve the change
 From `state.json`, use `$ARGUMENTS`, else the lowest-`order` change whose `stages.specify` is `pending` and whose
-`stages.propose` is `done`. Read its `proposal.md` (the `## Capabilities` list is your contract) and its `change`
-id. If `propose` isn't done, stop and tell the user to run `/workflow:propose` first.
+`stages.propose` is `done`. In `single` mode, if no change is `pending` (you're **amending** an already-specced
+change), default to the sole change anyway; in `epic` mode, name the change to revisit a `done` one. Read its
+`proposal.md` (the `## Capabilities` list is your contract) and its `change` id. If `propose` isn't done, stop and
+tell the user to run `/workflow:propose` first.
 
 ## 2. Author the specs — testable behavior, capture EVERYTHING
 Pull the format (don't assume it):

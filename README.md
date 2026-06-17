@@ -97,12 +97,13 @@ token commits + pushes without touching the PR body.
 
 ### Iterating (going back a step)
 
-This is not a waterfall — you'll loop back. Typical flow after manual QA finds a gap:
+This is not a waterfall — you'll loop back. Typical flow after manual QA finds a gap (single change shown — no
+change name needed; in an epic, name the change on each command):
 
 ```
-/workflow:specify <change>                  # add the missing requirement to the spec (re-validates)
-/workflow:design  <change>                  # refine code-design; reuses the existing branch/worktree
-/workflow:build   <change> only build commit  # re-implement + push to the existing draft PR — no review/QA/body rewrite
+/workflow:specify                           # add the missing requirement to the spec (re-validates)
+/workflow:design                            # refine code-design; reuses the existing branch/worktree
+/workflow:build only build commit           # re-implement + push to the existing draft PR — no review/QA/body rewrite
 ```
 
 Re-opening an upstream stage never auto-invalidates the downstream ones — they stay `done` (their outputs now

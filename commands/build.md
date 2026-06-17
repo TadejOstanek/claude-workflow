@@ -12,9 +12,10 @@ This command **authorizes** running the Workflow tool. Read `workflow:workflow-c
    lowest-`order` change whose `code-design` is `done` and whose later stages aren't all `done` (respect `depends_on`).
    Both `stages.specify` and `code-design` must be `done` — if not, stop and point the user to `/workflow:specify`
    then `/workflow:design`. Note the change's `change` id; its OpenSpec change at `openspec/changes/<change>/` holds
-   the behavioral spec the loop's agents read. (`$ARGUMENTS` may also carry a stage selection — see step 2.) When
-   **iterating** (redo) you'll usually name the change explicitly: a fully-built change won't be auto-picked, since
-   none of its later stages are still pending.
+   the behavioral spec the loop's agents read. (`$ARGUMENTS` may also carry a stage selection — see step 2.)
+   **Resolving the change when blank:** in `single` mode default to the sole change **even when it's fully built**
+   (you're iterating), so `/workflow:build only build commit` resolves with no change name. In `epic` mode a
+   fully-built change won't be auto-picked (no pending later stages) — name it to rebuild.
 2. **Choose which stages to run — and whether to *resume* or *redo*.** The stages, in order, are `build` (the
    parallel implementer + test-author — they always run **together**), then `test-lint`, `review`, `docs`, `qa`,
    `pr`. Two modes, picked from `$ARGUMENTS`:

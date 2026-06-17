@@ -147,8 +147,9 @@ stages you don't want. The workflow supports this, and stages are revisitable. T
 
 - **Re-open an upstream stage by naming the change.** `/workflow:specify <change>` and `/workflow:design <change>`
   re-author in place — `specify` just re-edits the OpenSpec `spec.md` (then re-validates); `design` reuses the
-  existing branch/worktree (it does **not** re-create them). Auto-resolution only finds *pending* stages, so when
-  revisiting a done stage you pass the change explicitly.
+  existing branch/worktree (it does **not** re-create them). Auto-resolution normally finds only *pending* stages;
+  in `single` mode (one change) a blank invocation still defaults to that change so you needn't name it, but in
+  `epic` mode you pass the change explicitly to revisit a `done` stage.
 - **Re-opening upstream does NOT auto-invalidate downstream.** Downstream stages stay `done` even though their
   outputs (`review.md`, `qa.md`, the PR body) now describe older code. This is deliberate: **you** decide what to
   redo. The upstream command *warns* that they're stale and gives the redo command — it never forces a cascade.
