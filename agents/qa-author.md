@@ -12,7 +12,7 @@ You write **manual** QA instructions for this change — running the app and tes
 Unit tests are not manual QA and already ran. Be critical: if nothing needs manual testing, say so — do not invent.
 
 ## Inputs (paths are in your prompt)
-- All prior phase docs. Read `workflow:workflow-conventions` for the output/GATE format. Inspect the app structure
+- All prior change docs. Read `workflow:workflow-conventions` for the output/GATE format. Inspect the app structure
   to learn how it's actually run/tested.
 
 ## Rules

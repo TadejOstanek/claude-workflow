@@ -1,15 +1,16 @@
 ---
 name: code-design
-description: Methodology for the workflow's Code Design stage — specify exact interfaces and test behaviors for a phase so parallel implement/test agents can build it. Use when running /workflow:design.
+description: Methodology for the workflow's Code Design stage — specify exact interfaces and test behaviors for a change so parallel implement/test agents can build it. Use when running /workflow:design.
 ---
 
-# Code design stage (per phase)
+# Code design stage (per change)
 
 Goal: specify the **exact** code so the non-interactive implement + test agents can build it without guessing. This
 is the last interactive stage — the user approves before the autonomous loop runs.
 
 ## Method
-- Read `spec.md` + `architecture.md` (and the parent epic's versions if this is a sub-phase).
+- Read the change's behavioral spec — its **OpenSpec change** (`openspec/changes/<change>/`: `proposal.md` +
+  `specs/**/*.md`) — plus the epic `architecture.md` (if any) for context.
 - Follow existing repo conventions; prioritize target conventions over deprecated ones.
 - Design for change — **good code is easy to change**. Favor **deep modules** (small interface, real functionality);
   a large interface for little behavior is a smell.
@@ -36,4 +37,4 @@ Use checkboxes only for the **Tests** list (each behavior to verify); interfaces
 concise prose/plain lists. End with the standard `## GATE`.
 
 ## Done when
-The user approves the design. Then `/clear` and run `/workflow:build` to start the autonomous loop for this phase.
+The user approves the design. Then `/clear` and run `/workflow:build` to start the autonomous loop for this change.

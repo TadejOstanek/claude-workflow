@@ -1,6 +1,6 @@
 export const meta = {
   name: 'workflow-autonomous-loop',
-  description: 'Autonomous tail of the dev workflow for one phase: parallel implement+test → test/lint → opus review (commits) → parallel docs+QA → draft PR. File-based handoff; loops on failure; escalates the unresolvable.',
+  description: 'Autonomous tail of the dev workflow for one change: parallel implement+test → test/lint → opus review (commits) → parallel docs+QA → draft PR. File-based handoff; loops on failure; escalates the unresolvable.',
   phases: [
     { title: 'Build', detail: 'parallel implementer + test-author from the code design' },
     { title: 'Migrate', detail: 'optional pre-test command; skipped when migrateCmd absent' },
@@ -8,6 +8,7 @@ export const meta = {
     { title: 'Review', detail: 'opus review of the diff; commits on pass; fix loop, bounded' },
     { title: 'Docs+QA', detail: 'parallel documenter + qa-author' },
     { title: 'PR', detail: 'draft pull request' },
+    { title: 'Commit', detail: 'redo-only: land code on the branch without opening/rewriting a PR' },
   ],
 }
 
@@ -16,10 +17,11 @@ let A = args
 if (typeof A === 'string') { try { A = JSON.parse(A) } catch (_e) { A = {} } }
 A = A || {}
 
-const TITLE = A.title || A.scope || 'phase'
+const TITLE = A.title || A.scope || 'change'
 const SCOPE = A.scope || TITLE
-const FEATURE_DIR = A.featureDir   // .workflow/<feature>/   (epic spec.md + architecture.md live here)
+const FEATURE_DIR = A.featureDir   // .workflow/<feature>/   (epic architecture.md lives here in epic mode)
 const PHASE_DIR = A.phaseDir       // .workflow/<feature>/<NN>-slug/  (this phase's stage files)
+const CHANGE_DIR = A.changeDir || null  // openspec/changes/<change-id>/ — this change's behavioral spec (OpenSpec change)
 const WORKDIR = A.workdir || '.'   // repo root OR the worktree path — ALL git/test/gh commands run here
 const BASE_REF = A.baseRef || 'main'
 const APP_DIR = A.appDir || '.'
@@ -88,13 +90,18 @@ const REVIEW_SCHEMA = {
 const PR_SCHEMA = {
   type: 'object', additionalProperties: false,
   required: ['opened', 'summary'],
-  properties: { opened: { type: 'boolean' }, url: { type: 'string' }, summary: { type: 'string' } },
+  properties: { opened: { type: 'boolean' }, committed: { type: 'boolean', description: 'true if you committed the change here (e.g. review was skipped)' }, url: { type: 'string' }, summary: { type: 'string' } },
 }
 
 // ---------- shared prompt context ----------
-const CTX = `Workflow phase "${TITLE}" (scope: ${SCOPE}).
-Epic docs:   ${FEATURE_DIR}/spec.md , ${FEATURE_DIR}/architecture.md
-Phase docs:  ${PHASE_DIR}/  (read this phase's spec.md/architecture.md if present)
+const SPEC_LINE = CHANGE_DIR
+  ? `Behavioral spec: ${CHANGE_DIR}/  (OpenSpec change — read proposal.md + specs/**/*.md; the requirement
+  scenarios there ARE the acceptance criteria this change must satisfy)`
+  : `Behavioral spec: see ${PHASE_DIR}/code-design.md`
+const CTX = `Workflow change "${TITLE}" (scope: ${SCOPE}).
+Epic arch:   ${FEATURE_DIR}/architecture.md  (epic mode only; may be absent)
+${SPEC_LINE}
+Change docs: ${PHASE_DIR}/  (this change's code-design.md + an optional architecture.md)
 Working dir: ${WORKDIR}  — run ALL shell/git/test/gh commands here (use \`git -C ${WORKDIR}\` or cd first).
 Read your role's agent instructions; read only what you need. Write your output file in ${PHASE_DIR}/ and end it
 with a \`## GATE\`. Your final structured output IS that gate.`
@@ -159,7 +166,7 @@ if (TEST_CMD && todo('test-lint') && !result.escalation) {
 let review = null
 if (todo('review') && !result.escalation) {
   phase('Review')
-  const RUN = `${CTX}\nStrict senior review. Inspect \`git -C ${WORKDIR} diff ${BASE_REF} -- ${APP_DIR}\` plus new untracked files. Judge: (1) no regressions/bugs, (2) every spec + code-design criterion met. Write ${PHASE_DIR}/review.md. If clean, COMMIT the change (stage only the code/test files of this change — never \`.workflow/\` or unrelated edits). If a fix is a design decision, set escalate=true.`
+  const RUN = `${CTX}\nStrict senior review. Inspect \`git -C ${WORKDIR} diff ${BASE_REF} -- ${APP_DIR}\` plus new untracked files. Judge: (1) no regressions/bugs, (2) every spec + code-design criterion met. Write ${PHASE_DIR}/review.md. If clean, COMMIT the change (stage only this change's files — the code/test files plus the phase's OpenSpec change at ${CHANGE_DIR || 'openspec/changes/<change>'} — never \`.workflow/\`, never \`openspec/specs/\` which merges only at archive, never unrelated edits). If a fix is a design decision, set escalate=true.`
   const MAX = 2
   for (let i = 1; i <= MAX; i++) {
     review = await agent(RUN, { agentType: 'workflow:reviewer', model: M.review, phase: 'Review', label: `review #${i}:${SCOPE}`, schema: REVIEW_SCHEMA })
@@ -210,11 +217,29 @@ if ((todo('docs') || todo('qa')) && reviewPassed) {
 // ============ PR (draft) ============
 if (todo('pr') && reviewPassed) {
   phase('PR')
-  const pr = await agent(`${CTX}\n(Override: the PR stage writes NO file — return opened+url as your structured output.)\nPush the branch and open a DRAFT PR against main using the repo's pull_request_template.md. Why-first description; changes in plain English (no file paths); paste ${PHASE_DIR}/qa.md verbatim as the QA section.`,
+  const COMMIT_NOTE = result.committed
+    ? `First ensure every file of this change is committed — if docs or other change files are still uncommitted, commit them now (scoped to this change's code/test/doc files + its OpenSpec change; never \`.workflow/\`, \`openspec/specs/\`, or unrelated edits). Then `
+    : `Nothing has been committed yet (the review stage was skipped). FIRST commit this change yourself — stage only this change's code/test/doc files plus its OpenSpec change at ${CHANGE_DIR || 'openspec/changes/<change>'} (never \`.workflow/\`, \`openspec/specs/\`, \`git add -A\`, or unrelated edits) and commit with a concise why-focused message (no Claude attribution). Then `
+  const pr = await agent(`${CTX}\n(Override: the PR stage writes NO file — return opened+committed+url as your structured output.)\n${COMMIT_NOTE}push the branch and open a DRAFT PR against main using the repo's pull_request_template.md. Why-first description; changes in plain English (no file paths); paste ${PHASE_DIR}/qa.md verbatim as the QA section if it exists.`,
     { agentType: 'workflow:pr-author', model: M.doc, phase: 'PR', label: `pr:${SCOPE}`, schema: PR_SCHEMA })
+  if (pr && pr.committed) result.committed = true
   if (pr && pr.opened) { result.prUrl = pr.url || null; log(`Draft PR: ${pr.url || '(opened)'}`) }
   result.stageGates.pr = pr
 }
 
+// ============ COMMIT (redo-only: land re-built code without a PR rewrite) ============
+// For iteration: re-implement against an amended spec, then push to the existing draft PR without re-running
+// review or rewriting the PR body. Inert when `pr` ran (it already committed) or when nothing was selected.
+if (todo('commit') && !todo('pr') && reviewPassed && !result.committed) {
+  phase('Commit')
+  const c = await agent(`${CTX}\n(Override: write NO file — return your \`## GATE\` as structured output.)\nCommit and push ONLY this change's code/test/doc files plus its OpenSpec change at ${CHANGE_DIR || 'openspec/changes/<change>'} (never \`.workflow/\`, never \`openspec/specs/\`, never \`git add -A\`, never unrelated edits). Use a concise why-focused message (no Claude attribution), then push the branch. Do NOT open, edit, or touch any pull request — an existing draft PR picks up the push on its own.`,
+    { agentType: 'workflow:pr-author', model: M.doc, phase: 'Commit', label: `commit:${SCOPE}`, schema: GATE_SCHEMA })
+  if (c && c.gate === 'pass') { result.committed = true; log('Committed + pushed (no PR rewrite).') }
+  result.stageGates.commit = c
+}
+
+if (!result.escalation && !result.committed && !result.prUrl) {
+  log('Light build complete — changes are in the working tree, uncommitted (no review, PR, or commit ran). Review, commit, and run /workflow:archive when ready.')
+}
 if (result.escalation) log(`ESCALATION → ${result.escalation.returnTo}: ${result.escalation.reason}`)
 return result
