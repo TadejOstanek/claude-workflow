@@ -31,4 +31,4 @@ the reviewer later checks against. For a MODIFIED requirement, copy the full exi
 openspec validate "<change-id>"
 ```
 Fix any structural errors until it passes. Then set this change's `stages.specify = "done"`, append a transition,
-tick `OVERVIEW.md`, and tell the user to `/clear`, then run `/workflow:design`.
+and tell the user to `/clear`, then run `/workflow:design`.

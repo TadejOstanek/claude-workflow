@@ -96,7 +96,7 @@ if you keep `pr`, the PR step commits it). Handy when you just want code+tests, 
 
 ```
 .workflow/<feature>/                  # planning + execution state (this engine)
-  state.json  OVERVIEW.md  architecture.md   # architecture.md is epic-mode only
+  state.json  architecture.md   # architecture.md is epic-mode only
   <NN>-<change>/  code-design.md  implementation.md  tests.md  test-lint.md
                   review.md  documentation.md  qa.md
 
@@ -107,8 +107,8 @@ openspec/                             # the spec layer (thin seam)
 (The PR stage writes no file — its draft-PR link is reported by `/workflow:build`. The canonical `openspec/specs/`
 is updated only by the manual `/workflow:archive`.)
 
-`state.json` is the source of truth for resume; `OVERVIEW.md` is the human-readable mirror. See the
-`workflow-conventions` skill for the full contract.
+`state.json` is the source of truth for resume; run `/workflow:start` with no argument for a human-readable status
+(mode, current stage, next command). See the `workflow-conventions` skill for the full contract.
 
 ## Notes
 

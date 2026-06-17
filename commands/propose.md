@@ -34,5 +34,5 @@ assumptions, **never drop a requirement the user gave** — write `proposal.md`:
 `## Impact`. Keep it scope-level — the testable requirement/scenario detail is the next step.
 
 ## 4. Finalize
-Set this change's `stages.propose = "done"`, append a `transitions` entry, tick `OVERVIEW.md`, and tell the user
-to run `/workflow:specify` next (you may `/clear` first — the two steps are independent and resumable).
+Set this change's `stages.propose = "done"`, append a `transitions` entry, and tell the user to run
+`/workflow:specify` next (you may `/clear` first — the two steps are independent and resumable).

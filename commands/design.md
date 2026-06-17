@@ -21,5 +21,5 @@ Apply the `workflow:code-design` skill. Read `workflow:workflow-conventions` for
 5. Prepare implementation: prompt for the **ticket number**; create the branch `{user}/sc-{ticket}/{desc}`; ask
    whether to use a **worktree**. Record `ticket`, `branch`, `worktree` in `state.json`.
 6. Write `.workflow/<feature>/<change>/code-design.md` (interfaces, components, tests, conventions; checkboxes + `## GATE`).
-7. Update `state.json` (change `stages["code-design"]="done"`, `currentStage="build"`, append a transition) and tick `OVERVIEW.md`.
+7. Update `state.json` (change `stages["code-design"]="done"`, `currentStage="build"`, append a transition).
 8. Get the user's explicit approval. Then tell them to `/clear` and run `/workflow:build` for this change.

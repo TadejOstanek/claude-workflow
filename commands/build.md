@@ -57,7 +57,7 @@ loop returns later via a task notification.
 Read the loop's returned result, then **confirm against disk**: for each stage that ran, read its output file
 (`implementation.md`, `tests.md`, `test-lint.md`, `review.md`, `documentation.md`, `qa.md`) and mark the stage
 `done` only if its `## GATE` is `status: pass`; otherwise `failed`. The draft PR link comes from the loop result
-(no file). Update `state.json` + `OVERVIEW.md` accordingly with transitions.
+(no file). Update `state.json` accordingly with transitions.
 Report to the user: tests green / skipped, review committed?, draft PR url, open non-critical findings — and the
 reminder to run **`/workflow:archive`** when they're sure the change is done (the canonical-spec merge is manual).
 For a **light build** (review and PR both skipped), the loop leaves the change uncommitted — report that and remind

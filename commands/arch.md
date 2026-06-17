@@ -23,6 +23,5 @@ workflows skip this and go straight to `/workflow:propose`.)
      `depends_on`, `change:null`, and all stages (`propose`, `specify`, `design`, `build`, `test-lint`, `review`,
      `docs`, `qa`, `pr`, `archive`) set to `pending`;
    - create each change folder `.workflow/<feature>/<NN>-<slug>/`.
-6. Add a section per change to `OVERVIEW.md` with the stage checklist.
-7. Tell the user to `/clear`, then run `/workflow:propose` (authors the first change's proposal), then
+6. Tell the user to `/clear`, then run `/workflow:propose` (authors the first change's proposal), then
    `/workflow:specify`.

@@ -25,9 +25,7 @@ Do not read code or design anything — only scaffold:
    - **epic:** `mode:"epic"`, `epic:{architecture:"pending"}`, `currentStage:"architecture"`, `changes:[]`.
    - both: `ticket:null`, `branch:null`, `worktree:null`, one `transitions` entry
      `{from:"init", to:<currentStage>, reason:"workflow created (<mode>)"}`.
-4. Write `OVERVIEW.md`: the title + mode. For `single`, one change section with its stage checklist. For `epic`,
-   a note that change sections appear after architecture.
-5. **OpenSpec prerequisite:** if the repo has no `openspec/` directory, tell the user to run
+4. **OpenSpec prerequisite:** if the repo has no `openspec/` directory, tell the user to run
    `openspec init --tools claude` (installing `@fission-ai/openspec` if needed) before `/workflow:propose`.
-6. Tell the user the next command — **single →** `/workflow:propose`; **epic →** `/workflow:arch` (no `/clear`
+5. Tell the user the next command — **single →** `/workflow:propose`; **epic →** `/workflow:arch` (no `/clear`
    needed; it's the first stage).

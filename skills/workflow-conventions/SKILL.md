@@ -29,8 +29,7 @@ spec as a per-change OpenSpec change plus the accumulating canonical library (se
 
 ```
 .workflow/<feature-slug>/
-  state.json          # machine state — source of truth for resume (schema below)
-  OVERVIEW.md         # human-readable mirror, one section per change, checkboxes
+  state.json          # machine state — source of truth for resume + status (schema below)
   architecture.md     # EPIC ONLY: intent + how the work splits into changes (absent in single mode)
   <NN>-<change-slug>/ # one folder per change (single mode = exactly one; zero-padded order) — execution state
     architecture.md   # OPTIONAL per-change architectural detail
@@ -61,7 +60,7 @@ openspec/             # OpenSpec home (one-time `openspec init`)
 ## Checkboxes vs prose
 
 Use checkboxes (`- [ ]`) only for: lists of **steps to perform** or **conditions that must be true** (QA steps,
-planned test behaviors, the OVERVIEW per-change stage list) — and OpenSpec spec scenarios use OpenSpec's own
+planned test behaviors) — and OpenSpec spec scenarios use OpenSpec's own
 format. Everything else — descriptions, decisions, discoveries, findings, rationale, the GATE block — is prose.
 
 ## state.json schema
@@ -138,10 +137,10 @@ Grain: **one OpenSpec change = one change = one PR.**
   canonical spec ships in the PR) or after — your call.
 - Requires the `openspec` CLI (`@fission-ai/openspec`, Node ≥ 20.19) and a one-time `openspec init` in the repo.
 
-## OVERVIEW.md format
+## Status (human-readable)
 
-One `##` section per change (single mode = one), each a checkbox list of stages with a one-line status. The only
-file written for the human; keep it scannable.
+There is no separate human-readable file — `/workflow:start` with no argument reads `state.json` and reports each
+active workflow's mode, current stage, and exact next command.
 
 ## Resume
 
