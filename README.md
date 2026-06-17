@@ -76,9 +76,10 @@ Or add to `~/.claude/settings.json`:
 /workflow:propose                           # why/what + capabilities → OpenSpec change; /clear optional
 /workflow:specify                           # requirement/scenario deltas → OpenSpec change; then /clear
 /workflow:design                            # interfaces + tests → code-design.md; then /clear
-/workflow:build                             # full autonomous loop → draft PR
+/workflow:build                             # full autonomous loop → draft PR (blank/full = resume: skip done stages)
 /workflow:build light                       #   …or light: just implement + tests (skip test-run/review/QA/PR)
-/workflow:build skip review                 #   …or full minus named stages (only/skip/light)
+/workflow:build only build commit           #   …iterate: re-implement + push to the existing PR, no review/QA/body
+/workflow:build skip review                 #   …or full minus named stages (only/skip/light = redo, ignores done)
 /workflow:archive                           # WHEN you're sure it's done → canonical openspec/specs/
 
 # epic (multi-change): run /workflow:arch right after start to break it into changes,
@@ -88,9 +89,25 @@ Or add to `~/.claude/settings.json`:
 `/clear` between stages is lossless — each command re-reads `.workflow/` + the OpenSpec change. Run
 `/workflow:start` with no argument any time to see status and the next command.
 
-`/workflow:build` always runs implement‖test together; `test-lint`, `review`, `docs`, `qa`, and `pr` are optional
-(`light` = none of them). Skip `review` and the change is left uncommitted for you to review/commit yourself (or,
-if you keep `pr`, the PR step commits it). Handy when you just want code+tests, or everything-but-review.
+`/workflow:build` runs implement‖test together (when `build` is selected); `test-lint`, `review`, `docs`, `qa`,
+and `pr` are optional. **Resume** (`full`/blank) runs everything not yet `done`; **redo** (`light`/`only`/`skip`)
+re-runs exactly what you name even if it's already done — that's the knob for non-waterfall iteration. Skip
+`review` and the change is left uncommitted (or `pr` commits it, rewriting the PR body); the redo-only **`commit`**
+token commits + pushes without touching the PR body.
+
+### Iterating (going back a step)
+
+This is not a waterfall — you'll loop back. Typical flow after manual QA finds a gap:
+
+```
+/workflow:specify <change>                  # add the missing requirement to the spec (re-validates)
+/workflow:design  <change>                  # refine code-design; reuses the existing branch/worktree
+/workflow:build   <change> only build commit  # re-implement + push to the existing draft PR — no review/QA/body rewrite
+```
+
+Re-opening an upstream stage never auto-invalidates the downstream ones — they stay `done` (their outputs now
+describe older code); the command warns you and you choose what to redo. Add `review`/`qa` to the `only` list the
+rounds you *do* want them. Just don't `/workflow:archive` until you're truly done — that merge is irreversible.
 
 ## Layout (created in the target repo)
 

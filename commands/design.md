@@ -18,8 +18,15 @@ Apply the `workflow:code-design` skill. Read `workflow:workflow-conventions` for
 3. If `<change>/code-design.md` already exists (returning), read it + later files to learn why, then refine.
 4. Run the stage interactively per the skill — exact interfaces, components, test behaviors, discovered conventions.
    If the architecture proves infeasible, stop and send the user back (epic: `/workflow:arch`; single: revisit the spec).
-5. Prepare implementation: prompt for the **ticket number**; create the branch `{user}/sc-{ticket}/{desc}`; ask
-   whether to use a **worktree**. Record `ticket`, `branch`, `worktree` in `state.json`.
+5. Prepare implementation. **If `state.json` already has a `branch` for this change (you're re-designing during
+   iteration), reuse it** — keep the existing `ticket`/`branch`/`worktree`, do not prompt or re-create (the branch
+   and worktree already exist). Otherwise prompt for the **ticket number**, create the branch
+   `{user}/sc-{ticket}/{desc}`, ask whether to use a **worktree**, and record `ticket`, `branch`, `worktree` in
+   `state.json`.
 6. Write `.workflow/<feature>/<change>/code-design.md` (interfaces, components, tests, conventions; checkboxes + `## GATE`).
 7. Update `state.json` (change `stages["code-design"]="done"`, `currentStage="build"`, append a transition).
 8. Get the user's explicit approval. Then tell them to `/clear` and run `/workflow:build` for this change.
+9. **Iterating?** If any later stage (`test-lint`/`review`/`docs`/`qa`/`pr`) was already `done` before this
+   re-design, those outputs now describe **older** code — say so, and leave them as-is (do **not** flip them to
+   `pending`; the user decides what to redo). Give the exact redo command for what they want, e.g.
+   `/workflow:build <change> only build commit` (re-implement + land, no review/QA/PR rewrite).

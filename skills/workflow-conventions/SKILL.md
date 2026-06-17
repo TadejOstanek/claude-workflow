@@ -100,10 +100,12 @@ format. Everything else — descriptions, decisions, discoveries, findings, rati
 - Per-change stages run: `propose` → `specify` → `design` → `build` (the parallel implement + test-author pair,
   both green = `done`) → `test-lint` → `review` → `docs` → `qa` → `pr` → `archive`. `docs` writes
   `documentation.md`. **`archive` is `done` only once you've run `/workflow:archive`** — a deliberate manual step.
-- `/workflow:build` runs **`build` always** (the implement + test-author pair); `test-lint`, `review`, `docs`,
-  `qa`, `pr` are **optional** per build (`full` / `light` / `only <stages>` / `skip <stages>`). The change is
-  committed by `review` if it runs, else by `pr`; skip **both** (a pure light build) and the loop leaves it
-  uncommitted for you. Unselected stages stay `pending` (run them in a later build, or mark `na` if never wanted).
+- `/workflow:build` has two modes (see "Iterating" below). **Resume** (`full`/blank) runs all stages minus those
+  already `done`. **Redo** (`light` / `only <stages>` / `skip <stages>`) runs exactly the named subset *without*
+  subtracting `done` — for re-building against an amended spec. The implement + test-author pair (`build`) always
+  runs **together** when selected. The change is committed by `review` if it runs, else by `pr`, else by the
+  redo-only **`commit`** token (commit + push, no PR rewrite); pick none of the three and the loop leaves it
+  uncommitted. Unselected stages keep their prior status (run them in a later build, or mark `na` if never wanted).
 - A stage is marked `done` only when its output file exists and its GATE is `pass` (where it has one). Append a
   `transitions` entry on every status change with a one-line reason.
 
@@ -136,6 +138,27 @@ Grain: **one OpenSpec change = one change = one PR.**
   `changes/archive/`. It is **not** automated by the loop. Run it on the change's branch *before* merging (so the
   canonical spec ships in the PR) or after — your call.
 - Requires the `openspec` CLI (`@fission-ai/openspec`, Node ≥ 20.19) and a one-time `openspec init` in the repo.
+
+## Iterating (going back a step — the normal case)
+
+This is **not** a waterfall. You will routinely learn something late (manual QA finds a gap, a review comment lands)
+and move *backward*: amend the spec, refine the code-design, rebuild only what changed — without re-running the
+stages you don't want. The workflow supports this, and stages are revisitable. The rules that keep it sane:
+
+- **Re-open an upstream stage by naming the change.** `/workflow:specify <change>` and `/workflow:design <change>`
+  re-author in place — `specify` just re-edits the OpenSpec `spec.md` (then re-validates); `design` reuses the
+  existing branch/worktree (it does **not** re-create them). Auto-resolution only finds *pending* stages, so when
+  revisiting a done stage you pass the change explicitly.
+- **Re-opening upstream does NOT auto-invalidate downstream.** Downstream stages stay `done` even though their
+  outputs (`review.md`, `qa.md`, the PR body) now describe older code. This is deliberate: **you** decide what to
+  redo. The upstream command *warns* that they're stale and gives the redo command — it never forces a cascade.
+- **Resume vs. redo is your keyword, not inferred state** (the engine can't tell a crashed run from a deliberate
+  rebuild). `/workflow:build` blank/`full` = resume (skip done); `light`/`only`/`skip` = redo the named subset even
+  if done. So the QA→fix loop is: `/workflow:specify <c>` → `/workflow:design <c>` → `/workflow:build <c> only
+  build commit` (re-implement + push to the existing draft PR, no review/QA/PR-body rewrite). Use `only build` (no
+  commit) to leave it uncommitted, or add `review`/`qa` to the `only` list when you *do* want them this round.
+- **Archive last protects iteration.** The canonical merge (`/workflow:archive`) is irreversible, so iterate freely
+  *before* it; never archive a change you might still revise.
 
 ## Status (human-readable)
 
