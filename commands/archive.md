@@ -1,22 +1,22 @@
 ---
-description: Merge a shipped phase's spec into the canonical library — run AFTER its PR merges. Wraps `openspec archive`.
-argument-hint: [phase slug or change id] — blank to pick a phase whose PR has merged
+description: Merge a finished change's spec into the canonical library — a manual step you run when you're sure the change is done. Wraps `openspec archive`.
+argument-hint: [change slug or change id] — blank to pick the next change ready to archive
 ---
 
 # /workflow:archive
 
-Read `workflow:workflow-conventions` (the OpenSpec integration section). Run this **after a phase's PR has merged**
-— it folds that phase's spec deltas into the canonical `openspec/specs/` and moves the change to
-`changes/archive/`. Never run it on an open draft PR: the canonical library must reflect only merged behavior.
-Requires the `openspec` CLI (`@fission-ai/openspec`).
+Read `workflow:workflow-conventions` (the OpenSpec integration section). This is a **deliberate manual step** — run
+it yourself when you are sure the change is fully done. It merges the change's spec deltas into the canonical
+`openspec/specs/` and moves the change to `changes/archive/`. It is **not** automated by the loop. Requires the
+`openspec` CLI (`@fission-ai/openspec`).
+
+**When to run it:** typically on the change's branch *before merging*, so the canonical spec ships in the same PR —
+or after merge; your call. Just don't archive a change you might still revise (the deltas fold in irreversibly).
 
 ## Steps
-1. Resolve the phase from `$ARGUMENTS` (phase slug or change id); else from `state.json` pick a phase whose `pr` is
-   `done` and `archive` is `pending`. Get its `change` id. If `change` is null, stop — the phase has no OpenSpec
-   spec to merge.
-2. Confirm the PR actually merged (e.g. `gh pr view <branch> --json state,mergedAt`). If it has not merged, warn and
-   ask before proceeding.
-3. Apply it:
+1. Resolve the change from `$ARGUMENTS` (change slug or id); else from `state.json` pick a change whose `pr` is
+   `done` and `archive` is `pending`. Get its `change` id. If `change` is null, stop — there's no spec to merge.
+2. Review, then apply:
    ```bash
    openspec archive "<change-id>"      # shows the spec diff and prompts before applying
    # or, once you're sure:
@@ -24,6 +24,7 @@ Requires the `openspec` CLI (`@fission-ai/openspec`).
    ```
    This validates, merges the change's ADDED/MODIFIED/REMOVED/RENAMED deltas into
    `openspec/specs/<capability>/spec.md`, and moves the change to `openspec/changes/archive/YYYY-MM-DD-<change-id>/`.
-   For a tooling- or doc-only change with no spec deltas, use `--skip-specs`.
-4. Set this phase's `stages.archive = "done"` in `state.json`, append a `transitions` entry, tick the phase's
-   archive box in `OVERVIEW.md`, and report which capabilities the canonical library gained/changed.
+   For a tooling- or doc-only change with no spec deltas, use `--skip-specs`. If you ran it on the branch, commit
+   the result so it lands in the PR.
+3. Set this change's `stages.archive = "done"` in `state.json`, append a `transitions` entry, tick the change's
+   archive box in `OVERVIEW.md`, and report which capabilities the canonical library gained or changed.

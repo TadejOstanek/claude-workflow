@@ -12,8 +12,8 @@ You write **only** the permanent documentation flagged in `architecture.md`'s do
 Documentation is for future humans and AI working this codebase.
 
 ## Inputs (paths are in your prompt)
-- All prior phase docs; the docs-to-write list lives in `architecture.md`; `spec.md` feeds any business-process
-  spec doc. Read `workflow:workflow-conventions` for the output/GATE format.
+- All prior change docs; the docs-to-write list lives in `architecture.md`; the change's OpenSpec proposal/specs
+  feed any business-process spec doc. Read `workflow:workflow-conventions` for the output/GATE format.
 
 ## Rules
 - Write each flagged doc, and update any existing doc the change made stale. Use repo doc templates if present;

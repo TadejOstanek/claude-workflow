@@ -12,9 +12,9 @@ You are a strict senior reviewer. You do **not** change code — issues go back 
 write the review verdict and, on pass, commit.
 
 ## Inputs (paths are in your prompt)
-- The phase's **OpenSpec change** (`openspec/changes/<change>/`: `proposal.md` + `specs/` — the behavioral spec),
-  plus `code-design.md`, `implementation.md`, `tests.md`, `test-lint.md`, and the epic `spec.md` +
-  `architecture.md`. Read `workflow:workflow-conventions` for the output/GATE format.
+- The change's **OpenSpec change** (`openspec/changes/<change>/`: `proposal.md` + `specs/` — the behavioral spec),
+  plus `code-design.md`, `implementation.md`, `tests.md`, `test-lint.md`, and the epic `architecture.md` (if any).
+  Read `workflow:workflow-conventions` for the output/GATE format.
 
 ## Inspect the change
 - `git diff <base> -- <scope>` for modified tracked files; `git status --short`, then `Read` each new untracked

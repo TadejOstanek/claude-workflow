@@ -1,6 +1,6 @@
 export const meta = {
   name: 'workflow-autonomous-loop',
-  description: 'Autonomous tail of the dev workflow for one phase: parallel implement+test → test/lint → opus review (commits) → parallel docs+QA → draft PR. File-based handoff; loops on failure; escalates the unresolvable.',
+  description: 'Autonomous tail of the dev workflow for one change: parallel implement+test → test/lint → opus review (commits) → parallel docs+QA → draft PR. File-based handoff; loops on failure; escalates the unresolvable.',
   phases: [
     { title: 'Build', detail: 'parallel implementer + test-author from the code design' },
     { title: 'Migrate', detail: 'optional pre-test command; skipped when migrateCmd absent' },
@@ -18,7 +18,7 @@ A = A || {}
 
 const TITLE = A.title || A.scope || 'phase'
 const SCOPE = A.scope || TITLE
-const FEATURE_DIR = A.featureDir   // .workflow/<feature>/   (epic spec.md + architecture.md live here)
+const FEATURE_DIR = A.featureDir   // .workflow/<feature>/   (epic architecture.md lives here in epic mode)
 const PHASE_DIR = A.phaseDir       // .workflow/<feature>/<NN>-slug/  (this phase's stage files)
 const CHANGE_DIR = A.changeDir || null  // openspec/changes/<change-id>/ — this phase's behavioral spec (OpenSpec change)
 const WORKDIR = A.workdir || '.'   // repo root OR the worktree path — ALL git/test/gh commands run here
@@ -95,12 +95,12 @@ const PR_SCHEMA = {
 // ---------- shared prompt context ----------
 const SPEC_LINE = CHANGE_DIR
   ? `Behavioral spec: ${CHANGE_DIR}/  (OpenSpec change — read proposal.md + specs/**/*.md; the requirement
-  scenarios there ARE the acceptance criteria this phase must satisfy)`
-  : `Behavioral spec: ${FEATURE_DIR}/spec.md`
-const CTX = `Workflow phase "${TITLE}" (scope: ${SCOPE}).
-Epic docs:   ${FEATURE_DIR}/spec.md , ${FEATURE_DIR}/architecture.md
+  scenarios there ARE the acceptance criteria this change must satisfy)`
+  : `Behavioral spec: see ${PHASE_DIR}/code-design.md`
+const CTX = `Workflow change "${TITLE}" (scope: ${SCOPE}).
+Epic arch:   ${FEATURE_DIR}/architecture.md  (epic mode only; may be absent)
 ${SPEC_LINE}
-Phase docs:  ${PHASE_DIR}/  (this phase's code-design.md + an optional architecture.md)
+Change docs: ${PHASE_DIR}/  (this change's code-design.md + an optional architecture.md)
 Working dir: ${WORKDIR}  — run ALL shell/git/test/gh commands here (use \`git -C ${WORKDIR}\` or cd first).
 Read your role's agent instructions; read only what you need. Write your output file in ${PHASE_DIR}/ and end it
 with a \`## GATE\`. Your final structured output IS that gate.`

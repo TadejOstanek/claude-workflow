@@ -13,8 +13,8 @@ converge on exactly the interfaces named in the code design so code and tests ma
 
 ## Inputs (paths are in your prompt)
 - Primary: the phase's `code-design.md`.
-- Context: the phase's behavioral spec (the **OpenSpec change** named in your prompt: `proposal.md` + `specs/`),
-  the epic `spec.md` + `architecture.md` (and the phase's own `architecture.md` if present).
+- Context: the change's behavioral spec (the **OpenSpec change** named in your prompt: `proposal.md` + `specs/`),
+  the epic `architecture.md` (if any) (and the change's own `architecture.md` if present).
 - Read `workflow:workflow-conventions` for the output/GATE format.
 
 ## Hard rules
