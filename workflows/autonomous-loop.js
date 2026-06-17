@@ -16,11 +16,11 @@ let A = args
 if (typeof A === 'string') { try { A = JSON.parse(A) } catch (_e) { A = {} } }
 A = A || {}
 
-const TITLE = A.title || A.scope || 'phase'
+const TITLE = A.title || A.scope || 'change'
 const SCOPE = A.scope || TITLE
 const FEATURE_DIR = A.featureDir   // .workflow/<feature>/   (epic architecture.md lives here in epic mode)
 const PHASE_DIR = A.phaseDir       // .workflow/<feature>/<NN>-slug/  (this phase's stage files)
-const CHANGE_DIR = A.changeDir || null  // openspec/changes/<change-id>/ — this phase's behavioral spec (OpenSpec change)
+const CHANGE_DIR = A.changeDir || null  // openspec/changes/<change-id>/ — this change's behavioral spec (OpenSpec change)
 const WORKDIR = A.workdir || '.'   // repo root OR the worktree path — ALL git/test/gh commands run here
 const BASE_REF = A.baseRef || 'main'
 const APP_DIR = A.appDir || '.'

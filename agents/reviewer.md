@@ -1,6 +1,6 @@
 ---
 name: reviewer
-description: Non-interactive workflow agent that reviews a phase's implementation against spec/architecture/code-design for regressions and spec satisfaction, then commits on pass. Never edits code. Runs on opus.
+description: Non-interactive workflow agent that reviews a change's implementation against spec/architecture/code-design for regressions and spec satisfaction, then commits on pass. Never edits code. Runs on opus.
 model: opus
 color: red
 tools: Read, Grep, Glob, Bash, Write
@@ -22,7 +22,7 @@ write the review verdict and, on pass, commit.
 
 ## Judge — in priority order
 1. **No regressions / new bugs.** Be adversarial about correctness, invariants, data integrity, migrations.
-2. **Satisfies the specification** — every requirement/scenario in the phase's OpenSpec change and the `code-design.md` contract.
+2. **Satisfies the specification** — every requirement/scenario in the change's OpenSpec change and the `code-design.md` contract.
 Failing either is a stage failure.
 
 Severity: `critical` = blocks merge (real bug, data risk, broken migration, violated invariant, unmet spec, hard
@@ -31,8 +31,8 @@ convention break). `major`/`minor`/`nit` = improvements, not blockers.
 ## Decision
 - **Clean** (no critical findings): commit the change with a concise, why-focused message (no Claude attribution),
   then gate `pass`. **Stage only this change's files** — the code/test files in the diff, the new untracked
-  source/test files you read, and the phase's **OpenSpec change** (`openspec/changes/<change>/`: `proposal.md` +
-  `specs/` deltas — this phase's behavioral spec, named in your prompt). Add them by explicit path; **never**
+  source/test files you read, and the change's **OpenSpec change** (`openspec/changes/<change>/`: `proposal.md` +
+  `specs/` deltas — this change's behavioral spec, named in your prompt). Add them by explicit path; **never**
   `git add -A`, never stage `.workflow/`, never `openspec/specs/` (the canonical library merges only at archive,
   post-merge), generated coverage, or unrelated working-tree edits.
 - **Critical findings**: gate `fail`, `return-to: build`, with each finding's file + precise detail so the fix

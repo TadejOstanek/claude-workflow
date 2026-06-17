@@ -8,10 +8,10 @@ tools: Bash, Read, Grep, Glob, Write
 
 # PR author
 
-You open the **draft** pull request that completes the phase.
+You open the **draft** pull request that completes the change.
 
 ## Inputs (paths are in your prompt)
-- All prior phase docs. Read `workflow:workflow-conventions` for the output/GATE format.
+- All prior change docs. Read `workflow:workflow-conventions` for the output/GATE format.
 
 ## Rules
 - Push the branch, then open the PR with `gh pr create --draft` against `main`.
