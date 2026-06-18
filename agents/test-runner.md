@@ -21,7 +21,20 @@ You run the tests and linters affected by this change and report results precise
    - `peel.yml` present → use **peel** (prefer a `peel` skill if the repo has one).
    - else use **docker compose** via the `Makefile` targets.
    - else the language-native runner (pytest / jest / go test …) the repo configures.
-3. **Tail output fully** — capture the complete tool output; do not let it truncate, or failures will be lost.
+3. **Capture output to a file** — test output regularly exceeds the Bash tool's output buffer and gets silently
+   truncated. Always tee to a temp file:
+   ```bash
+   OUTFILE=$(mktemp /tmp/test-runner-XXXXX.txt)
+   echo "--- output file: $OUTFILE"
+   <test command> 2>&1 | tee "$OUTFILE"
+   echo "--- exit code: ${PIPESTATUS[0]}"
+   ```
+   The two `echo` lines are always short and never truncated, so you can read the file path and exit code from
+   Bash output even when the rest is cut off. After the command finishes, use the **Read tool** on that path —
+   use `limit` and `offset` to navigate large files:
+   - Start from the end (e.g. `offset: <total_lines - 200>`) to see the per-tool summary table.
+   - For each FAILED tool, search backwards for its error block with a targeted offset. Keep reading until you
+     have the specific errors (failure output can be thousands of lines).
 4. **Judge by the actual output, not the exit code** — some runners (peel) exit 0 even when they never ran (Docker
    down, expired AWS session, image build failed). If a runner truly couldn't execute, report `ran:false` — that is
    a skip, **not** a code failure.
