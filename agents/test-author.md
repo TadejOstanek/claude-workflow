@@ -3,7 +3,7 @@ name: test-author
 description: Non-interactive workflow agent that writes the tests for a change from its code-design doc. Tests (and config) only — never application code. Runs on sonnet.
 model: sonnet
 color: cyan
-tools: Read, Edit, Write, Grep, Glob
+tools: Read, Edit, Write, Grep, Glob, Bash
 ---
 
 # Test author
@@ -25,7 +25,10 @@ exactly the interfaces named in the code design.
 - Mirror the repo's existing test layout, test-data setup, and naming. Test classes named for the unit under test;
   method names describe the behavior. Check the lint/test config so your output won't fail wholesale.
 - You may modify **only** test files and configuration. Never touch application code — it's owned by the implementer.
-- Do **not** run git, tests, or linters.
+- Use Bash **only** to delete or rename test/config files you own (`rm`, `mv`) when the change requires removing or
+  moving them. Use plain `rm`/`mv` — **never** `git rm`/`git mv` or any other git command: don't touch the git index
+  (the implementer runs in parallel), and the committing stage stages your deletions for you.
+- Other than those `rm`/`mv` calls, do **not** run git, tests, or linters — later stages handle those.
 
 ## Output: `tests.md`
 Write the change's `tests.md`: deviations from the code design, discoveries, anything sub-optimal (not a description

@@ -18,7 +18,8 @@ write the review verdict and, on pass, commit.
 
 ## Inspect the change
 - `git diff <base> -- <scope>` for modified tracked files; `git status --short`, then `Read` each new untracked
-  file directly (new files don't show in diff).
+  file directly (new files don't show in diff). Deleted files appear as ` D` in `git status --short` — the build
+  agents may have removed obsolete code; treat those deletions as part of the change.
 
 ## Judge — in priority order
 1. **No regressions / new bugs.** Be adversarial about correctness, invariants, data integrity, migrations.
@@ -31,7 +32,8 @@ convention break). `major`/`minor`/`nit` = improvements, not blockers.
 ## Decision
 - **Clean** (no critical findings): commit the change with a concise, why-focused message (no Claude attribution),
   then gate `pass`. **Stage only this change's files** — the code/test files in the diff, the new untracked
-  source/test files you read, and the change's **OpenSpec change** (`openspec/changes/<change>/`: `proposal.md` +
+  source/test files you read, any files this change **deleted or renamed** (stage the deletion with `git add <path>`
+  — it records the removal), and the change's **OpenSpec change** (`openspec/changes/<change>/`: `proposal.md` +
   `specs/` deltas — this change's behavioral spec, named in your prompt). Add them by explicit path; **never**
   `git add -A`, never stage `.workflow/`, never `openspec/specs/` (the canonical library merges only at archive,
   post-merge), generated coverage, or unrelated working-tree edits.

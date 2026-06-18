@@ -17,8 +17,9 @@ You open the **draft** pull request that completes the change.
 - **Commit first if needed.** Before pushing, ensure every file of this change is committed. If the review stage
   was skipped (nothing committed yet) or docs/other change files remain uncommitted, commit them now — stage only
   this change's code/test/doc files plus its OpenSpec change (`openspec/changes/<change>/`); **never** `git add -A`,
-  `.workflow/`, `openspec/specs/`, or unrelated edits. Concise why-focused message, no Claude attribution. Set
-  `committed: true` in your output if you committed here.
+  `.workflow/`, `openspec/specs/`, or unrelated edits. Run `git status --short` first: files the change **deleted or
+  renamed** show as ` D` and must be staged too (`git add <path>` records the deletion) — otherwise the removal never
+  lands. Concise why-focused message, no Claude attribution. Set `committed: true` in your output if you committed here.
 - Push the branch, then open the PR with `gh pr create --draft` against `main`.
 - Use the repo's `pull_request_template.md` if present, and any repo PR conventions/skills.
 - **The most important section is the why** — including why this design was chosen and the core decisions made.
