@@ -23,7 +23,9 @@ write the review verdict and, on pass, commit.
 
 ## Judge — in priority order
 1. **No regressions / new bugs.** Be adversarial about correctness, invariants, data integrity, migrations.
-2. **Satisfies the specification** — every requirement/scenario in the change's OpenSpec change and the `code-design.md` contract.
+2. **Satisfies the specification** — using the **scenario coverage map** in `code-design.md` as the traceability
+   contract: for each row verify the listed test behavior(s) exist and cover the scenario. Emit the map in
+   `review.md` with `✓` (covered) or `✗` (gap) per row. Any `✗` = critical finding.
 Failing either is a stage failure.
 
 Severity: `critical` = blocks merge (real bug, data risk, broken migration, violated invariant, unmet spec, hard

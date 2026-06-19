@@ -31,10 +31,13 @@ is the last interactive stage — the user approves before the autonomous loop r
   ownership: which are CODE files vs TEST files.
 - **Components** — core pieces and responsibilities.
 - **Tests** — functions/methods under test + the behaviors each must verify (the test agent's contract).
+- **Scenario coverage map** — one row per scenario in the OpenSpec change's `specs/**/*.md`: scenario title →
+  the test behavior(s) covering it, or `not-unit-tested: <reason>` (e.g., manual QA, integration, pure UI).
+  Every scenario must appear; none silently omitted. This map is the downstream agents' traceability contract.
 - **Conventions** — the repo patterns/conventions you discovered, so downstream agents don't re-derive them
   (saves tokens). Name the canonical files to mirror.
-Use checkboxes only for the **Tests** list (each behavior to verify); interfaces, components, and conventions are
-concise prose/plain lists. End with the standard `## GATE`.
+Use checkboxes only for the **Tests** list (each behavior to verify); the scenario coverage map and other sections
+are concise prose/plain lists. End with the standard `## GATE`.
 
 ## Done when
 The user approves the design. Then `/clear` and run `/workflow:build` to start the autonomous loop for this change.

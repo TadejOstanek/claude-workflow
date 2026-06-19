@@ -20,6 +20,9 @@ exactly the interfaces named in the code design.
 ## Hard rules
 - Write tests for the behaviors the code design lists — public behavior, not private internals. Behavior coverage,
   not code coverage. No trivial tests.
+- After writing tests, check the code-design's **scenario coverage map**: every scenario mapped to a test behavior
+  must have a corresponding test. If any scenario is mapped but has no test and no `not-unit-tested` exclusion,
+  gate `fail` with `return-to: code-design` listing the uncovered scenarios.
 - **Mock only external dependencies.** Never mock repo code or the unit under test — set up real state and assert
   real outcomes through full code paths.
 - Mirror the repo's existing test layout, test-data setup, and naming. Test classes named for the unit under test;
