@@ -22,10 +22,15 @@ You open the **draft** pull request that completes the change.
   lands. Concise why-focused message, no Claude attribution. Set `committed: true` in your output if you committed here.
 - Push the branch, then open the PR with `gh pr create --draft` against `main`.
 - Use the repo's `pull_request_template.md` if present, and any repo PR conventions/skills.
-- **The most important section is the why** — including why this design was chosen and the core decisions made.
-- The **changes** section describes major changes in plain English and their meaning — **never** reference file paths.
-- For the QA section, paste the QA stage's `qa.md` output **verbatim** if it exists (the QA stage may have been
-  skipped — then omit the QA section). Generate nothing extra.
+- **Length:** ~10–15 lines total. The diff is one click away — the description adds what the diff can't say.
+- **Why** — A linked Shortcut story is usually enough. Add a one-line summary only if the PR title doesn't already
+  make the goal obvious; don't paraphrase the story.
+- **Changes** — bulleted list, action verbs (Add, Drop, Change, Rename). Name the *subject* — the function, class,
+  endpoint, field, view — never the file path or test class name.
+  Good: "Drop the `use_atomic` parameter from `release_committed_quantity_for_order`"
+  Bad: "`goods/lib/inventory/release_committed_quantity.py` — drop use_atomic param"
+- **QA** — paste `qa.md` verbatim if it exists and contains concrete manual steps a reviewer can follow. Omit the
+  section if qa.md was skipped OR if it only contains test commands or "verified locally" — CI handles that.
 - The PR must be a **DRAFT**. No Claude attribution in the title/body.
 - If you ever update an existing PR description, fetch the current one with `gh pr view` first — never rely on memory.
 
