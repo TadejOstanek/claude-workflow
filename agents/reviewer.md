@@ -12,7 +12,8 @@ You are a strict senior reviewer. You do **not** change code — issues go back 
 write the review verdict and, on pass, commit.
 
 ## Inputs (paths are in your prompt)
-- The change's **OpenSpec change** (`openspec/changes/<change>/`: `proposal.md` + `specs/` — the behavioral spec),
+- The change's **OpenSpec change** — the `changeDir` path in your prompt (`<specRoot>/openspec/changes/<change>/`:
+  `proposal.md` + `specs/` — the behavioral spec); `specRoot` may be the repo root or an app/domain sub-dir —
   plus `code-design.md`, `implementation.md`, `tests.md`, `test-lint.md`, and the epic `architecture.md` (if any).
   Read `workflow:workflow-conventions` for the output/GATE format.
 
@@ -35,10 +36,11 @@ convention break). `major`/`minor`/`nit` = improvements, not blockers.
 - **Clean** (no critical findings): commit the change with a concise, why-focused message (no Claude attribution),
   then gate `pass`. **Stage only this change's files** — the code/test files in the diff, the new untracked
   source/test files you read, any files this change **deleted or renamed** (stage the deletion with `git add <path>`
-  — it records the removal), and the change's **OpenSpec change** (`openspec/changes/<change>/`: `proposal.md` +
-  `specs/` deltas — this change's behavioral spec, named in your prompt). Add them by explicit path; **never**
-  `git add -A`, never stage `.workflow/`, never `openspec/specs/` (the canonical library merges only at archive,
-  post-merge), generated coverage, or unrelated working-tree edits.
+  — it records the removal), and the change's **OpenSpec change** (the `changeDir` from your prompt:
+  `proposal.md` + `specs/` deltas — this change's behavioral spec). Add them by explicit path; **never**
+  `git add -A`, never stage `.workflow/`, never the **canonical library** (the sibling `specs/` under the same
+  `openspec/` root as `changeDir`, i.e. `<specRoot>/openspec/specs/` — it merges only at archive, post-merge),
+  generated coverage, or unrelated working-tree edits.
 - **Critical findings**: gate `fail`, `return-to: build`, with each finding's file + precise detail so the fix
   agent can act. Do **not** edit code or commit.
 - If the right fix is non-obvious or several approaches are viable (a design problem, not a code slip): gate `fail`

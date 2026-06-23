@@ -11,8 +11,9 @@ This command **authorizes** running the Workflow tool. Read `workflow:workflow-c
 1. Find the active workflow under `.workflow/` from `state.json`. Pick the change from `$ARGUMENTS`, else the
    lowest-`order` change whose `code-design` is `done` and whose later stages aren't all `done` (respect `depends_on`).
    Both `stages.specify` and `code-design` must be `done` — if not, stop and point the user to `/workflow:specify`
-   then `/workflow:design`. Note the change's `change` id; its OpenSpec change at `openspec/changes/<change>/` holds
-   the behavioral spec the loop's agents read. (`$ARGUMENTS` may also carry a stage selection — see step 2.)
+   then `/workflow:design`. Note the change's `change` id and `specRoot` (default `"."`); its OpenSpec change at
+   `<specRoot>/openspec/changes/<change>/` holds the behavioral spec the loop's agents read. (`$ARGUMENTS` may also
+   carry a stage selection — see step 2.)
    **Resolving the change when blank:** in `single` mode default to the sole change **even when it's fully built**
    (you're iterating), so `/workflow:build only build commit` resolves with no change name. In `epic` mode a
    fully-built change won't be auto-picked (no pending later stages) — name it to rebuild.
@@ -42,7 +43,9 @@ This command **authorizes** running the Workflow tool. Read `workflow:workflow-c
 3. Detect the runner by scanning the repo: `peel.yml` → `peel test ...` (set `isPeel:true`); else a `Makefile`
    `test` target → `make test`; else `pyproject.toml`/`pytest.ini` → `pytest`; else `package.json` test script →
    `npm test`; else ask. Detect a migrate command only if the change touches models (e.g. `peel makemigrations <app>`).
-   `baseRef` = `main`; `appDir` = the change's primary directory if obvious, else `.`.
+   `baseRef` = `main`; `appDir` = the change's primary directory **to test/migrate** if obvious, else `.`. (`appDir`
+is independent of the change's `specRoot` — `specRoot` is where `openspec` runs, `appDir` is what gets
+tested/migrated; they often coincide but need not.)
 4. Determine `workdir` — the **absolute** path the loop's git/test/PR commands must run in: `state.json.worktree`
    if a worktree was created, otherwise the repo root. The loop commits and pushes there.
 
@@ -54,7 +57,7 @@ Call the **Workflow** tool with `scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/au
   "title": "<feature + change title>", "scope": "<change title>",
   "featureDir": "<abs path to .workflow/<feature>/>",
   "phaseDir": "<abs path to the change folder .workflow/<feature>/<NN>-<change>/>",
-  "changeDir": "<abs path to openspec/changes/<change>/ , or null>",
+  "changeDir": "<abs path to <specRoot>/openspec/changes/<change>/ , or null>",
   "workdir": "<abs repo root or worktree path>",
   "baseRef": "main", "appDir": "<dir or .>",
   "testCmd": "<detected or null>", "migrateCmd": "<or null>", "isPeel": <bool>,

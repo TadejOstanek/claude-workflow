@@ -8,8 +8,9 @@ argument-hint: [change slug] — blank to use the next change needing design
 Apply the `workflow:code-design` skill. Read `workflow:workflow-conventions` for the file/GATE format.
 
 1. Resolve the active workflow from `state.json`. Read `state.json`, the epic `architecture.md` if present, and
-   **this change's behavioral spec — the OpenSpec change at `openspec/changes/<change>/`** (`proposal.md` +
-   `specs/**/*.md`; the `change` id is in `state.json`). Use the change in `$ARGUMENTS`, else the lowest-`order`
+   **this change's behavioral spec — the OpenSpec change at `<specRoot>/openspec/changes/<change>/`** (`proposal.md`
+   + `specs/**/*.md`; the `change` id and `specRoot` (default `"."`) are in `state.json`). Use the change in
+   `$ARGUMENTS`, else the lowest-`order`
    change whose `code-design` stage is `pending` (respect `depends_on`); in `single` mode, if none is `pending`
    (you're **refining** an already-designed change), default to the sole change — `epic` mode requires naming it.
    Its `stages.specify` must be `done` (the OpenSpec change must exist) — if not, stop and tell the user to run `/workflow:propose` + `/workflow:specify`

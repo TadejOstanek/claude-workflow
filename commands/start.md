@@ -21,11 +21,14 @@ Do not read code or design anything — only scaffold:
    multiple PRs/areas, use `epic`. If it's not obvious, **ask the user** (single change vs. multi-change epic).
 3. Create `.workflow/<feature-slug>/` and write `state.json` per the conventions schema:
    - **single:** `mode:"single"`, `epic:{architecture:"na"}`, `currentStage:"propose"`, and `changes` holding one
-     entry (`slug:"01-<feature-slug>"`, `type`, `order:1`, `depends_on:[]`, `change:null`, all stages `pending`).
+     entry (`slug:"01-<feature-slug>"`, `type`, `order:1`, `depends_on:[]`, `change:null`, `specRoot:"."`, all
+     stages `pending`).
    - **epic:** `mode:"epic"`, `epic:{architecture:"pending"}`, `currentStage:"architecture"`, `changes:[]`.
    - both: `ticket:null`, `branch:null`, `worktree:null`, one `transitions` entry
      `{from:"init", to:<currentStage>, reason:"workflow created (<mode>)"}`.
-4. **OpenSpec prerequisite:** if the repo has no `openspec/` directory, tell the user to run
-   `openspec init --tools claude` (installing `@fission-ai/openspec` if needed) before `/workflow:propose`.
+4. **OpenSpec prerequisite:** if the repo has no `openspec/` directory anywhere, tell the user to run
+   `openspec init --tools claude` (installing `@fission-ai/openspec` if needed) at the repo root before
+   `/workflow:propose`. Per-app/domain sub-root `openspec/` dirs are created on demand by `/workflow:propose`
+   (it picks the change's `specRoot`), so only the baseline root is needed up front.
 5. Tell the user the next command — **single →** `/workflow:propose`; **epic →** `/workflow:arch` (no `/clear`
    needed; it's the first stage).

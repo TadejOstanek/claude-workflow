@@ -20,7 +20,8 @@ workflows skip this and go straight to `/workflow:propose`.)
 5. Update `state.json`:
    - set `epic.architecture="done"`, `currentStage="propose"`, append a `transitions` entry;
    - populate `changes[]` from the agreed breakdown — each with `slug` (`<NN>-<name>`), `type`, `order`,
-     `depends_on`, `change:null`, and all stages (`propose`, `specify`, `design`, `build`, `test-lint`, `review`,
+     `depends_on`, `change:null`, `specRoot:"."` (the change's OpenSpec root — `/workflow:propose` may retarget
+     it to an app/domain sub-dir), and all stages (`propose`, `specify`, `design`, `build`, `test-lint`, `review`,
      `docs`, `qa`, `pr`, `archive`) set to `pending`;
    - create each change folder `.workflow/<feature>/<NN>-<slug>/`.
 6. Tell the user to `/clear`, then run `/workflow:propose` (authors the first change's proposal), then

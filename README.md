@@ -118,12 +118,20 @@ rounds you *do* want them. Just don't `/workflow:archive` until you're truly don
   <NN>-<change>/  code-design.md  implementation.md  tests.md  test-lint.md
                   review.md  documentation.md  qa.md
 
-openspec/                             # the spec layer (thin seam)
+<specRoot>/openspec/                  # the spec layer (thin seam); <specRoot> defaults to the repo root
   changes/<change-id>/  proposal.md  specs/<capability>/spec.md   # one change per PR
   specs/<capability>/spec.md          # canonical living library (you grow it via /workflow:archive)
 ```
-(The PR stage writes no file — its draft-PR link is reported by `/workflow:build`. The canonical `openspec/specs/`
-is updated only by the manual `/workflow:archive`.)
+(The PR stage writes no file — its draft-PR link is reported by `/workflow:build`. The canonical
+`<specRoot>/openspec/specs/` is updated only by the manual `/workflow:archive`.)
+
+**Per-app / per-domain specs.** OpenSpec is flat (one level: `specs/<capability>/`), so to organize specs by app
+or domain in a monorepo/modular monolith you give each one its own `openspec/` root (`goods/openspec/`,
+`packages/api/openspec/`, …). Each change records a **`specRoot`** (default `"."` = repo root); `/workflow:propose`
+discovers existing roots and lets you target one, and every `openspec` call for that change runs from there.
+Cross-cutting changes use the repo root. The plugin never hardcodes app names — a repo opts in purely by creating
+`openspec/` dirs. Developers not using this workflow get the same organization with plain `openspec` by running it
+from the app folder (document the convention in each root's `AGENTS.md`).
 
 `state.json` is the source of truth for resume; run `/workflow:start` with no argument for a human-readable status
 (mode, current stage, next command). See the `workflow-conventions` skill for the full contract.

@@ -26,8 +26,9 @@ validated against — a criterion you omit here silently never gets built or che
 
 ## Output — two steps, into one OpenSpec change
 
-A change's spec is authored in two steps, both into the OpenSpec change at `openspec/changes/<change>/`, exactly as
-each command specifies:
+A change's spec is authored in two steps, both into the OpenSpec change at `<specRoot>/openspec/changes/<change>/`
+(`specRoot` is the change's OpenSpec root — repo root by default, or an app/domain sub-dir; `/workflow:propose`
+picks it), exactly as each command specifies:
 - **`/workflow:propose`** → `proposal.md`: the why/what + the **capabilities** that change (each becomes a
   `specs/<capability>/spec.md`). Scope-level — no behavioral detail yet.
 - **`/workflow:specify`** → `specs/<capability>/spec.md`: the behavioral deltas — `### Requirement:` (SHALL/MUST) +

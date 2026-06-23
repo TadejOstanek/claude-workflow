@@ -41,13 +41,18 @@ spec as a per-change OpenSpec change plus the accumulating canonical library (se
     documentation.md  # list of docs produced
     qa.md             # manual QA instructions
 
-openspec/             # OpenSpec home (one-time `openspec init`)
+<specRoot>/openspec/   # OpenSpec home for this change (one-time `openspec init` in <specRoot>)
   changes/<change-id>/          # the change's behavioral spec (authored by propose + specify)
     proposal.md                 # why/what + capabilities
     specs/<capability>/spec.md  # ADDED/MODIFIED/REMOVED deltas: `### Requirement:` + `#### Scenario:` (4 hashes)
   specs/<capability>/spec.md    # CANONICAL living library — you merge into it with /workflow:archive when done
   changes/archive/YYYY-MM-DD-<change-id>/   # archived changes (full history)
 ```
+
+- **`<specRoot>`** is the repo-relative directory whose `openspec/` holds this change (default `"."` = repo
+  root; stored per change in `state.json`). A repo may keep one root `openspec/` *or* opt into per-app/domain
+  sub-roots (`goods/openspec/`, `packages/api/openspec/`, …) — see "OpenSpec integration". Simple repos never
+  see this: `specRoot` just stays `"."`.
 
 - We use OpenSpec for **`proposal` + `specs` only** — never its `design` or `tasks` artifacts. This workflow's
   architecture + code design + autonomous loop replace those. (OpenSpec's `design` artifact ≠ `/workflow:design`,
@@ -79,7 +84,7 @@ format. Everything else — descriptions, decisions, discoveries, findings, rati
   "changes": [
     {
       "slug": "01-data-model", "type": "feature", "order": 1, "depends_on": [],
-      "change": null,
+      "change": null, "specRoot": ".",
       "stages": {
         "propose": "pending", "specify": "pending", "design": "pending", "build": "pending",
         "test-lint": "pending", "review": "pending", "docs": "pending", "qa": "pending",
@@ -97,6 +102,9 @@ format. Everything else — descriptions, decisions, discoveries, findings, rati
   `epic` mode `epic.architecture` runs first (`/workflow:arch`) and populates `changes[]`.
 - Stage status values: `pending` · `in_progress` · `done` · `failed` · `na`.
 - `change` is the OpenSpec change id (kebab-case), set by `/workflow:propose`. Null until then.
+- `specRoot` is this change's OpenSpec root — the repo-relative dir whose `openspec/` holds it (default `"."`).
+  Set by `/workflow:propose`; absent ⇒ treat as `"."` (back-compat). Every `openspec` call for this change runs
+  with `<specRoot>` as the working directory.
 - Per-change stages run: `propose` → `specify` → `design` → `build` (the parallel implement + test-author pair,
   both green = `done`) → `test-lint` → `review` → `docs` → `qa` → `pr` → `archive`. `docs` writes
   `documentation.md`. **`archive` is `done` only once you've run `/workflow:archive`** — a deliberate manual step.
@@ -127,17 +135,27 @@ GATE after the loop.
 OpenSpec sits **underneath** this workflow as a passive spec store + canonical library, driven by the engine.
 Grain: **one OpenSpec change = one change = one PR.**
 
-- **Authoring** — `/workflow:propose` runs `openspec new change <id>` and writes `proposal.md`; `/workflow:specify`
-  writes the `specs/<capability>/spec.md` deltas. Both pull the exact format from
-  `openspec instructions <artifact> --change <id> --json`.
+- **Where the spec lives — `specRoot` (cwd discipline).** OpenSpec resolves its root from the **working
+  directory**: `change`, `validate`, and `archive` operate on `<cwd>/openspec/` (no walk-up); `status` walks up
+  to the *nearest* ancestor `openspec/`. So a change's spec lives wherever you run `openspec`. This workflow
+  records that directory as the change's **`specRoot`** and runs **every** `openspec` invocation for the change
+  with `specRoot` as cwd — `(cd "<specRoot>" && openspec …)`. Default `specRoot` is `"."` (repo root). A repo
+  organizes specs **per app/domain** simply by creating sub-root `openspec/` dirs (`goods/openspec/`, …) and
+  pointing a change's `specRoot` at one; cross-cutting changes use `"."`. The engine **discovers** existing
+  roots — it never hardcodes paths or app names, so this stays repo-agnostic.
+- **Authoring** — `/workflow:propose` picks `specRoot`, runs `openspec new change <id>` and writes `proposal.md`;
+  `/workflow:specify` writes the `specs/<capability>/spec.md` deltas. Both pull the exact format from
+  `openspec instructions <artifact> --change <id> --json`. All of these run with cwd = `<specRoot>`.
 - **Consumption** — code-design and the loop's agents read the change's behavioral spec from
-  `openspec/changes/<change>/`. The reviewer commits the change's proposal + specs into its PR, but **never**
-  `openspec/specs/` (the canonical library).
-- **Archive is manual and deliberate** (`/workflow:archive`): run it yourself when you are sure the change is fully
-  done. It merges the change's deltas into the canonical `openspec/specs/<capability>/` and moves the change to
-  `changes/archive/`. It is **not** automated by the loop. Run it on the change's branch *before* merging (so the
-  canonical spec ships in the PR) or after — your call.
-- Requires the `openspec` CLI (`@fission-ai/openspec`, Node ≥ 20.19) and a one-time `openspec init` in the repo.
+  `<specRoot>/openspec/changes/<change>/` (passed to the loop as the absolute `changeDir`). The reviewer commits
+  the change's proposal + specs into its PR, but **never** `<specRoot>/openspec/specs/` (the canonical library).
+- **Archive is manual and deliberate** (`/workflow:archive`): run it yourself (with cwd = `<specRoot>`) when you
+  are sure the change is fully done. It merges the change's deltas into the canonical
+  `<specRoot>/openspec/specs/<capability>/` and moves the change to `<specRoot>/openspec/changes/archive/`. It is
+  **not** automated by the loop. Run it on the change's branch *before* merging (so the canonical spec ships in
+  the PR) or after — your call.
+- Requires the `openspec` CLI (`@fission-ai/openspec`, Node ≥ 20.19) and a one-time `openspec init` in each
+  `specRoot` (the engine runs it automatically when a chosen `specRoot` has no `openspec/` yet).
 
 ## Iterating (going back a step — the normal case)
 
@@ -169,6 +187,6 @@ active workflow's mode, current stage, and exact next command.
 ## Resume
 
 `state.json` is the sole cross-session recovery path. On entering any stage: read `state.json`, the epic
-`architecture.md` if present, the change's OpenSpec change (`openspec/changes/<change>/` — its behavioral spec),
-and the change's prior `.workflow/` files. If this stage's own file already exists, also read the *next* stages'
+`architecture.md` if present, the change's OpenSpec change (`<specRoot>/openspec/changes/<change>/` — its
+behavioral spec; `specRoot` from `state.json`, default `"."`), and the change's prior `.workflow/` files. If this stage's own file already exists, also read the *next* stages'
 files to learn why it was sent back, then fix accordingly.

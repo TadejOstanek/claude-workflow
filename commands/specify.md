@@ -13,24 +13,24 @@ the testable requirement/scenario deltas — into the OpenSpec change created by
 From `state.json`, use `$ARGUMENTS`, else the lowest-`order` change whose `stages.specify` is `pending` and whose
 `stages.propose` is `done`. In `single` mode, if no change is `pending` (you're **amending** an already-specced
 change), default to the sole change anyway; in `epic` mode, name the change to revisit a `done` one. Read its
-`proposal.md` (the `## Capabilities` list is your contract) and its `change` id. If `propose` isn't done, stop and
-tell the user to run `/workflow:propose` first.
+`proposal.md` (the `## Capabilities` list is your contract), its `change` id, and its `specRoot` (default `"."`).
+If `propose` isn't done, stop and tell the user to run `/workflow:propose` first.
 
 ## 2. Author the specs — testable behavior, capture EVERYTHING
-Pull the format (don't assume it):
+Pull the format (don't assume it) — run from `specRoot`:
 ```bash
-openspec instructions specs --change "<change-id>" --json
+(cd "<specRoot>" && openspec instructions specs --change "<change-id>" --json)
 ```
-For each capability in the proposal, write `openspec/changes/<change-id>/specs/<capability>/spec.md` with delta
-sections — `## ADDED Requirements`, plus `## MODIFIED/REMOVED/RENAMED Requirements` as needed. Each
+For each capability in the proposal, write `<specRoot>/openspec/changes/<change-id>/specs/<capability>/spec.md`
+with delta sections — `## ADDED Requirements`, plus `## MODIFIED/REMOVED/RENAMED Requirements` as needed. Each
 `### Requirement: <name>` uses SHALL/MUST and has at least one `#### Scenario: <name>` (**exactly four hashes** —
 three fails silently) in `- **WHEN** … / - **THEN** …` form. These scenarios ARE the testable acceptance criteria
 the reviewer later checks against. For a MODIFIED requirement, copy the full existing block from
-`openspec/specs/<capability>/spec.md` before editing.
+`<specRoot>/openspec/specs/<capability>/spec.md` before editing.
 
 ## 3. Validate + finalize
 ```bash
-openspec validate "<change-id>"
+(cd "<specRoot>" && openspec validate "<change-id>")
 ```
 Fix any structural errors until it passes. Then set this change's `stages.specify = "done"`, append a transition,
 and tell the user to `/clear`, then run `/workflow:design`.
