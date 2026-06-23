@@ -22,16 +22,21 @@ You run the tests and linters affected by this change and report results precise
    - else use **docker compose** via the `Makefile` targets.
    - else the language-native runner (pytest / jest / go test …) the repo configures.
 3. **Capture output to a file** — test output regularly exceeds the Bash tool's output buffer and gets silently
-   truncated. Always tee to a temp file:
+   truncated. Always tee to a temp file with a done-sentinel:
    ```bash
    OUTFILE=$(mktemp /tmp/test-runner-XXXXX.txt)
-   echo "--- output file: $OUTFILE"
-   <test command> 2>&1 | tee "$OUTFILE"
-   echo "--- exit code: ${PIPESTATUS[0]}"
+   echo "OUTFILE=$OUTFILE"
+   <test command> 2>&1 | tee "$OUTFILE"; echo "TEST_DONE=$?" | tee -a "$OUTFILE"
    ```
-   The two `echo` lines are always short and never truncated, so you can read the file path and exit code from
-   Bash output even when the rest is cut off. After the command finishes, use the **Read tool** on that path —
-   use `limit` and `offset` to navigate large files:
+   If the command takes longer than ~2 min (e.g. `peel test` with a Docker build), run it with
+   `run_in_background: true` and then **poll for the sentinel**, not for line count:
+   ```bash
+   until grep -q "^TEST_DONE=" "$OUTFILE" 2>/dev/null; do sleep 10; done
+   ```
+   Only read the file **after** `TEST_DONE=` appears — that guarantees the full output is present. Line-count
+   polling fires too early (after the Docker image build, before any tests run) and produces partial reads that
+   look like truncation. After polling, use the **Read tool** on that path — use `limit` and `offset` to navigate
+   large files:
    - Start from the end (e.g. `offset: <total_lines - 200>`) to see the per-tool summary table.
    - For each FAILED tool, search backwards for its error block with a targeted offset. Keep reading until you
      have the specific errors (failure output can be thousands of lines).
