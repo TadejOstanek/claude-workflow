@@ -4,22 +4,23 @@ A reusable, resumable, multi-agent software-development workflow for Claude Code
 non-trivial feature, refactor, or bug fix; it walks the work through fixed stages with minimal, well-placed human
 input, hands off between stages via files, and resumes cleanly after interruptions.
 
-The unit of work is a **change** = one OpenSpec change = one PR. A small piece of work is a single change; bigger
-work is an **epic** that `/workflow:arch` breaks into several changes.
+The unit of work is a **change** = one PR. A small piece of work is a single change; bigger work is an **epic**
+that `/workflow:arch` breaks into several changes. A behavioral change carries an OpenSpec spec; a **purely
+technical change** (refactor, code org, infra/CI, deps) can opt out of OpenSpec — see "Spec-less changes" below.
 
 ## The pipeline (per change)
 
 | Stage | Mode | Who | Output |
 |------|------|-----|--------|
-| Propose | interactive | `/workflow:propose` | OpenSpec change `proposal.md` (why/what + capabilities) |
-| Specify | interactive | `/workflow:specify` | OpenSpec `specs/<cap>/spec.md` (requirement/scenario deltas) |
+| Propose | interactive *(spec-bearing only)* | `/workflow:propose` | OpenSpec change `proposal.md` (why/what + capabilities) |
+| Specify | interactive *(spec-bearing only)* | `/workflow:specify` | OpenSpec `specs/<cap>/spec.md` (requirement/scenario deltas) |
 | Code design | interactive | `/workflow:design` | `code-design.md` (interfaces + test behaviors) |
 | Implement ‖ Test | auto (sonnet) | `implementer` ‖ `test-author` | code, tests |
 | Test & lint | auto (haiku) | `test-runner` | `test-lint.md` |
 | Review | auto (opus) | `reviewer` | `review.md` (+ commit) |
 | Documentation ‖ QA | auto (sonnet) | `documenter` ‖ `qa-author` | `documentation.md`, `qa.md` |
 | Pull request | auto (sonnet) | `pr-author` | draft PR (link reported by `/workflow:build`) |
-| Archive | **manual** | `/workflow:archive` | canonical `openspec/specs/` updated (`openspec archive`) |
+| Archive | **manual** *(spec-bearing only)* | `/workflow:archive` | canonical `openspec/specs/` updated (`openspec archive`) |
 
 Implement → PR runs as one background **Workflow** (launched by `/workflow:build`): isolated subagents, per-stage
 models, file-based handoff, failure loops, and escalation back to you only when a decision is genuinely needed.
@@ -41,6 +42,17 @@ a passive store: you author the change (`propose` + `specify`), the loop reads i
 canonical specs with `/workflow:archive` when you're sure it's done. The engine (per-stage models, parallel
 agents, review, QA, PR) is unchanged. We use OpenSpec's `proposal` + `specs` only — not its `design`/`tasks`; this
 workflow's own architecture + code design + loop replace those.
+
+### Spec-less changes (opt out of OpenSpec)
+
+Not every change has behavior to spec. A purely technical change — refactor, code organization, build/CI/infra,
+dependency bumps, performance-neutral cleanup — can skip OpenSpec entirely. When a change is first scoped
+(`/workflow:start` for a single change, `/workflow:arch` per change for an epic), the workflow **recommends**
+spec vs no-spec based on whether the change alters observable application behavior, and **you confirm** (it's your
+call per change). A spec-less change (`spec:"none"`) skips `propose` + `specify`, goes straight to
+`/workflow:design`, and runs the full autonomous loop — its `code-design.md` (a short *Why/Context* + the *Tests*
+list) becomes the sole behavioral contract, and there is nothing to archive. The default is still to write a spec;
+when in doubt, keep it.
 
 **Prerequisite** — install the CLI and initialize once per repo:
 
@@ -72,10 +84,12 @@ Or add to `~/.claude/settings.json`:
 ```
 /workflow:start <what you want to build>   # scaffolds .workflow/<feature>/ ; picks single-change vs epic
 
-# single change:
+# single change (spec-bearing):
 /workflow:propose                           # why/what + capabilities → OpenSpec change; /clear optional
 /workflow:specify                           # requirement/scenario deltas → OpenSpec change; then /clear
 /workflow:design                            # interfaces + tests → code-design.md; then /clear
+# single change (spec-less / refactor): /workflow:start triages → skip propose+specify, go straight to design:
+# /workflow:design  →  /workflow:build      # code-design.md is the whole contract; nothing to archive
 /workflow:build                             # full autonomous loop → draft PR (blank/full = resume: skip done stages)
 /workflow:build light                       #   …or light: just implement + tests (skip test-run/review/QA/PR)
 /workflow:build only build commit           #   …iterate: re-implement + push to the existing PR, no review/QA/body

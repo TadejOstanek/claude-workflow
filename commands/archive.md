@@ -17,7 +17,8 @@ or after merge; your call. Just don't archive a change you might still revise (t
 ## Steps
 1. Resolve the change from `$ARGUMENTS` (change slug or id); else from `state.json` pick a change whose `pr` is
    `done` and `archive` is `pending`. Get its `change` id and `specRoot` (default `"."`). If `change` is null, stop
-   — there's no spec to merge.
+   — there's no spec to merge. A **spec-less** change (`spec:"none"`) has `archive:"na"` and no OpenSpec change —
+   it is never picked here and needs no archiving.
 2. Review, then apply — **run from `specRoot`** (the CLI merges into `<cwd>/openspec/`):
    ```bash
    (cd "<specRoot>" && openspec archive "<change-id>")      # shows the spec diff and prompts before applying

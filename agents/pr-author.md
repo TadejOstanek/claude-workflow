@@ -16,9 +16,10 @@ You open the **draft** pull request that completes the change.
 ## Rules
 - **Commit first if needed.** Before pushing, ensure every file of this change is committed. If the review stage
   was skipped (nothing committed yet) or docs/other change files remain uncommitted, commit them now — stage only
-  this change's code/test/doc files plus its OpenSpec change (the `changeDir` from your prompt,
-  `<specRoot>/openspec/changes/<change>/`); **never** `git add -A`, `.workflow/`, the canonical library (the
-  sibling `<specRoot>/openspec/specs/`), or unrelated edits. Run `git status --short` first: files the change **deleted or
+  this change's code/test/doc files, plus — **only if your prompt has a `changeDir`** — its OpenSpec change (the
+  `changeDir`, `<specRoot>/openspec/changes/<change>/`). For a spec-less change (no `changeDir`) there is no
+  OpenSpec change to stage. **Never** `git add -A`, `.workflow/`, the canonical library (the sibling
+  `<specRoot>/openspec/specs/`), or unrelated edits. Run `git status --short` first: files the change **deleted or
   renamed** show as ` D` and must be staged too (`git add <path>` records the deletion) — otherwise the removal never
   lands. Concise why-focused message, no Claude attribution. Set `committed: true` in your output if you committed here.
 - Push the branch, then open the PR with `gh pr create --draft` against `main`.

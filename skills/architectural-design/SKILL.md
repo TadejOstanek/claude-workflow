@@ -30,6 +30,12 @@ change runs the full pipeline from its `/workflow:propose` + `/workflow:specify`
 - **Feature** changes: the work itself, marked independent / parallel / sequential.
 - **Tidy-after**: cleanup enabled once the feature lands → final change(s).
 
+For each change, also decide whether it needs a behavioral spec (`spec: "openspec"` vs `"none"`) per the "Does a
+change need a spec?" heuristic in `workflow:workflow-conventions`. Tidy-first/tidy-after (and many fix) changes are
+usually **spec-less** — pure refactors with no observable behavior change skip `/workflow:propose` + `/workflow:specify`
+and go straight to code design; feature changes are usually **spec-bearing**. Recommend per change and confirm with
+the user.
+
 ## Documentation to write (flag only — do not write it here)
 Ask the user whether anything warrants permanent docs; never decide alone. Two kinds:
 - **Business-process specs** — only for core processes, minimal (the code is the best documentation).
@@ -42,10 +48,11 @@ Ask **where** docs should live if not obvious. List the docs-to-write; the Docum
 - Data-model modifications (every kind of stored state).
 - Hard decisions taken and why.
 - Architectural patterns the code design + implementation must follow.
-- Change breakdown (with type + order + dependencies).
+- Change breakdown (with type + order + dependencies + `spec` openspec/none per change).
 - Docs-to-write list.
 Concise prose and plain bullets — no checkboxes here. End with the standard `## GATE`.
 
 ## Done when
-User agrees the approach. Then `/clear` and run `/workflow:propose` then `/workflow:specify` (per change), then
-`/workflow:design`. A complex change may also get a per-change `architecture.md`.
+User agrees the approach. Then `/clear` and, per change, run `/workflow:propose` then `/workflow:specify` then
+`/workflow:design` for a spec-bearing change — or `/workflow:design` directly for a `spec:"none"` change. A complex
+change may also get a per-change `architecture.md`.

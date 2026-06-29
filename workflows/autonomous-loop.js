@@ -25,6 +25,10 @@ const CHANGE_DIR = A.changeDir || null  // <specRoot>/openspec/changes/<change-i
 // Canonical spec library for this change's OpenSpec root (sibling of changes/). Derived from CHANGE_DIR so it is
 // correct whether specRoot is the repo root or an app/domain sub-dir — never staged during the loop (merges only at archive).
 const CANON_SPECS = CHANGE_DIR ? CHANGE_DIR.replace(/\/changes\/[^/]+\/?$/, '/specs') : 'openspec/specs'
+// OpenSpec-change clauses spliced into the review/commit/PR instructions. Empty for a spec-less change (no
+// CHANGE_DIR) so we never tell an agent to stage an `openspec/changes/<change>` path that doesn't exist.
+const SPEC_CLAUSE = CHANGE_DIR ? ` plus the phase's OpenSpec change at ${CHANGE_DIR}` : ''
+const CANON_CLAUSE = CHANGE_DIR ? `, never the canonical library \`${CANON_SPECS}\` (it merges only at archive)` : ''
 const WORKDIR = A.workdir || '.'   // repo root OR the worktree path — ALL git/test/gh commands run here
 const BASE_REF = A.baseRef || 'main'
 const APP_DIR = A.appDir || '.'
@@ -169,7 +173,7 @@ if (TEST_CMD && todo('test-lint') && !result.escalation) {
 let review = null
 if (todo('review') && !result.escalation) {
   phase('Review')
-  const RUN = `${CTX}\nStrict senior review. Inspect \`git -C ${WORKDIR} diff ${BASE_REF} -- ${APP_DIR}\` plus new untracked files. Judge: (1) no regressions/bugs, (2) every spec + code-design criterion met. Write ${PHASE_DIR}/review.md. If clean, COMMIT the change (stage only this change's files — the code/test files plus the phase's OpenSpec change at ${CHANGE_DIR || 'openspec/changes/<change>'} — never \`.workflow/\`, never the canonical library \`${CANON_SPECS}\` which merges only at archive, never unrelated edits). If a fix is a design decision, set escalate=true.`
+  const RUN = `${CTX}\nStrict senior review. Inspect \`git -C ${WORKDIR} diff ${BASE_REF} -- ${APP_DIR}\` plus new untracked files. Judge: (1) no regressions/bugs, (2) every spec + code-design criterion met. Write ${PHASE_DIR}/review.md. If clean, COMMIT the change (stage only this change's files — the code/test files${SPEC_CLAUSE} — never \`.workflow/\`${CANON_CLAUSE}, never unrelated edits). If a fix is a design decision, set escalate=true.`
   const MAX = 2
   for (let i = 1; i <= MAX; i++) {
     review = await agent(RUN, { agentType: 'workflow:reviewer', model: M.review, phase: 'Review', label: `review #${i}:${SCOPE}`, schema: REVIEW_SCHEMA })
@@ -221,8 +225,8 @@ if ((todo('docs') || todo('qa')) && reviewPassed) {
 if (todo('pr') && reviewPassed) {
   phase('PR')
   const COMMIT_NOTE = result.committed
-    ? `First ensure every file of this change is committed — if docs or other change files are still uncommitted, commit them now (scoped to this change's code/test/doc files + its OpenSpec change; never \`.workflow/\`, the canonical library \`${CANON_SPECS}\`, or unrelated edits). Then `
-    : `Nothing has been committed yet (the review stage was skipped). FIRST commit this change yourself — stage only this change's code/test/doc files plus its OpenSpec change at ${CHANGE_DIR || 'openspec/changes/<change>'} (never \`.workflow/\`, the canonical library \`${CANON_SPECS}\`, \`git add -A\`, or unrelated edits) and commit with a concise why-focused message (no Claude attribution). Then `
+    ? `First ensure every file of this change is committed — if docs or other change files are still uncommitted, commit them now (scoped to this change's code/test/doc files${SPEC_CLAUSE}; never \`.workflow/\`${CANON_CLAUSE}, never unrelated edits). Then `
+    : `Nothing has been committed yet (the review stage was skipped). FIRST commit this change yourself — stage only this change's code/test/doc files${SPEC_CLAUSE} (never \`.workflow/\`${CANON_CLAUSE}, never \`git add -A\`, never unrelated edits) and commit with a concise why-focused message (no Claude attribution). Then `
   const pr = await agent(`${CTX}\n(Override: the PR stage writes NO file — return opened+committed+url as your structured output.)\n${COMMIT_NOTE}push the branch and open a DRAFT PR against main using the repo's pull_request_template.md. Why-first description; changes in plain English (no file paths); paste ${PHASE_DIR}/qa.md verbatim as the QA section if it exists.`,
     { agentType: 'workflow:pr-author', model: M.doc, phase: 'PR', label: `pr:${SCOPE}`, schema: PR_SCHEMA })
   if (pr && pr.committed) result.committed = true
@@ -235,7 +239,7 @@ if (todo('pr') && reviewPassed) {
 // review or rewriting the PR body. Inert when `pr` ran (it already committed) or when nothing was selected.
 if (todo('commit') && !todo('pr') && reviewPassed && !result.committed) {
   phase('Commit')
-  const c = await agent(`${CTX}\n(Override: write NO file — return your \`## GATE\` as structured output.)\nCommit and push ONLY this change's code/test/doc files plus its OpenSpec change at ${CHANGE_DIR || 'openspec/changes/<change>'} (never \`.workflow/\`, never the canonical library \`${CANON_SPECS}\`, never \`git add -A\`, never unrelated edits). Use a concise why-focused message (no Claude attribution), then push the branch. Do NOT open, edit, or touch any pull request — an existing draft PR picks up the push on its own.`,
+  const c = await agent(`${CTX}\n(Override: write NO file — return your \`## GATE\` as structured output.)\nCommit and push ONLY this change's code/test/doc files${SPEC_CLAUSE} (never \`.workflow/\`${CANON_CLAUSE}, never \`git add -A\`, never unrelated edits). Use a concise why-focused message (no Claude attribution), then push the branch. Do NOT open, edit, or touch any pull request — an existing draft PR picks up the push on its own.`,
     { agentType: 'workflow:pr-author', model: M.doc, phase: 'Commit', label: `commit:${SCOPE}`, schema: GATE_SCHEMA })
   if (c && c.gate === 'pass') { result.committed = true; log('Committed + pushed (no PR rewrite).') }
   result.stageGates.commit = c

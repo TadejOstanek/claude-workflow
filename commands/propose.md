@@ -12,7 +12,10 @@ CLI (`@fission-ai/openspec`).
 
 ## 1. Resolve the change
 Find the active workflow under `.workflow/` from `state.json`. Use the change in `$ARGUMENTS`, else the
-lowest-`order` change whose `stages.propose` is `pending` (respect `depends_on`). For an `epic`, read
+lowest-`order` change whose `stages.propose` is `pending` (respect `depends_on`). If the resolved change is
+`spec:"none"` (a purely technical change — `propose`/`specify` are `na`), **stop**: it needs no OpenSpec change —
+point the user to `/workflow:design`. (If they truly want to add a spec, they first flip the change's `spec` to
+`"openspec"` and reset `propose`/`specify`/`archive` to `pending`.) For an `epic`, read
 `architecture.md` for this change's scope; for a `single`, the feature description is the scope. **Do not read
 code**; you may read repo documentation.
 

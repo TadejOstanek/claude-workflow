@@ -18,11 +18,14 @@ workflows skip this and go straight to `/workflow:propose`.)
 4. Write `.workflow/<feature>/architecture.md` per the skill — including the epic intent (why/what), since there is
    no separate epic spec — ending with a `## GATE`.
 5. Update `state.json`:
-   - set `epic.architecture="done"`, `currentStage="propose"`, append a `transitions` entry;
+   - set `epic.architecture="done"`, append a `transitions` entry, and set `currentStage` to the first change's
+     next stage — `"propose"` if the lowest-`order` change is `spec:"openspec"`, `"design"` if it's `spec:"none"`;
    - populate `changes[]` from the agreed breakdown — each with `slug` (`<NN>-<name>`), `type`, `order`,
-     `depends_on`, `change:null`, `specRoot:"."` (the change's OpenSpec root — `/workflow:propose` may retarget
-     it to an app/domain sub-dir), and all stages (`propose`, `specify`, `design`, `build`, `test-lint`, `review`,
-     `docs`, `qa`, `pr`, `archive`) set to `pending`;
+     `depends_on`, `spec` (`"openspec"` or `"none"` — triaged per the heuristic in `workflow:workflow-conventions`:
+     behavioral → `"openspec"`, purely technical refactor/infra/tidy → `"none"`; recommend per change and **confirm
+     with the user**), `change:null`, `specRoot:"."` (the change's OpenSpec root — `/workflow:propose` may retarget
+     it to an app/domain sub-dir), and all stages set to `pending` — **except** for a `spec:"none"` change, set
+     `propose`, `specify`, and `archive` to `na` (the rest `pending`);
    - create each change folder `.workflow/<feature>/<NN>-<slug>/`.
-6. Tell the user to `/clear`, then run `/workflow:propose` (authors the first change's proposal), then
-   `/workflow:specify`.
+6. Tell the user to `/clear`, then run the next stage for the first change: `/workflow:propose` (then
+   `/workflow:specify`) for a `spec:"openspec"` change, or `/workflow:design` directly for a `spec:"none"` one.

@@ -14,7 +14,9 @@ From `state.json`, use `$ARGUMENTS`, else the lowest-`order` change whose `stage
 `stages.propose` is `done`. In `single` mode, if no change is `pending` (you're **amending** an already-specced
 change), default to the sole change anyway; in `epic` mode, name the change to revisit a `done` one. Read its
 `proposal.md` (the `## Capabilities` list is your contract), its `change` id, and its `specRoot` (default `"."`).
-If `propose` isn't done, stop and tell the user to run `/workflow:propose` first.
+If `propose` isn't done, stop and tell the user to run `/workflow:propose` first. If the change is `spec:"none"`
+(a purely technical change with no OpenSpec change), **stop** — there are no specs to author; point the user to
+`/workflow:design`.
 
 ## 2. Author the specs — testable behavior, capture EVERYTHING
 Pull the format (don't assume it) — run from `specRoot`:

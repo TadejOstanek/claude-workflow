@@ -9,11 +9,16 @@ This command **authorizes** running the Workflow tool. Read `workflow:workflow-c
 
 ## 1. Resolve the change + compute what's left (you have filesystem access — the loop does not)
 1. Find the active workflow under `.workflow/` from `state.json`. Pick the change from `$ARGUMENTS`, else the
-   lowest-`order` change whose `code-design` is `done` and whose later stages aren't all `done` (respect `depends_on`).
-   Both `stages.specify` and `code-design` must be `done` — if not, stop and point the user to `/workflow:specify`
-   then `/workflow:design`. Note the change's `change` id and `specRoot` (default `"."`); its OpenSpec change at
-   `<specRoot>/openspec/changes/<change>/` holds the behavioral spec the loop's agents read. (`$ARGUMENTS` may also
-   carry a stage selection — see step 2.)
+   lowest-`order` change whose `code-design` is `done` and whose later stages aren't all `done` (respect
+   `depends_on`; an `na` stage counts as satisfied here — e.g. a spec-less change's `archive:"na"` does **not** make
+   it look unbuilt, so a fully-built spec-less change isn't auto-re-picked).
+   `code-design` must be `done`; for a **spec-bearing** change (`spec:"openspec"`) `stages.specify` must also be
+   `done` — if not, stop and point the user to `/workflow:specify` then `/workflow:design`. A **spec-less** change
+   (`spec:"none"`) has `propose`/`specify` as `na`, so only `code-design` is required. For a spec-bearing change,
+   note its `change` id and `specRoot` (default `"."`); its OpenSpec change at `<specRoot>/openspec/changes/<change>/`
+   holds the behavioral spec the loop's agents read, and you pass that absolute path as `changeDir`. For a spec-less
+   change there is no OpenSpec change — pass `changeDir: null` (the loop then uses `code-design.md` as the whole
+   contract). (`$ARGUMENTS` may also carry a stage selection — see step 2.)
    **Resolving the change when blank:** in `single` mode default to the sole change **even when it's fully built**
    (you're iterating), so `/workflow:build only build commit` resolves with no change name. In `epic` mode a
    fully-built change won't be auto-picked (no pending later stages) — name it to rebuild.

@@ -7,14 +7,17 @@ argument-hint: [change slug] — blank to use the next change needing design
 
 Apply the `workflow:code-design` skill. Read `workflow:workflow-conventions` for the file/GATE format.
 
-1. Resolve the active workflow from `state.json`. Read `state.json`, the epic `architecture.md` if present, and
-   **this change's behavioral spec — the OpenSpec change at `<specRoot>/openspec/changes/<change>/`** (`proposal.md`
-   + `specs/**/*.md`; the `change` id and `specRoot` (default `"."`) are in `state.json`). Use the change in
+1. Resolve the active workflow from `state.json`. Read `state.json` and the epic `architecture.md` if present.
+   For a **spec-bearing** change (`spec:"openspec"`), also read **this change's behavioral spec — the OpenSpec
+   change at `<specRoot>/openspec/changes/<change>/`** (`proposal.md` + `specs/**/*.md`; the `change` id and
+   `specRoot` (default `"."`) are in `state.json`). For a **spec-less** change (`spec:"none"`) there is no OpenSpec
+   change — its intent comes from the feature description / epic `architecture.md`. Use the change in
    `$ARGUMENTS`, else the lowest-`order`
    change whose `code-design` stage is `pending` (respect `depends_on`); in `single` mode, if none is `pending`
    (you're **refining** an already-designed change), default to the sole change — `epic` mode requires naming it.
-   Its `stages.specify` must be `done` (the OpenSpec change must exist) — if not, stop and tell the user to run `/workflow:propose` + `/workflow:specify`
-   first. Also read the change's own `architecture.md` if present.
+   For a spec-bearing change, its `stages.specify` must be `done` (the OpenSpec change must exist) — if not, stop
+   and tell the user to run `/workflow:propose` + `/workflow:specify` first. A `spec:"none"` change has no spec
+   prerequisite (`propose`/`specify` are `na`) — proceed. Also read the change's own `architecture.md` if present.
 2. Offer the user the option to add a per-change `architecture.md` before designing (the behavioral spec already
    lives in the OpenSpec change) — do not skip the offer.
 3. If `<change>/code-design.md` already exists (returning), read it + later files to learn why, then refine.

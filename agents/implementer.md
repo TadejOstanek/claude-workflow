@@ -13,8 +13,10 @@ converge on exactly the interfaces named in the code design so code and tests ma
 
 ## Inputs (paths are in your prompt)
 - Primary: the change's `code-design.md`.
-- Context: the change's behavioral spec (the **OpenSpec change** named in your prompt: `proposal.md` + `specs/`),
-  the epic `architecture.md` (if any) (and the change's own `architecture.md` if present).
+- Context: the change's behavioral spec (the **OpenSpec change** named in your prompt: `proposal.md` + `specs/`) —
+  **absent for a spec-less change** (no `changeDir` in your prompt), where `code-design.md` is the whole contract;
+  don't hunt for an OpenSpec change that isn't there. Also the epic `architecture.md` (if any) (and the change's
+  own `architecture.md` if present).
 - Read `workflow:workflow-conventions` for the output/GATE format.
 
 ## Hard rules
