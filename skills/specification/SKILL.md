@@ -24,6 +24,31 @@ validated against — a criterion you omit here silently never gets built or che
   **given** (situation) / **when** (action) / **then** (outcome) wherever it fits.
 - Use the `orchestration:request-clarification` skill to structure the questioning if helpful.
 
+## Write at behavioral altitude — not implementation altitude
+
+Specs describe **what** the system does for actors, not **how** the code achieves it. A spec that survives a full
+data-model refactor is at the right level; one that needs updating every time a field is renamed is too low.
+
+**Keep** — domain vocabulary, the language of the problem:
+- Entity names that actors use: *print job*, *blank variant*, *order line*, *hub*
+- Status names when they are domain concepts: *queued*, *done*, *cancelled*
+- Actor actions: *"an operator records units printed"*, *"a manager sets priority"*
+- Observable outcomes: *"the job completes"*, *"blank stock is released"*, *"the queue refreshes"*
+
+**Remove** — implementation vocabulary, the language of the solution:
+- Field names: `printed_qty`, `target_qty`, `base_variant`, `order_variant`
+- Method / function names: `produce()`, `commit_custom_inventory()`, `cancel_queued_for_variant()`
+- Error class names: `PrintJobNotQueuedError`, `InsufficientBlankAvailabilityError`
+- Internal constants / reason codes: `ADJ-PRINT-JOB`, `HX-Trigger: print-recorded`
+- ORM / HTTP internals: `select_for_update`, query parameter names, response header names
+
+**The test:** could someone who has never read the codebase understand every scenario purely from domain knowledge?
+If yes, the altitude is right. If they need to grep the repo first, rewrite it.
+
+**For retroactive specs** (documenting existing behavior): read the code and tests to extract the behavior, but
+translate every finding into domain language before writing. The existing tests are excellent acceptance-criteria
+anchors — mirror their intent, not their syntax.
+
 ## Output — two steps, into one OpenSpec change
 
 A change's spec is authored in two steps, both into the OpenSpec change at `<specRoot>/openspec/changes/<change>/`
