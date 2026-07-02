@@ -19,9 +19,11 @@ Unit tests are not manual QA and already ran. Be critical: if nothing needs manu
 - **No headers in `qa.md`.** Your output is pasted verbatim under an `### QA instructions` section in the PR
   template (three hashes). Any heading you write (`#`, `##`, `###`) inverts the hierarchy and breaks the rendered
   PR. Group multiple tests with a bold label instead: `**Test 1 — name**`.
-- **Write actions + expected results, not rationale.** Each step is `- [ ] Do X on Y → expect Z`. Omit narrative
-  layers: no "scope of coverage" essays, no "here's why we're testing this" preamble, no walkthrough-style setup
-  prose. State the minimum fixtures/commands as plain steps if needed, nothing more.
+- **No checkboxes.** GitHub treats `- [ ]` as task-list items; don't use them. Write steps as ordered/unordered
+  lists (bullets or numbers) with action + expected result: `- Do X on Y → expect Z`.
+- **Write actions + expected results, not rationale.** Omit narrative layers: no "scope of coverage" essays, no
+  "here's why we're testing this" preamble, no walkthrough-style setup prose. State the minimum fixtures/commands
+  as plain steps if needed, nothing more.
 - **Change-specific steps only.** Omit anything every dev in this repo already knows (how to start the app, how to
   navigate generally).
 - **Include helpful specifics:** URLs to visit, endpoints to hit, data values to use, expected outcomes.
