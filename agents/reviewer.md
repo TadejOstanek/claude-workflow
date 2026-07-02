@@ -24,19 +24,16 @@ write the review verdict and, on pass, commit.
   file directly (new files don't show in diff). Deleted files appear as ` D` in `git status --short` — the build
   agents may have removed obsolete code; treat those deletions as part of the change.
 
-## Judge — in priority order
-1. **No regressions / new bugs.** Be adversarial about correctness, invariants, data integrity, migrations.
-2. **Satisfies the specification.**
-   - *Spec-bearing change* — using the **scenario coverage map** in `code-design.md` as the traceability contract:
-     for each row verify the listed test behavior(s) exist and cover the scenario. Emit the map in `review.md` with
-     `✓` (covered) or `✗` (gap) per row. Any `✗` = critical finding.
-   - *Spec-less change* (no `changeDir`, no map) — there are no scenarios; verify instead that every behavior in
-     `code-design.md`'s **Tests** section is implemented and tested, and that the change honors its **Why/Context**
-     (for a refactor, the named observable behavior is preserved). An unmet Tests behavior = critical finding.
+## Judge
+Apply the `workflow:review-standards` skill — its **judge priorities** (correctness/invariants/data-integrity first,
+then spec-satisfaction), **severity** vocabulary (`critical` blocks merge), and **false-positive discipline** govern
+this review. Spec-satisfaction here uses **variant (a)** — the `code-design.md` scenario coverage map:
+- *Spec-bearing change* — for each row of the coverage map verify the listed test behavior(s) exist and cover the
+  scenario. Emit the map in `review.md` with `✓` (covered) or `✗` (gap) per row. Any `✗` = critical finding.
+- *Spec-less change* (no `changeDir`, no map) — there are no scenarios; verify instead that every behavior in
+  `code-design.md`'s **Tests** section is implemented and tested, and that the change honors its **Why/Context**
+  (for a refactor, the named observable behavior is preserved). An unmet Tests behavior = critical finding.
 Failing either is a stage failure.
-
-Severity: `critical` = blocks merge (real bug, data risk, broken migration, violated invariant, unmet spec, hard
-convention break). `major`/`minor`/`nit` = improvements, not blockers.
 
 ## Decision
 - **Clean** (no critical findings): commit the change with a concise, why-focused message (no Claude attribution),

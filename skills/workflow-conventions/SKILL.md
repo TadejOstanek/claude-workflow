@@ -157,6 +157,14 @@ as structured output. Verification is layered: the opus **review** stage re-deri
 `git diff`, the **test-runner** judges by real tool output, and `/workflow:build` re-checks each stage's on-disk
 GATE after the loop.
 
+## Test-runner detection
+
+Detect how a repo runs its tests by scanning it, in this order (used by `/workflow:build` and `/workflow:review-pr`):
+`peel.yml` present → `peel test …` (set `isPeel:true`); else a `Makefile` `test` target → `make test`; else
+`pyproject.toml`/`pytest.ini` → `pytest`; else a `package.json` test script → `npm test`; else none — `/workflow:build`
+asks the user, while `/workflow:review-pr` just skips running tests (they're best-effort there). Some runners (peel)
+exit `0` even when they never ran (Docker down, expired session) — judge by real output, not the exit code.
+
 ## OpenSpec integration (the thin seam)
 
 OpenSpec sits **underneath** this workflow as a passive spec store + canonical library, driven by the engine.

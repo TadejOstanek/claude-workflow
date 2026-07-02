@@ -124,6 +124,23 @@ Re-opening an upstream stage never auto-invalidates the downstream ones — they
 describe older code); the command warns you and you choose what to redo. Add `review`/`qa` to the `only` list the
 rounds you *do* want them. Just don't `/workflow:archive` until you're truly done — that merge is irreversible.
 
+## Reviewing a PR (standalone)
+
+Separate from the change pipeline, `/workflow:review-pr <PR link or number>` reviews **any** GitHub PR — typically a
+coworker's — with special attention to any **OpenSpec spec** it carries: does the code actually satisfy the spec's
+scenarios? It also runs the full general review (correctness, conventions, concurrency/data-integrity).
+
+```
+/workflow:review-pr 1234                    # terminal report
+/workflow:review-pr <pr-url> --comment      # …and post the findings back to the PR
+```
+
+It checks the PR out into a throwaway git **worktree** (never touching your branch or working tree), fans out
+parallel finder agents by dimension, **adversarially verifies** each finding (dropping false positives), dedups, and
+prints a severity-ranked report — then removes the worktree. It's **read-only**: the only thing it ever writes is the
+optional `--comment`. If the PR has no OpenSpec change, the spec dimension is skipped and the rest still runs. This
+command keeps **no** `.workflow/` state — it's a one-shot review.
+
 ## Layout (created in the target repo)
 
 ```

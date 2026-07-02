@@ -45,9 +45,9 @@ This command **authorizes** running the Workflow tool. Read `workflow:workflow-c
      an existing draft PR picks up the push automatically, body untouched. `commit` is inert if `pr` is also
      selected (pr does the commit). Select **none** of `review`/`pr`/`commit` (e.g. plain `light`) and the loop
      leaves your changes uncommitted for you to handle.
-3. Detect the runner by scanning the repo: `peel.yml` → `peel test ...` (set `isPeel:true`); else a `Makefile`
-   `test` target → `make test`; else `pyproject.toml`/`pytest.ini` → `pytest`; else `package.json` test script →
-   `npm test`; else ask. Detect a migrate command only if the change touches models (e.g. `peel makemigrations <app>`).
+3. Detect the test runner per the **Test-runner detection** heuristic in `workflow:workflow-conventions` (set
+   `isPeel:true` for peel; `else ask`). Detect a migrate command only if the change touches models (e.g. `peel
+   makemigrations <app>`).
    `baseRef` = `main`; `appDir` = the change's primary directory **to test/migrate** if obvious, else `.`. (`appDir`
 is independent of the change's `specRoot` — `specRoot` is where `openspec` runs, `appDir` is what gets
 tested/migrated; they often coincide but need not.)
