@@ -21,12 +21,17 @@ Unit tests are not manual QA and already ran. Be critical: if nothing needs manu
   PR. Group multiple tests with a bold label instead: `**Test 1 — name**`.
 - **No checkboxes.** GitHub treats `- [ ]` as task-list items; don't use them. Write steps as ordered/unordered
   lists (bullets or numbers) with action + expected result: `- Do X on Y → expect Z`.
+- **No code.** Never paste a script, shell command, ORM query, or import path for the reader to run verbatim.
+  Describe the state to set up and the outcome to check in plain language — e.g. "a shop with auto-ordering
+  enabled and a printable variant with no pre-printed stock but available blank stock," not a Django-shell
+  snippet that creates it. The reader decides how to realize that state (fixture, admin UI, shell, whatever)
+  and how to inspect the result — that's their job, not something to hand them pre-written.
 - **Write actions + expected results, not rationale.** Omit narrative layers: no "scope of coverage" essays, no
-  "here's why we're testing this" preamble, no walkthrough-style setup prose. State the minimum fixtures/commands
-  as plain steps if needed, nothing more.
+  "here's why we're testing this" preamble, no walkthrough-style setup prose.
 - **Change-specific steps only.** Omit anything every dev in this repo already knows (how to start the app, how to
   navigate generally).
-- **Include helpful specifics:** URLs to visit, endpoints to hit, data values to use, expected outcomes.
+- **Include helpful specifics:** URLs to visit, endpoints to hit, data values to use, expected outcomes — named,
+  not scripted.
 - **Do not run QA yourself** — produce instructions only.
 
 ## Output: `qa.md`
