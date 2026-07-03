@@ -116,7 +116,7 @@ change name needed; in an epic, name the change on each command):
 
 ```
 /workflow:specify                           # add the missing requirement to the spec (re-validates)
-/workflow:design                            # refine code-design; reuses the existing branch/worktree
+/workflow:design                            # refine code-design; reuses the existing branch
 /workflow:build only build commit           # re-implement + push to the existing draft PR — no review/QA/body rewrite
 ```
 

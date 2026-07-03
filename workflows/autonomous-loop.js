@@ -29,7 +29,7 @@ const CANON_SPECS = CHANGE_DIR ? CHANGE_DIR.replace(/\/changes\/[^/]+\/?$/, '/sp
 // CHANGE_DIR) so we never tell an agent to stage an `openspec/changes/<change>` path that doesn't exist.
 const SPEC_CLAUSE = CHANGE_DIR ? ` plus the phase's OpenSpec change at ${CHANGE_DIR}` : ''
 const CANON_CLAUSE = CHANGE_DIR ? `, never the canonical library \`${CANON_SPECS}\` (it merges only at archive)` : ''
-const WORKDIR = A.workdir || '.'   // repo root OR the worktree path — ALL git/test/gh commands run here
+const WORKDIR = A.workdir || '.'   // absolute repo root — ALL git/test/gh commands run here
 const BASE_REF = A.baseRef || 'main'
 const APP_DIR = A.appDir || '.'
 const TEST_CMD = A.testCmd || null

@@ -101,7 +101,7 @@ format. Everything else — descriptions, decisions, discoveries, findings, rati
     {
       "slug": "01-data-model", "type": "feature", "order": 1, "depends_on": [],
       "spec": "openspec", "change": null, "specRoot": ".",
-      "ticket": null, "branch": null, "worktree": null,
+      "ticket": null, "branch": null,
       "stages": {
         "propose": "pending", "specify": "pending", "design": "pending", "build": "pending",
         "test-lint": "pending", "review": "pending", "docs": "pending", "qa": "pending",
@@ -129,10 +129,10 @@ format. Everything else — descriptions, decisions, discoveries, findings, rati
   a `spec: "none"` change.
 - `specRoot` is this change's OpenSpec root — the repo-relative dir whose `openspec/` holds it (default `"."`).
   Set by `/workflow:propose`; absent ⇒ treat as `"."` (back-compat). Every `openspec` call for this change runs
-  with `<baseDir>/<specRoot>` as the working directory (see "Branch/worktree provisioning" below for `baseDir`).
-- `ticket`, `branch`, `worktree` live **on each change** (not top-level — a workflow can have several changes, each
-  with its own branch/PR). `null` until provisioned; see "Branch/worktree provisioning" below for when and how.
-  **Back-compat**: if a change's own `ticket`/`branch`/`worktree` are absent/`null` but the now-removed top-level
+  with `<specRoot>` as the working directory.
+- `ticket`, `branch` live **on each change** (not top-level — a workflow can have several changes, each
+  with its own branch/PR). `null` until provisioned; see "Branch provisioning" below for when and how.
+  **Back-compat**: if a change's own `ticket`/`branch` are absent/`null` but the now-removed top-level
   `state.json` fields of the same name are present (a workflow created before this schema moved them per-change),
   treat those top-level values as this change's — don't re-provision. This only disambiguates cleanly for a
   `single`-mode workflow (its one change unambiguously owned the top-level fields); for an in-flight `epic` the
@@ -150,46 +150,25 @@ format. Everything else — descriptions, decisions, discoveries, findings, rati
 - A stage is marked `done` only when its output file exists and its GATE is `pass` (where it has one). Append a
   `transitions` entry on every status change with a one-line reason.
 
-## Branch/worktree provisioning (per change)
+## Branch provisioning (per change)
 
-Every change gets its own branch (one change = one PR) — this is the **one place** that owns creating it; every
-stage that needs the branch/worktree reads it off the change's `state.json` entry rather than re-deriving it.
+Every change gets its own branch (one change = one PR), created once at the top of `/workflow:design` — this is the
+**one place** that owns creating it, regardless of whether the change is spec-bearing or spec-less. Propose/specify
+(when they run) write the OpenSpec change directly onto whatever checkout is currently active — nothing forces a
+branch to exist before then, and there's no worktree to orphan those files in.
 
-- **When**: a change writes its first **committable** file (something that ends up in the PR) at different points
-  depending on `spec`. `.workflow/<feature>/**` is never committable — it's never staged into a PR (see "Consumption"
-  under OpenSpec integration) — so it never triggers provisioning.
-  - **Spec-bearing (`spec:"openspec"`)** — `/workflow:propose` writes the OpenSpec change (`proposal.md`, later
-    `specs/**/*.md`), which the reviewer/PR-author **do** stage into the PR. So provision **at the top of
-    `/workflow:propose`**, before picking `specRoot` or running `openspec new change` — only if this change's
-    `ticket`/`branch` are still `null`. (In single mode this lands on the very first turn of `/workflow:propose`,
-    right after `/workflow:start`, since nothing runs in between. In epic mode this provisions each change lazily,
-    right when its own pipeline actually begins — not all at once during `/workflow:arch`.)
-  - **Spec-less (`spec:"none"`)** — there's no OpenSpec change; nothing committable exists before
-    `/workflow:design` writes `code-design.md` (`.workflow/`, not committable) and `/workflow:build` starts
-    producing real code. Provision **at the top of `/workflow:design`**, as today.
-- **How**: prompt for the ticket number, derive the branch name `{username}/sc-{ticket}/{description}` (username
-  from `git config user.name` / `gh api user --jq .login`), then ask whether to work in a **worktree** *before*
-  creating anything — the two paths create the branch differently and are mutually exclusive, not sequential steps:
-  - **Worktree**: `git worktree add -b <branch> <path> main` — one command that creates the branch **and** the
-    worktree together, checked out only in `<path>`. Never runs `git checkout -b` first — a branch already checked
-    out in the main working tree cannot also be added as a worktree (`fatal: already checked out`).
-  - **No worktree**: `git checkout -b <branch> main` — this *does* switch the main checkout onto the new branch;
-    that's what makes subsequent writes (the OpenSpec change, code) land on it.
+- **How**: if `state.json` already has a `branch` for this change (you're re-designing during iteration), reuse it
+  — never re-prompt or re-create. Otherwise prompt for the ticket number, derive the branch name
+  `{username}/sc-{ticket}/{description}` (username from `git config user.name` / `gh api user --jq .login`), and run
+  `git checkout -b <branch> main` — this switches the current checkout onto the new branch, carrying forward any
+  uncommitted files (e.g. a proposal/spec written before the branch existed) since it's the same working tree, not a
+  fresh checkout elsewhere.
 
-  Record `ticket`, `branch`, `worktree` on **this change's entry** in `state.json`.
+  Record `ticket`, `branch` on **this change's entry** in `state.json`.
 - **Re-entry**: if `ticket`/`branch` are already set on the change (checking the back-compat fallback above too),
-  reuse them — never re-prompt or re-create. This is what lets `/workflow:design` (re-designing) and
-  `/workflow:specify` (amending) land on the same branch, and what keeps a pre-this-change workflow from having its
-  already-provisioned branch clobbered by a `git checkout -b`/`worktree add` that would fail on a branch that
-  already exists.
-- **`baseDir` (the working-directory rule)**: once a change has a `worktree` recorded **and the directory still
-  exists on disk**, every command that touches **repo content** for that change — `openspec` CLI calls, reading or
-  writing code, git operations — runs with cwd `<worktree>/<subpath>`, **never** `<repoRoot>/<subpath>`. This
-  matters because the interactive session's own cwd never changes (it never switches the main checkout) — a bare
-  `(cd "<specRoot>" && …)` always resolves under the repo root even after a worktree exists elsewhere, silently
-  writing into the wrong checkout. If there's no `worktree` (or it was already cleaned up, e.g. post-merge by the
-  time `/workflow:archive` runs), `baseDir` is the repo root. `.workflow/` paths are **never** affected by
-  `baseDir` — they're always repo-root-relative, worktree or not.
+  reuse them — never re-prompt or re-create. This is what lets re-running `/workflow:design` land on the same
+  branch, and what keeps a pre-this-change workflow from having its already-provisioned branch clobbered by a
+  `git checkout -b` that would fail on a branch that already exists.
 
 ## GATE section (end of every stage output file)
 
@@ -230,28 +209,25 @@ Grain: **one OpenSpec change = one change = one PR.**
   directory**: `change`, `validate`, and `archive` operate on `<cwd>/openspec/` (no walk-up); `status` walks up
   to the *nearest* ancestor `openspec/`. So a change's spec lives wherever you run `openspec`. This workflow
   records that directory as the change's **`specRoot`** and runs **every** `openspec` invocation for the change
-  with `<baseDir>/<specRoot>` as cwd — `(cd "<baseDir>/<specRoot>" && openspec …)` (`baseDir` per "Branch/worktree
-  provisioning" above — the change's worktree if one exists, else the repo root). Default `specRoot` is `"."`
+  with `<specRoot>` as cwd — `(cd "<specRoot>" && openspec …)`. Default `specRoot` is `"."`
   (repo root). A repo organizes specs **per app/domain** simply by creating sub-root `openspec/` dirs
   (`goods/openspec/`, …) and pointing a change's `specRoot` at one; cross-cutting changes use `"."`. The engine
   **discovers** existing roots — it never hardcodes paths or app names, so this stays repo-agnostic.
-- **Authoring** — `/workflow:propose` provisions the change's branch/worktree first (see "Branch/worktree
-  provisioning"), then picks `specRoot`, runs `openspec new change <id>` and writes `proposal.md`;
+- **Authoring** — `/workflow:propose` picks `specRoot`, runs `openspec new change <id>` and writes `proposal.md`;
   `/workflow:specify` writes the `specs/<capability>/spec.md` deltas. Both pull the exact format from
-  `openspec instructions <artifact> --change <id> --json`. All of these run with cwd = `<baseDir>/<specRoot>`, so
-  the OpenSpec change lands **on the change's own branch/worktree**, not the main checkout.
+  `openspec instructions <artifact> --change <id> --json`. All of these run with cwd = `<specRoot>`, on whatever
+  checkout is currently active (the change's branch doesn't exist yet — see "Branch provisioning").
 - **Consumption** — for a spec-bearing change, code-design and the loop's agents read the change's behavioral spec
-  from `<baseDir>/<specRoot>/openspec/changes/<change>/` (passed to the loop as the absolute `changeDir`, computed
-  under `workdir` — see `/workflow:build`). The reviewer commits the change's proposal + specs into its PR, but
+  from `<specRoot>/openspec/changes/<change>/` (passed to the loop as the absolute `changeDir` — see
+  `/workflow:build`). The reviewer commits the change's proposal + specs into its PR, but
   **never** `<specRoot>/openspec/specs/` (the canonical library). For a **spec-less** change there is no OpenSpec
   change: `changeDir` is `null`, `code-design.md` is the whole behavioral contract, and nothing OpenSpec-related is
   read or committed.
-- **Archive is manual and deliberate** (`/workflow:archive`): run it yourself (with cwd = `<baseDir>/<specRoot>`,
-  `baseDir` = the change's worktree if it still exists on disk, else the repo root — covers running it before or
-  after the worktree/branch was cleaned up post-merge) when you are sure the change is fully done. It merges the
-  change's deltas into the canonical `<specRoot>/openspec/specs/<capability>/` and moves the change to
-  `<specRoot>/openspec/changes/archive/`. It is **not** automated by the loop. Run it on the change's branch
-  *before* merging (so the canonical spec ships in the PR) or after — your call.
+- **Archive is manual and deliberate** (`/workflow:archive`): run it yourself (with cwd = `<specRoot>`) when you
+  are sure the change is fully done. It merges the change's deltas into the canonical
+  `<specRoot>/openspec/specs/<capability>/` and moves the change to `<specRoot>/openspec/changes/archive/`. It is
+  **not** automated by the loop. Run it on the change's branch *before* merging (so the canonical spec ships in
+  the PR) or after — your call.
 - Requires the `openspec` CLI (`@fission-ai/openspec`, Node ≥ 20.19) and a one-time `openspec init` in each
   `specRoot` (the engine runs it automatically when a chosen `specRoot` has no `openspec/` yet).
 
@@ -262,10 +238,9 @@ and move *backward*: amend the spec, refine the code-design, rebuild only what c
 stages you don't want. The workflow supports this, and stages are revisitable. The rules that keep it sane:
 
 - **Re-open an upstream stage by naming the change.** `/workflow:specify <change>` and `/workflow:design <change>`
-  re-author in place — `specify` just re-edits the OpenSpec `spec.md` (then re-validates); both reuse the change's
-  existing `ticket`/`branch`/`worktree` (per "Branch/worktree provisioning" — they were already set by
-  `/workflow:propose` for a spec-bearing change, or by an earlier `/workflow:design` for a spec-less one; neither
-  re-creates them). Auto-resolution normally finds only *pending* stages; in `single` mode (one change) a blank
+  re-author in place — `specify` just re-edits the OpenSpec `spec.md` (then re-validates); `design` reuses the
+  change's existing `ticket`/`branch` (per "Branch provisioning" — set by an earlier `/workflow:design`; it does
+  **not** re-create them). Auto-resolution normally finds only *pending* stages; in `single` mode (one change) a blank
   invocation still defaults to that change so you needn't name it, but in `epic` mode you pass the change
   explicitly to revisit a `done` stage.
 - **Re-opening upstream does NOT auto-invalidate downstream.** Downstream stages stay `done` even though their
@@ -287,8 +262,7 @@ active workflow's mode, current stage, and exact next command.
 ## Resume
 
 `state.json` is the sole cross-session recovery path. On entering any stage: read `state.json`, the epic
-`architecture.md` if present, the change's OpenSpec change (`<baseDir>/<specRoot>/openspec/changes/<change>/` —
-its behavioral spec; `specRoot` from `state.json`, `baseDir` from this change's `worktree` per "Branch/worktree
-provisioning"; **absent for a `spec: "none"` change** — there is none to read), and the change's prior
-`.workflow/` files. If this stage's own file already exists, also read the *next* stages' files to learn why it
-was sent back, then fix accordingly.
+`architecture.md` if present, the change's OpenSpec change (`<specRoot>/openspec/changes/<change>/` —
+its behavioral spec; `specRoot` from `state.json`; **absent for a `spec: "none"` change** — there is none to read),
+and the change's prior `.workflow/` files. If this stage's own file already exists, also read the *next* stages'
+files to learn why it was sent back, then fix accordingly.

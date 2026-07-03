@@ -27,20 +27,17 @@ Do not read code or design anything — only scaffold:
 4. Create `.workflow/<feature-slug>/` and write `state.json` per the conventions schema:
    - **single, `spec:"openspec"`:** `mode:"single"`, `epic:{architecture:"na"}`, `currentStage:"propose"`, and
      `changes` holding one entry (`slug:"01-<feature-slug>"`, `type`, `order:1`, `depends_on:[]`, `spec:"openspec"`,
-     `change:null`, `specRoot:"."`, `ticket:null`, `branch:null`, `worktree:null`, all stages `pending`). Its
-     branch/worktree are provisioned lazily by `/workflow:propose` (see `workflow:workflow-conventions`), not here.
+     `change:null`, `specRoot:"."`, `ticket:null`, `branch:null`, all stages `pending`). Its branch is provisioned
+     by `/workflow:design` (see `workflow:workflow-conventions`), not here.
    - **single, `spec:"none"`:** same entry but `spec:"none"`, with `propose`, `specify`, and `archive` set to `na`
-     (the rest `pending`), and `currentStage:"design"`. Its branch/worktree are provisioned by `/workflow:design`.
+     (the rest `pending`), and `currentStage:"design"`. Its branch is also provisioned by `/workflow:design`.
    - **epic:** `mode:"epic"`, `epic:{architecture:"pending"}`, `currentStage:"architecture"`, `changes:[]`.
    - both: one `transitions` entry `{from:"init", to:<currentStage>, reason:"workflow created (<mode>)"}`.
 5. **OpenSpec prerequisite** (skip for a `spec:"none"` single change — it uses no OpenSpec): if the repo has no
    `openspec/` directory anywhere, tell the user to run `openspec init --tools claude` (installing
-   `@fission-ai/openspec` if needed) at the repo root **and commit the result to `main`** before `/workflow:propose`
-   — it's baseline tooling, not part of any specific change. This matters even more once a change picks a worktree:
-   `/workflow:propose` cuts the worktree from `main`'s last commit (`git worktree add -b <branch> <path> main`), so
-   an *uncommitted* root `openspec/` simply wouldn't exist in it. Per-app/domain sub-root `openspec/` dirs are
-   created on demand by `/workflow:propose` (it picks the change's `specRoot`) and are fine to land inside that
-   change's own branch/worktree — only the root baseline needs to predate any change on `main`.
+   `@fission-ai/openspec` if needed) at the repo root before `/workflow:propose`. Per-app/domain sub-root
+   `openspec/` dirs are created on demand by `/workflow:propose` (it picks the change's `specRoot`), so only the
+   baseline root is needed up front.
 6. Tell the user the next command — **single + `spec:"openspec"` →** `/workflow:propose`; **single +
    `spec:"none"` →** `/workflow:design` (the spec steps are skipped); **epic →** `/workflow:arch` (no `/clear`
    needed; it's the first stage).

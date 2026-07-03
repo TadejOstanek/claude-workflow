@@ -15,7 +15,7 @@ This command **authorizes** running the Workflow tool. Read `workflow:workflow-c
    `code-design` must be `done`; for a **spec-bearing** change (`spec:"openspec"`) `stages.specify` must also be
    `done` — if not, stop and point the user to `/workflow:specify` then `/workflow:design`. A **spec-less** change
    (`spec:"none"`) has `propose`/`specify` as `na`, so only `code-design` is required. Note this change's `change`
-   id, `specRoot` (default `"."`), and `ticket`/`branch`/`worktree` (all live on the change entry — see
+   id, `specRoot` (default `"."`), and `ticket`/`branch` (both live on the change entry — see
    `workflow:workflow-conventions`). For a spec-bearing change, its OpenSpec change — the behavioral spec the loop's
    agents read — lives at `<workdir>/<specRoot>/openspec/changes/<change>/` (`workdir` from step 4 below); you pass
    that absolute path as `changeDir`. For a spec-less change there is no OpenSpec change — pass `changeDir: null`
@@ -55,9 +55,8 @@ This command **authorizes** running the Workflow tool. Read `workflow:workflow-c
    `baseRef` = `main`; `appDir` = the change's primary directory **to test/migrate** if obvious, else `.`. (`appDir`
 is independent of the change's `specRoot` — `specRoot` is where `openspec` runs, `appDir` is what gets
 tested/migrated; they often coincide but need not.)
-4. Determine `workdir` — the **absolute** path the loop's git/test/PR commands must run in: this change's
-   `worktree` (from its `state.json` entry) if one was created, otherwise the repo root. The loop commits and
-   pushes there. Resolve `changeDir` (step 1) under this same `workdir`.
+4. Determine `workdir` — the **absolute** repo root path (there is no worktree). The loop's git/test/PR commands
+   run there, and it commits and pushes there. Resolve `changeDir` (step 1) under this same `workdir`.
 
 ## 2. Launch the loop (async — then end your turn)
 Call the **Workflow** tool with `scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/autonomous-loop.js"` and `args`
@@ -68,7 +67,7 @@ Call the **Workflow** tool with `scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/au
   "featureDir": "<abs path to .workflow/<feature>/>",
   "phaseDir": "<abs path to the change folder .workflow/<feature>/<NN>-<change>/>",
   "changeDir": "<abs path to <workdir>/<specRoot>/openspec/changes/<change>/ , or null>",
-  "workdir": "<abs repo root or worktree path>",
+  "workdir": "<abs repo root>",
   "baseRef": "main", "appDir": "<dir or .>",
   "testCmd": "<detected or null>", "migrateCmd": "<or null>", "isPeel": <bool>,
   "pendingStages": ["..."]
