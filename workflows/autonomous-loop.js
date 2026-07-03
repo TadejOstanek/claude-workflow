@@ -148,25 +148,30 @@ if (MIGRATE_CMD && todo('test-lint') && !result.escalation) {
 
 // ============ TEST + LINT (haiku; bounded reconcile) ============
 let test = null
-if (TEST_CMD && todo('test-lint') && !result.escalation) {
-  phase('Test')
-  const RUN = `${CTX}\nRun the scoped tests and linters for this change and write ${PHASE_DIR}/test-lint.md.${PEEL_NOTE}\nReport every real failure precisely (target + test + error).`
-  const MAX = 2
-  for (let i = 1; i <= MAX; i++) {
-    test = await agent(RUN, { agentType: 'workflow:test-runner', model: M.run, phase: 'Test', label: `test #${i}:${SCOPE}`, schema: TEST_SCHEMA })
-    if (!test || !test.ran) { log('Tests SKIPPED (runner unavailable) — must run before merge.'); result.skipped.push('test-lint'); break }
-    if (test.passed) { log(`Tests green on attempt ${i}.`); break }
-    log(`Test attempt ${i} failed: ${test.summary}`)
-    if (i === MAX) break
-    // reconcile: re-run the build pair, each fixing only its own domain
-    const fx = `${CTX}\nThe tests failed. Fix ONLY what's needed, faithful to ${PHASE_DIR}/code-design.md, within your domain. Then stop; the harness re-runs tests.\nFailures:\n${JSON.stringify(test.failures, null, 2)}`
-    await parallel([
-      () => agent(`${fx}\n(You are CODE — fix implementation bugs only.)`, { agentType: 'workflow:implementer', model: M.code, phase: 'Test', label: `fix-code #${i}:${SCOPE}`, schema: GATE_SCHEMA }),
-      () => agent(`${fx}\n(You are TESTS — fix test bugs only.)`, { agentType: 'workflow:test-author', model: M.test, phase: 'Test', label: `fix-tests #${i}:${SCOPE}`, schema: GATE_SCHEMA }),
-    ])
+if (todo('test-lint') && !result.escalation) {
+  if (!TEST_CMD) {
+    log('Tests SKIPPED — no testCmd was provided to the loop.')
+    result.skipped.push('test-lint')
+  } else {
+    phase('Test')
+    const RUN = `${CTX}\nRun the scoped tests and linters for this change and write ${PHASE_DIR}/test-lint.md.${PEEL_NOTE}\nReport every real failure precisely (target + test + error).`
+    const MAX = 2
+    for (let i = 1; i <= MAX; i++) {
+      test = await agent(RUN, { agentType: 'workflow:test-runner', model: M.run, phase: 'Test', label: `test #${i}:${SCOPE}`, schema: TEST_SCHEMA })
+      if (!test || !test.ran) { log('Tests SKIPPED (runner unavailable) — must run before merge.'); result.skipped.push('test-lint'); break }
+      if (test.passed) { log(`Tests green on attempt ${i}.`); break }
+      log(`Test attempt ${i} failed: ${test.summary}`)
+      if (i === MAX) break
+      // reconcile: re-run the build pair, each fixing only its own domain
+      const fx = `${CTX}\nThe tests failed. Fix ONLY what's needed, faithful to ${PHASE_DIR}/code-design.md, within your domain. Then stop; the harness re-runs tests.\nFailures:\n${JSON.stringify(test.failures, null, 2)}`
+      await parallel([
+        () => agent(`${fx}\n(You are CODE — fix implementation bugs only.)`, { agentType: 'workflow:implementer', model: M.code, phase: 'Test', label: `fix-code #${i}:${SCOPE}`, schema: GATE_SCHEMA }),
+        () => agent(`${fx}\n(You are TESTS — fix test bugs only.)`, { agentType: 'workflow:test-author', model: M.test, phase: 'Test', label: `fix-tests #${i}:${SCOPE}`, schema: GATE_SCHEMA }),
+      ])
+    }
+    result.testsVerified = !!(test && test.ran && test.passed)
+    result.stageGates['test-lint'] = test
   }
-  result.testsVerified = !!(test && test.ran && test.passed)
-  result.stageGates['test-lint'] = test
 }
 
 // ============ REVIEW (opus; commits on pass; bounded fix loop) ============

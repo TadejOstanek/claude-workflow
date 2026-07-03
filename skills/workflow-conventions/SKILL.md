@@ -206,11 +206,20 @@ GATE after the loop.
 
 ## Test-runner detection
 
-Detect how a repo runs its tests by scanning it, in this order (used by `/workflow:build` and `/workflow:review-pr`):
-`peel.yml` present → `peel test …` (set `isPeel:true`); else a `Makefile` `test` target → `make test`; else
-`pyproject.toml`/`pytest.ini` → `pytest`; else a `package.json` test script → `npm test`; else none — `/workflow:build`
-asks the user, while `/workflow:review-pr` just skips running tests (they're best-effort there). Some runners (peel)
-exit `0` even when they never ran (Docker down, expired session) — judge by real output, not the exit code.
+Detect how a repo runs its tests by scanning it, in this order (used by `/workflow:build` and `/workflow:review-pr`).
+Every branch below must set `testCmd` to a concrete, runnable command string — never leave it a bare flag or null
+when a runner was actually found:
+- `peel.yml` present → `testCmd: "peel test --target <tool>"` (the concrete scoped target, e.g. `pytest`) **and**
+  `isPeel:true`.
+- else a `Makefile` `test` target → `testCmd: "make test"`.
+- else `pyproject.toml`/`pytest.ini` present → `testCmd: "pytest"`.
+- else a `package.json` test script → `testCmd: "npm test"`.
+- else no runner found → `/workflow:build` **asks the user** for a command rather than passing `testCmd: null`
+  silently; `/workflow:review-pr` just skips running tests (best-effort there).
+
+A `testCmd` of `null` skips the whole test-lint stage — pass it only when you've actually asked and the user said to
+proceed without tests. Some runners (peel) exit `0` even when they never ran (Docker down, expired session) — judge
+by real output, not the exit code.
 
 ## OpenSpec integration (the thin seam)
 
