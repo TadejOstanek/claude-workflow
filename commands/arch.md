@@ -24,8 +24,10 @@ workflows skip this and go straight to `/workflow:propose`.)
      `depends_on`, `spec` (`"openspec"` or `"none"` — triaged per the heuristic in `workflow:workflow-conventions`:
      behavioral → `"openspec"`, purely technical refactor/infra/tidy → `"none"`; recommend per change and **confirm
      with the user**), `change:null`, `specRoot:"."` (the change's OpenSpec root — `/workflow:propose` may retarget
-     it to an app/domain sub-dir), and all stages set to `pending` — **except** for a `spec:"none"` change, set
-     `propose`, `specify`, and `archive` to `na` (the rest `pending`);
+     it to an app/domain sub-dir), `ticket:null`, `branch:null`, `worktree:null` (each change's branch/worktree is
+     provisioned lazily — by its own `/workflow:propose` if `spec:"openspec"`, or `/workflow:design` if
+     `spec:"none"` — not batched here; see `workflow:workflow-conventions`), and all stages set to `pending` —
+     **except** for a `spec:"none"` change, set `propose`, `specify`, and `archive` to `na` (the rest `pending`);
    - create each change folder `.workflow/<feature>/<NN>-<slug>/`.
 6. Tell the user to `/clear`, then run the next stage for the first change: `/workflow:propose` (then
    `/workflow:specify`) for a `spec:"openspec"` change, or `/workflow:design` directly for a `spec:"none"` one.

@@ -26,10 +26,9 @@ is the last interactive stage — the user approves before the autonomous loop r
   user to return to `/workflow:arch` with what you learned.
 
 ## Prepare for implementation
-- Prompt the user for the **story/ticket number**.
-- Create the **branch**: `{username}/sc-{ticket}/{description}` (username from `git config user.name` /
-  `gh api user --jq .login`). Target branch `main`.
-- Ask whether to work in a **worktree** (`git worktree add /tmp/<name> <branch>`); never switch the main checkout.
+For a spec-bearing change, the branch/worktree already exist (provisioned by `/workflow:propose`) — just reuse
+them. For a spec-less change, this is its first committable stage: provision the branch/worktree now, per
+`workflow:workflow-conventions` ("Branch/worktree provisioning").
 
 ## Output: `code-design.md`
 - **Why / Context** — **required for a `spec:"none"` change** (there is no `proposal.md`): one short paragraph on

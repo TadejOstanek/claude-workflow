@@ -13,26 +13,27 @@ the testable requirement/scenario deltas — into the OpenSpec change created by
 From `state.json`, use `$ARGUMENTS`, else the lowest-`order` change whose `stages.specify` is `pending` and whose
 `stages.propose` is `done`. In `single` mode, if no change is `pending` (you're **amending** an already-specced
 change), default to the sole change anyway; in `epic` mode, name the change to revisit a `done` one. Read its
-`proposal.md` (the `## Capabilities` list is your contract), its `change` id, and its `specRoot` (default `"."`).
-If `propose` isn't done, stop and tell the user to run `/workflow:propose` first. If the change is `spec:"none"`
-(a purely technical change with no OpenSpec change), **stop** — there are no specs to author; point the user to
-`/workflow:design`.
+`proposal.md` (the `## Capabilities` list is your contract), its `change` id, its `specRoot` (default `"."`), and
+its `worktree`. If `propose` isn't done, stop and tell the user to run `/workflow:propose` first. If the change is
+`spec:"none"` (a purely technical change with no OpenSpec change), **stop** — there are no specs to author; point
+the user to `/workflow:design`. The branch/worktree already exist (provisioned by `/workflow:propose`) — reuse
+them, never re-create. Compute `baseDir` = this change's `worktree` if set, else the repo root.
 
 ## 2. Author the specs — testable behavior, capture EVERYTHING
-Pull the format (don't assume it) — run from `specRoot`:
+Pull the format (don't assume it) — run from `baseDir/specRoot`:
 ```bash
-(cd "<specRoot>" && openspec instructions specs --change "<change-id>" --json)
+(cd "<baseDir>/<specRoot>" && openspec instructions specs --change "<change-id>" --json)
 ```
-For each capability in the proposal, write `<specRoot>/openspec/changes/<change-id>/specs/<capability>/spec.md`
+For each capability in the proposal, write `<baseDir>/<specRoot>/openspec/changes/<change-id>/specs/<capability>/spec.md`
 with delta sections — `## ADDED Requirements`, plus `## MODIFIED/REMOVED/RENAMED Requirements` as needed. Each
 `### Requirement: <name>` uses SHALL/MUST and has at least one `#### Scenario: <name>` (**exactly four hashes** —
 three fails silently) in `- **WHEN** … / - **THEN** …` form. These scenarios ARE the testable acceptance criteria
 the reviewer later checks against. For a MODIFIED requirement, copy the full existing block from
-`<specRoot>/openspec/specs/<capability>/spec.md` before editing.
+`<baseDir>/<specRoot>/openspec/specs/<capability>/spec.md` before editing.
 
 ## 3. Validate + finalize
 ```bash
-(cd "<specRoot>" && openspec validate "<change-id>")
+(cd "<baseDir>/<specRoot>" && openspec validate "<change-id>")
 ```
 Fix any structural errors until it passes. Then set this change's `stages.specify = "done"`, append a transition,
 and tell the user to `/clear`, then run `/workflow:design`.
