@@ -1,6 +1,6 @@
 ---
-description: Run the autonomous loop for a change — implement+test always, then optional test/lint, review, docs, QA, draft PR. Launches a background Workflow; reports when it finishes.
-argument-hint: [change slug] [full | light | only <stages> | skip <stages>] — stages: test-lint review docs qa pr commit
+description: Run the autonomous loop for a change — implement+test always, then optional test/lint, review, draft PR. Launches a background Workflow; reports when it finishes.
+argument-hint: [change slug] [full | light | only <stages> | skip <stages>] — stages: test-lint review pr commit
 ---
 
 # /workflow:build
@@ -25,8 +25,8 @@ This command **authorizes** running the Workflow tool. Read `workflow:workflow-c
    (you're iterating), so `/workflow:build only build commit` resolves with no change name. In `epic` mode a
    fully-built change won't be auto-picked (no pending later stages) — name it to rebuild.
 2. **Choose which stages to run — and whether to *resume* or *redo*.** The stages, in order, are `build` (the
-   parallel implementer + test-author — they always run **together**), then `test-lint`, `review`, `docs`, `qa`,
-   `pr`. Two modes, picked from `$ARGUMENTS`:
+   parallel implementer + test-author — they always run **together**), then `test-lint`, `review`, `pr` (the PR
+   stage authors its own manual-QA section — there is no separate QA stage). Two modes, picked from `$ARGUMENTS`:
    - **Resume** (`full` or blank) — *finish an interrupted forward run.* Selected = all stages; then **subtract any
      already `done`** (a stage is done if `state.json` says `done` **or** its output file has a `## GATE` of
      `status: pass`; `pr` is done if a draft PR exists via `gh pr view`). This never redoes completed work — it
@@ -55,8 +55,13 @@ This command **authorizes** running the Workflow tool. Read `workflow:workflow-c
    `baseRef` = `main`; `appDir` = the change's primary directory **to test/migrate** if obvious, else `.`. (`appDir`
 is independent of the change's `specRoot` — `specRoot` is where `openspec` runs, `appDir` is what gets
 tested/migrated; they often coincide but need not.)
-4. Determine `workdir` — the **absolute** repo root path (there is no worktree). The loop's git/test/PR commands
-   run there, and it commits and pushes there. Resolve `changeDir` (step 1) under this same `workdir`.
+4. Determine `workdir` — the **absolute** repo root path (there is no worktree). Before launching the loop, check
+   **checkout safety** (`workflow:workflow-conventions`): the working tree must be clean and currently on this
+   change's `branch`. The loop's subagents trust `workdir` blindly and never switch branches themselves — once the
+   loop is running in the background it cannot pause to ask — so if a different branch is checked out (e.g. another
+   in-progress change) or the tree is dirty, **stop and ask the user** to check out the right branch (and
+   commit/stash foreign work) instead of launching the loop. Once safe, the loop's git/test/PR commands run there,
+   and it commits and pushes there. Resolve `changeDir` (step 1) under this same `workdir`.
 
 ## 2. Launch the loop (async — then end your turn)
 Call the **Workflow** tool with `scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/autonomous-loop.js"` and `args`
@@ -79,9 +84,9 @@ loop returns later via a task notification.
 
 ## 3. When the loop finishes (you'll be notified) — verify, don't trust
 Read the loop's returned result, then **confirm against disk**: for each stage that ran, read its output file
-(`implementation.md`, `tests.md`, `test-lint.md`, `review.md`, `documentation.md`, `qa.md`) and mark the stage
-`done` only if its `## GATE` is `status: pass`; otherwise `failed`. The draft PR link comes from the loop result
-(no file). Update `state.json` accordingly with transitions.
+(`implementation.md`, `tests.md`, `test-lint.md`, `review.md`) and mark the stage `done` only if its `## GATE` is
+`status: pass`; otherwise `failed`. The draft PR link comes from the loop result (no file). Update `state.json`
+accordingly with transitions.
 Report to the user: tests green / skipped, review committed?, draft PR url, open non-critical findings — and the
 reminder to run **`/workflow:archive`** when they're sure the change is done (the canonical-spec merge is manual).
 If the change was **committed** (by `review`, `pr`, or the `commit` token), say so and report the result. If

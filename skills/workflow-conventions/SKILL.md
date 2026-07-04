@@ -51,14 +51,12 @@ spec as a per-change OpenSpec change plus the accumulating canonical library (se
   state.json          # machine state — source of truth for resume + status (schema below)
   architecture.md     # EPIC ONLY: intent + how the work splits into changes (absent in single mode)
   <NN>-<change-slug>/ # one folder per change (single mode = exactly one; zero-padded order) — execution state
-    architecture.md   # OPTIONAL per-change architectural detail
-    code-design.md    # interactive
+    architecture.md   # OPTIONAL per-change architectural detail; may note an ADR path if one was written
+    code-design.md    # interactive; may note an ADR path if one was written
     implementation.md # code agent's discoveries/deviations
     tests.md          # test agent's discoveries/deviations
     test-lint.md      # test & lint run report
     review.md         # review verdict + findings
-    documentation.md  # list of docs produced
-    qa.md             # manual QA instructions
 
 <specRoot>/openspec/   # OpenSpec home for this change (one-time `openspec init` in <specRoot>)
   changes/<change-id>/          # the change's behavioral spec (authored by propose + specify)
@@ -104,8 +102,7 @@ format. Everything else — descriptions, decisions, discoveries, findings, rati
       "ticket": null, "branch": null,
       "stages": {
         "propose": "pending", "specify": "pending", "design": "pending", "build": "pending",
-        "test-lint": "pending", "review": "pending", "docs": "pending", "qa": "pending",
-        "pr": "pending", "archive": "pending"
+        "test-lint": "pending", "review": "pending", "pr": "pending", "archive": "pending"
       }
     }
   ],
@@ -139,8 +136,12 @@ format. Everything else — descriptions, decisions, discoveries, findings, rati
   top-level fields only ever reflected the most-recently-designed change anyway, so applying this fallback is no
   worse than the old behavior, just not a full fix for older changes in that epic.
 - Per-change stages run: `propose` → `specify` → `design` → `build` (the parallel implement + test-author pair,
-  both green = `done`) → `test-lint` → `review` → `docs` → `qa` → `pr` → `archive`. `docs` writes
-  `documentation.md`. **`archive` is `done` only once you've run `/workflow:archive`** — a deliberate manual step.
+  both green = `done`) → `test-lint` → `review` → `pr` → `archive`. There is no separate docs/QA stage: an ADR (the
+  only permanent doc this workflow writes — business-process documentation is OpenSpec's job) is written directly
+  during `design` (or `architecture`) when warranted, and manual QA is authored directly by `pr`. **Back-compat**:
+  a `state.json` from before this change may still carry `"docs"`/`"qa"` keys under `stages` — harmless, just
+  ignore them; resume/redo only ever look up the stage names above. **`archive` is
+  `done` only once you've run `/workflow:archive`** — a deliberate manual step.
 - `/workflow:build` has two modes (see "Iterating" below). **Resume** (`full`/blank) runs all stages minus those
   already `done`. **Redo** (`light` / `only <stages>` / `skip <stages>`) runs exactly the named subset *without*
   subtracting `done` — for re-building against an amended spec. The implement + test-author pair (`build`) always
@@ -150,6 +151,22 @@ format. Everything else — descriptions, decisions, discoveries, findings, rati
 - A stage is marked `done` only when its output file exists and its GATE is `pass` (where it has one). Append a
   `transitions` entry on every status change with a one-line reason.
 
+## Checkout safety (before any checkout switch or loop launch)
+
+The engine never uses worktrees — every stage runs git commands against whatever is checked out in the repo root.
+That means both `/workflow:design` (creating the branch) and `/workflow:build` (launching the loop) must confirm
+the checkout is actually safe to use before doing anything, rather than assuming it:
+- **Clean working tree.** `git status --porcelain` must be empty before switching branches — a dirty tree risks
+  carrying another change's uncommitted work onto this one's branch (git carries forward uncommitted changes across
+  a checkout when they don't conflict).
+- **Right branch.** The checkout must currently be on `main` (before this change's branch exists) or on this
+  change's own `branch` (once it does) — never a *different* branch, which usually means another in-progress
+  change owns the checkout right now.
+If either check fails, **stop and ask the user** — tell them what's currently checked out and what this change
+needs, and let them resolve it (commit/stash their other work, switch branches) before continuing. Never route
+around this by creating a worktree or silently switching over foreign work — pausing for the user's explicit call
+is the only escape hatch.
+
 ## Branch provisioning (per change)
 
 Every change gets its own branch (one change = one PR), created once at the top of `/workflow:design` — this is the
@@ -158,7 +175,8 @@ Every change gets its own branch (one change = one PR), created once at the top 
 branch to exist before then, and there's no worktree to orphan those files in.
 
 - **How**: if `state.json` already has a `branch` for this change (you're re-designing during iteration), reuse it
-  — never re-prompt or re-create. Otherwise prompt for the ticket number, derive the branch name
+  — never re-prompt or re-create. Otherwise, run the **checkout safety** check above (the checkout must be clean and
+  on `main`); once it passes, prompt for the ticket number, derive the branch name
   `{username}/sc-{ticket}/{description}` (username from `git config user.name` / `gh api user --jq .login`), and run
   `git checkout -b <branch> main` — this switches the current checkout onto the new branch, carrying forward any
   uncommitted files (e.g. a proposal/spec written before the branch existed) since it's the same working tree, not a
@@ -244,13 +262,14 @@ stages you don't want. The workflow supports this, and stages are revisitable. T
   invocation still defaults to that change so you needn't name it, but in `epic` mode you pass the change
   explicitly to revisit a `done` stage.
 - **Re-opening upstream does NOT auto-invalidate downstream.** Downstream stages stay `done` even though their
-  outputs (`review.md`, `qa.md`, the PR body) now describe older code. This is deliberate: **you** decide what to
-  redo. The upstream command *warns* that they're stale and gives the redo command — it never forces a cascade.
+  outputs (`review.md`, the PR body) now describe older code. This is deliberate: **you** decide what to redo. The
+  upstream command *warns* that they're stale and gives the redo command — it never forces a cascade.
 - **Resume vs. redo is your keyword, not inferred state** (the engine can't tell a crashed run from a deliberate
   rebuild). `/workflow:build` blank/`full` = resume (skip done); `light`/`only`/`skip` = redo the named subset even
   if done. So the QA→fix loop is: `/workflow:specify <c>` → `/workflow:design <c>` → `/workflow:build <c> only
-  build commit` (re-implement + push to the existing draft PR, no review/QA/PR-body rewrite). Use `only build` (no
-  commit) to leave it uncommitted, or add `review`/`qa` to the `only` list when you *do* want them this round.
+  build commit` (re-implement + push to the existing draft PR, no review/PR-body rewrite). Use `only build` (no
+  commit) to leave it uncommitted, or add `review`/`pr` to the `only` list when you *do* want them this round (`pr`
+  re-authors the manual-QA section too).
 - **Archive last protects iteration.** The canonical merge (`/workflow:archive`) is irreversible, so iterate freely
   *before* it; never archive a change you might still revise.
 

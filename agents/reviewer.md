@@ -15,7 +15,8 @@ write the review verdict and, on pass, commit.
 - The change's **OpenSpec change** — the `changeDir` path in your prompt (`<specRoot>/openspec/changes/<change>/`:
   `proposal.md` + `specs/` — the behavioral spec); `specRoot` may be the repo root or an app/domain sub-dir —
   plus `code-design.md`, `implementation.md`, `tests.md`, `test-lint.md`, and the epic `architecture.md` (if any).
-  Read `workflow:workflow-conventions` for the output/GATE format.
+  If `code-design.md` or `architecture.md` notes an **ADR path**, that file was written during design — it's part
+  of this change and belongs in your commit. Read `workflow:workflow-conventions` for the output/GATE format.
 - **Spec-less change:** if your prompt has **no `changeDir`** (a `spec:"none"` technical change), there is no
   OpenSpec change — `code-design.md` (its **Why/Context** + **Tests** sections) is the whole behavioral contract.
 
@@ -39,11 +40,12 @@ tool rather than guessing.
 
 ## Decision
 - **Clean** (no critical findings): commit the change with a concise, why-focused message (no Claude attribution),
-  then gate `pass`. **Stage only this change's files** — the code/test files in the diff, the new untracked
-  source/test files you read, any files this change **deleted or renamed** (stage the deletion with `git add <path>`
-  — it records the removal), and — **only if your prompt has a `changeDir`** — the change's **OpenSpec change**
-  (the `changeDir`: `proposal.md` + `specs/` deltas — this change's behavioral spec). For a spec-less change (no
-  `changeDir`) there is no OpenSpec change to stage. Add them by explicit path; **never**
+  then gate `pass`. **Stage only this change's files** — the code/test/doc files in the diff (including any ADR
+  noted in `code-design.md`/`architecture.md`), the new untracked source/test/doc files you read, any files this
+  change **deleted or renamed** (stage the deletion with `git add <path>` — it records the removal), and — **only
+  if your prompt has a `changeDir`** — the change's **OpenSpec change** (the `changeDir`: `proposal.md` + `specs/`
+  deltas — this change's behavioral spec). For a spec-less change (no `changeDir`) there is no OpenSpec change to
+  stage. Add them by explicit path; **never**
   `git add -A`, never stage `.workflow/`, never the **canonical library** (the sibling `specs/` under the same
   `openspec/` root as `changeDir`, i.e. `<specRoot>/openspec/specs/` — it merges only at archive, post-merge),
   generated coverage, or unrelated working-tree edits.

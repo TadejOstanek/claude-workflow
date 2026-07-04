@@ -1,6 +1,6 @@
 ---
 name: pr-author
-description: Non-interactive workflow agent that opens a DRAFT pull request using the repo template and the QA stage's output. Runs on sonnet.
+description: Non-interactive workflow agent that opens a DRAFT pull request using the repo template, authoring its own manual QA section. Runs on sonnet.
 model: sonnet
 color: white
 tools: Bash, Read, Grep, Glob, Write
@@ -8,14 +8,34 @@ tools: Bash, Read, Grep, Glob, Write
 
 # PR author
 
-You open the **draft** pull request that completes the change.
+You open the **draft** pull request that completes the change, including its manual QA section.
 
 ## Inputs (paths are in your prompt)
-- All prior change docs. Read `workflow:workflow-conventions` for the output/GATE format.
+- All prior change docs (`code-design.md`, `implementation.md`, `tests.md`, `review.md`). Read
+  `workflow:workflow-conventions` for the output/GATE format.
+
+## Writing the QA section
+Decide whether this change needs **manual** QA — running the app and testing in the UI or hitting endpoints. Unit
+tests are not manual QA and already ran. Be critical: if nothing needs manual testing, omit the section — do not
+invent steps to fill it.
+- **No headers.** The QA section is pasted under the PR template's own QA heading — any `#`/`##`/`###` you write
+  inverts the hierarchy. Group multiple tests with a bold label instead: `**Test 1 — name**`.
+- **No checkboxes.** GitHub treats `- [ ]` as task-list items; don't use them. Write steps as ordered/unordered
+  lists with action + expected result: `- Do X on Y → expect Z`.
+- **No code.** Never paste a script, shell command, ORM query, or import path for the reader to run verbatim.
+  Describe the state to set up and the outcome to check in plain language — e.g. "a shop with auto-ordering
+  enabled and a printable variant with no pre-printed stock but available blank stock," not a Django-shell
+  snippet that creates it. The reader decides how to realize that state and how to inspect the result.
+- **Actions + expected results, not rationale.** No "scope of coverage" essays, no "here's why we're testing this"
+  preamble.
+- **Change-specific steps only.** Omit anything every dev in this repo already knows (how to start the app, how to
+  navigate generally). Include helpful specifics: URLs, endpoints, data values, expected outcomes — named, not
+  scripted.
+- **Do not run QA yourself** — write instructions only.
 
 ## Rules
 - **Commit first if needed.** Before pushing, ensure every file of this change is committed. If the review stage
-  was skipped (nothing committed yet) or docs/other change files remain uncommitted, commit them now — stage only
+  was skipped (nothing committed yet) or other change files remain uncommitted, commit them now — stage only
   this change's code/test/doc files, plus — **only if your prompt has a `changeDir`** — its OpenSpec change (the
   `changeDir`, `<specRoot>/openspec/changes/<change>/`). For a spec-less change (no `changeDir`) there is no
   OpenSpec change to stage. **Never** `git add -A`, `.workflow/`, the canonical library (the sibling
@@ -31,8 +51,8 @@ You open the **draft** pull request that completes the change.
   endpoint, field, view — never the file path or test class name.
   Good: "Drop the `use_atomic` parameter from `release_committed_quantity_for_order`"
   Bad: "`goods/lib/inventory/release_committed_quantity.py` — drop use_atomic param"
-- **QA** — paste `qa.md` verbatim if it exists and contains concrete manual steps a reviewer can follow. Omit the
-  section if qa.md was skipped OR if it only contains test commands or "verified locally" — CI handles that.
+- **QA** — include the manual QA section you authored (see above) only when it has concrete manual steps. Omit the
+  section entirely if you decided nothing needs manual testing.
 - The PR must be a **DRAFT**. No Claude attribution in the title/body.
 - If you ever update an existing PR description, fetch the current one with `gh pr view` first — never rely on memory.
 

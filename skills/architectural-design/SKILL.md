@@ -36,11 +36,12 @@ usually **spec-less** — pure refactors with no observable behavior change skip
 and go straight to code design; feature changes are usually **spec-bearing**. Recommend per change and confirm with
 the user.
 
-## Documentation to write (flag only — do not write it here)
-Ask the user whether anything warrants permanent docs; never decide alone. Two kinds:
-- **Business-process specs** — only for core processes, minimal (the code is the best documentation).
-- **ADRs** — record heavy decisions made here.
-Ask **where** docs should live if not obvious. List the docs-to-write; the Documentation stage writes them.
+## ADRs (if warranted)
+The only permanent doc this workflow writes is the **ADR** — business-process/behavioral documentation is OpenSpec's
+job (the canonical spec library, grown via `/workflow:archive`), not this stage's. If a decision made *here* — at
+epic scope, not one specific change's — is heavy enough to outlive this conversation's memory, write the ADR
+directly, now, while the reasoning is fresh; ask the user where ADRs live if the repo has no convention yet. Most
+epics need none. A decision scoped to a single change belongs in that change's `/workflow:design` instead.
 
 ## Output: `architecture.md`
 - The epic intent (why/what) — since there is no separate epic spec.
@@ -49,7 +50,7 @@ Ask **where** docs should live if not obvious. List the docs-to-write; the Docum
 - Hard decisions taken and why.
 - Architectural patterns the code design + implementation must follow.
 - Change breakdown (with type + order + dependencies + `spec` openspec/none per change).
-- Docs-to-write list.
+- ADR path, if one was written (see above). Omit otherwise.
 Concise prose and plain bullets — no checkboxes here. End with the standard `## GATE`.
 
 ## Done when

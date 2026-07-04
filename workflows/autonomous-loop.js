@@ -1,13 +1,12 @@
 export const meta = {
   name: 'workflow-autonomous-loop',
-  description: 'Autonomous tail of the dev workflow for one change: parallel implement+test → test/lint → opus review (commits) → parallel docs+QA → draft PR. File-based handoff; loops on failure; escalates the unresolvable.',
+  description: 'Autonomous tail of the dev workflow for one change: parallel implement+test → test/lint → opus review (commits) → draft PR (with its own QA section). File-based handoff; loops on failure; escalates the unresolvable.',
   phases: [
     { title: 'Build', detail: 'parallel implementer + test-author from the code design' },
     { title: 'Migrate', detail: 'optional pre-test command; skipped when migrateCmd absent' },
     { title: 'Test', detail: 'scoped test+lint (haiku); reconcile → re-run, bounded' },
     { title: 'Review', detail: 'opus review of the diff; commits on pass; fix loop, bounded' },
-    { title: 'Docs+QA', detail: 'parallel documenter + qa-author' },
-    { title: 'PR', detail: 'draft pull request' },
+    { title: 'PR', detail: 'draft pull request, including its own manual QA section' },
     { title: 'Commit', detail: 'redo-only: land code on the branch without opening/rewriting a PR' },
   ],
 }
@@ -42,7 +41,7 @@ const todo = (name) => !PENDING || PENDING.includes(name)
 
 // Models are set BOTH inline here and in each agent's frontmatter, so the per-stage model holds even if plugin
 // agentType namespace resolution degrades to the default workflow agent.
-const M = { code: 'sonnet', test: 'sonnet', run: 'haiku', review: 'opus', doc: 'sonnet' }
+const M = { code: 'sonnet', test: 'sonnet', run: 'haiku', review: 'opus', pr: 'sonnet' }
 
 // ---------- schemas ----------
 const GATE_SCHEMA = {
@@ -178,7 +177,7 @@ if (todo('test-lint') && !result.escalation) {
 let review = null
 if (todo('review') && !result.escalation) {
   phase('Review')
-  const RUN = `${CTX}\nStrict senior review. Inspect \`git -C ${WORKDIR} diff ${BASE_REF} -- ${APP_DIR}\` plus new untracked files. Judge: (1) no regressions/bugs, (2) every spec + code-design criterion met. Write ${PHASE_DIR}/review.md. If clean, COMMIT the change (stage only this change's files — the code/test files${SPEC_CLAUSE} — never \`.workflow/\`${CANON_CLAUSE}, never unrelated edits). If a fix is a design decision, set escalate=true.`
+  const RUN = `${CTX}\nStrict senior review. Inspect \`git -C ${WORKDIR} diff ${BASE_REF} -- ${APP_DIR}\` plus new untracked files. Judge: (1) no regressions/bugs, (2) every spec + code-design criterion met. Write ${PHASE_DIR}/review.md. If clean, COMMIT the change (stage only this change's files — the code/test/doc files${SPEC_CLAUSE}, including any ADR noted in code-design.md/architecture.md — never \`.workflow/\`${CANON_CLAUSE}, never unrelated edits). If a fix is a design decision, set escalate=true.`
   const MAX = 2
   for (let i = 1; i <= MAX; i++) {
     review = await agent(RUN, { agentType: 'workflow:reviewer', model: M.review, phase: 'Review', label: `review #${i}:${SCOPE}`, schema: REVIEW_SCHEMA })
@@ -205,35 +204,23 @@ if (todo('review') && !result.escalation) {
   result.stageGates.review = review
 }
 
-// Don't ship docs/QA/PR unless the change is review-clean AND committed (or review already passed in a prior run),
+// Don't ship the PR unless the change is review-clean AND committed (or review already passed in a prior run),
 // and we're not escalating. clean-but-not-committed must NOT proceed to a PR on uncommitted code.
 const reviewPassed = !result.escalation && (todo('review')
   ? !!(review && review.clean && review.committed)
   : true)
 if (todo('review') && review && review.clean && !review.committed) {
-  log('Review clean but commit did NOT happen — holding docs/QA/PR. Investigate before shipping.')
+  log('Review clean but commit did NOT happen — holding the PR. Investigate before shipping.')
 }
 
-// ============ DOCS + QA (parallel) ============
-if ((todo('docs') || todo('qa')) && reviewPassed) {
-  phase('Docs+QA')
-  const jobs = []
-  if (todo('docs')) jobs.push(() => agent(`${CTX}\nWrite ONLY the docs flagged in ${FEATURE_DIR}/architecture.md; update any stale docs. Write ${PHASE_DIR}/documentation.md (list only).`,
-    { agentType: 'workflow:documenter', model: M.doc, phase: 'Docs+QA', label: `docs:${SCOPE}`, schema: GATE_SCHEMA }))
-  if (todo('qa')) jobs.push(() => agent(`${CTX}\nWrite change-specific manual QA steps (or "none needed") to ${PHASE_DIR}/qa.md.`,
-    { agentType: 'workflow:qa-author', model: M.doc, phase: 'Docs+QA', label: `qa:${SCOPE}`, schema: GATE_SCHEMA }))
-  const out = await parallel(jobs)
-  result.stageGates.docsqa = out
-}
-
-// ============ PR (draft) ============
+// ============ PR (draft, authors its own QA section) ============
 if (todo('pr') && reviewPassed) {
   phase('PR')
   const COMMIT_NOTE = result.committed
-    ? `First ensure every file of this change is committed — if docs or other change files are still uncommitted, commit them now (scoped to this change's code/test/doc files${SPEC_CLAUSE}; never \`.workflow/\`${CANON_CLAUSE}, never unrelated edits). Then `
+    ? `First ensure every file of this change is committed — if any change files are still uncommitted, commit them now (scoped to this change's code/test/doc files${SPEC_CLAUSE}; never \`.workflow/\`${CANON_CLAUSE}, never unrelated edits). Then `
     : `Nothing has been committed yet (the review stage was skipped). FIRST commit this change yourself — stage only this change's code/test/doc files${SPEC_CLAUSE} (never \`.workflow/\`${CANON_CLAUSE}, never \`git add -A\`, never unrelated edits) and commit with a concise why-focused message (no Claude attribution). Then `
-  const pr = await agent(`${CTX}\n(Override: the PR stage writes NO file — return opened+committed+url as your structured output.)\n${COMMIT_NOTE}push the branch and open a DRAFT PR against main using the repo's pull_request_template.md. Why-first description; changes in plain English (no file paths); paste ${PHASE_DIR}/qa.md verbatim as the QA section if it exists.`,
-    { agentType: 'workflow:pr-author', model: M.doc, phase: 'PR', label: `pr:${SCOPE}`, schema: PR_SCHEMA })
+  const pr = await agent(`${CTX}\n(Override: the PR stage writes NO file — return opened+committed+url as your structured output.)\n${COMMIT_NOTE}push the branch and open a DRAFT PR against main using the repo's pull_request_template.md. Why-first description; changes in plain English (no file paths); decide and write your own manual-QA section per your instructions.`,
+    { agentType: 'workflow:pr-author', model: M.pr, phase: 'PR', label: `pr:${SCOPE}`, schema: PR_SCHEMA })
   if (pr && pr.committed) result.committed = true
   if (pr && pr.opened) { result.prUrl = pr.url || null; log(`Draft PR: ${pr.url || '(opened)'}`) }
   result.stageGates.pr = pr
@@ -245,7 +232,7 @@ if (todo('pr') && reviewPassed) {
 if (todo('commit') && !todo('pr') && reviewPassed && !result.committed) {
   phase('Commit')
   const c = await agent(`${CTX}\n(Override: write NO file — return your \`## GATE\` as structured output.)\nCommit and push ONLY this change's code/test/doc files${SPEC_CLAUSE} (never \`.workflow/\`${CANON_CLAUSE}, never \`git add -A\`, never unrelated edits). Use a concise why-focused message (no Claude attribution), then push the branch. Do NOT open, edit, or touch any pull request — an existing draft PR picks up the push on its own.`,
-    { agentType: 'workflow:pr-author', model: M.doc, phase: 'Commit', label: `commit:${SCOPE}`, schema: GATE_SCHEMA })
+    { agentType: 'workflow:pr-author', model: M.pr, phase: 'Commit', label: `commit:${SCOPE}`, schema: GATE_SCHEMA })
   if (c && c.gate === 'pass') { result.committed = true; log('Committed + pushed (no PR rewrite).') }
   result.stageGates.commit = c
 }

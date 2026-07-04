@@ -27,6 +27,14 @@ is the last interactive stage — the user approves before the autonomous loop r
 - If you discover the chosen architecture isn't actually feasible in the code, **stop and flag it** — prompt the
   user to return to `/workflow:arch` with what you learned.
 
+## ADRs (if warranted)
+If a decision made here is heavy enough to outlive this change's memory — a real tradeoff between viable
+alternatives, not just "the obvious way to do it" — write an ADR directly, now, while you and the user both know
+the why. Ask the user where ADRs live if the repo doesn't already have a convention; use the repo's ADR template if
+one exists. **Under-write rather than over-write** — most changes need none. This is the *only* kind of permanent
+doc this stage writes: business-process/behavioral documentation already lives in the OpenSpec spec (accumulated
+into the canonical library via `/workflow:archive`) — there's nothing else to keep in sync here.
+
 ## Prepare for implementation
 If `state.json` already has a `branch` for this change (re-designing during iteration), reuse it — do not prompt or
 re-create. Otherwise prompt the user for the **story/ticket number** and create the **branch**:
@@ -50,6 +58,7 @@ branch `main` (`git checkout -b <branch> main`).
   is the contract instead.
 - **Conventions** — the repo patterns/conventions you discovered, so downstream agents don't re-derive them
   (saves tokens). Name the canonical files to mirror.
+- **ADR** — if you wrote one (see above), its path. Omit this line otherwise.
 Use checkboxes only for the **Tests** list (each behavior to verify); the scenario coverage map and other sections
 are concise prose/plain lists. End with the standard `## GATE`.
 
