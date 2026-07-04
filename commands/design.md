@@ -21,7 +21,8 @@ Apply the `workflow:code-design` skill. Read `workflow:workflow-conventions` for
 2. Offer the user the option to add a per-change `architecture.md` before designing (the behavioral spec already
    lives in the OpenSpec change) — do not skip the offer.
 3. If `<change>/code-design.md` already exists (returning), read it + later files to learn why, then refine.
-4. Run the stage interactively per the skill — exact interfaces, components, test behaviors, discovered conventions.
+4. Run the stage interactively per the skill — exact interfaces, components, test behaviors, discovered conventions
+   (use `orchestration:lookup`/`orchestration:investigate` for the conventions discovery).
    If the architecture proves infeasible, stop and send the user back (epic: `/workflow:arch`; single: revisit the spec).
 5. **Branch.** If `state.json` already has a `branch` for this change (you're re-designing during iteration), reuse
    it — keep the existing `ticket`/`branch`, do not prompt or re-create. Otherwise prompt for the **ticket number**,

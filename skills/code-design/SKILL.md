@@ -16,7 +16,9 @@ is the last interactive stage — the user approves before the autonomous loop r
   and the epic/per-change `architecture.md`. Because there is no `proposal.md` to carry the rationale downstream,
   capture a short **Why / Context** in `code-design.md` (below); for a refactor, also note the externally-observable
   behavior that must stay unchanged.
-- Follow existing repo conventions; prioritize target conventions over deprecated ones.
+- Follow existing repo conventions; prioritize target conventions over deprecated ones. Use `orchestration:lookup`
+  for quick, targeted pattern checks and `orchestration:investigate` for broader area understanding — rather than
+  grepping file-by-file.
 - Design for change — **good code is easy to change**. Favor **deep modules** (small interface, real functionality);
   a large interface for little behavior is a smell.
 - Follow framework defaults (Django/Flask/Rails/etc.) unless repo conventions say otherwise.
