@@ -67,7 +67,13 @@ const TEST_SCHEMA = {
       items: {
         type: 'object', additionalProperties: false,
         required: ['target', 'test', 'error'],
-        properties: { target: { type: 'string' }, test: { type: 'string' }, error: { type: 'string' } },
+        properties: {
+          target: { type: 'string' }, test: { type: 'string' }, error: { type: 'string' },
+          domain: {
+            type: 'string', enum: ['code', 'test', 'unknown'],
+            description: 'best-effort guess at which side owns the fix, NOT a verified fact — "unknown" is the safe default whenever signals are unclear or conflicting',
+          },
+        },
       },
     },
   },
@@ -123,6 +129,16 @@ const result = {
 }
 const escalate = (returnTo, reason) => { result.escalation = { returnTo, reason }; }
 
+// Decide which fixer(s) to spawn for a round of TEST_SCHEMA failures. Narrows to a single domain's fixer ONLY when
+// every failure in the round carries the same explicit 'code' or 'test' tag; any 'unknown' tag, any missing/absent
+// tag, or a mix of tags falls back to spawning both (today's behavior) — the safe default on any ambiguity.
+const fixDomains = (failures) => {
+  const tags = (failures || []).map((f) => (f && (f.domain === 'code' || f.domain === 'test')) ? f.domain : 'unknown')
+  if (tags.length && tags.every((d) => d === 'code')) return ['code']
+  if (tags.length && tags.every((d) => d === 'test')) return ['test']
+  return ['code', 'test']
+}
+
 // ============ BUILD (parallel implementer + test-author) ============
 if (todo('build') && !result.escalation) {
   phase('Build')
@@ -160,13 +176,19 @@ if (todo('test-lint') && !result.escalation) {
       if (!test || !test.ran) { log('Tests SKIPPED (runner unavailable) — must run before merge.'); result.skipped.push('test-lint'); break }
       if (test.passed) { log(`Tests green on attempt ${i}.`); break }
       log(`Test attempt ${i} failed: ${test.summary}`)
-      if (i === MAX) break
-      // reconcile: re-run the build pair, each fixing only its own domain
+      if (i === MAX) {
+        log(`Test attempt ${i}: tests still failing after max attempts.`)
+        escalate('build', `unresolved test failures after ${MAX} attempts: ${(test.failures || []).map((f) => f.test).join('; ') || test.summary}`)
+        break
+      }
+      // reconcile: re-run the build pair — only the fixer(s) whose domain test-runner confidently implicated;
+      // both (today's behavior) whenever attribution is mixed, unknown, or absent.
       const fx = `${CTX}\nThe tests failed. Fix ONLY what's needed, faithful to ${PHASE_DIR}/code-design.md, within your domain. Then stop; the harness re-runs tests.\nFailures:\n${JSON.stringify(test.failures, null, 2)}`
-      await parallel([
-        () => agent(`${fx}\n(You are CODE — fix implementation bugs only.)`, { agentType: 'workflow:implementer', model: M.code, phase: 'Test', label: `fix-code #${i}:${SCOPE}`, schema: GATE_SCHEMA }),
-        () => agent(`${fx}\n(You are TESTS — fix test bugs only.)`, { agentType: 'workflow:test-author', model: M.test, phase: 'Test', label: `fix-tests #${i}:${SCOPE}`, schema: GATE_SCHEMA }),
-      ])
+      const domains = fixDomains(test.failures)
+      const fixers = []
+      if (domains.includes('code')) fixers.push(() => agent(`${fx}\n(You are CODE — fix implementation bugs only.)`, { agentType: 'workflow:implementer', model: M.code, phase: 'Test', label: `fix-code #${i}:${SCOPE}`, schema: GATE_SCHEMA }))
+      if (domains.includes('test')) fixers.push(() => agent(`${fx}\n(You are TESTS — fix test bugs only.)`, { agentType: 'workflow:test-author', model: M.test, phase: 'Test', label: `fix-tests #${i}:${SCOPE}`, schema: GATE_SCHEMA }))
+      await parallel(fixers)
     }
     result.testsVerified = !!(test && test.ran && test.passed)
     result.stageGates['test-lint'] = test
@@ -194,10 +216,11 @@ if (todo('review') && !result.escalation) {
       const t = await agent(`${CTX}\nRe-run scoped tests after the fix; write ${PHASE_DIR}/test-lint.md.${PEEL_NOTE}`,
         { agentType: 'workflow:test-runner', model: M.run, phase: 'Review', label: `re-test #${i}:${SCOPE}`, schema: TEST_SCHEMA })
       if (t && t.ran && !t.passed) {
-        await parallel([
-          () => agent(`${CTX}\nFix failing tests within your (CODE) domain.\n${JSON.stringify(t.failures, null, 2)}`, { agentType: 'workflow:implementer', model: M.code, phase: 'Review', label: `re-fix-code #${i}`, schema: GATE_SCHEMA }),
-          () => agent(`${CTX}\nFix failing tests within your (TESTS) domain.\n${JSON.stringify(t.failures, null, 2)}`, { agentType: 'workflow:test-author', model: M.test, phase: 'Review', label: `re-fix-tests #${i}`, schema: GATE_SCHEMA }),
-        ])
+        const tDomains = fixDomains(t.failures)
+        const reFixers = []
+        if (tDomains.includes('code')) reFixers.push(() => agent(`${CTX}\nFix failing tests within your (CODE) domain.\n${JSON.stringify(t.failures, null, 2)}`, { agentType: 'workflow:implementer', model: M.code, phase: 'Review', label: `re-fix-code #${i}`, schema: GATE_SCHEMA }))
+        if (tDomains.includes('test')) reFixers.push(() => agent(`${CTX}\nFix failing tests within your (TESTS) domain.\n${JSON.stringify(t.failures, null, 2)}`, { agentType: 'workflow:test-author', model: M.test, phase: 'Review', label: `re-fix-tests #${i}`, schema: GATE_SCHEMA }))
+        await parallel(reFixers)
       }
     }
   }

@@ -54,6 +54,11 @@ and the specific test/check. Then a `## GATE`:
 - `pass` only if **every** tool passed.
 - `fail` with `return-to: build` + the precise failures if any test failed (lint-only issues you fixed don't fail
   the gate).
+- For each failure, add a best-effort `domain` tag — `code`, `test`, or `unknown` — for which side likely owns the
+  fix: an assertion-value mismatch against a stable/unchanged API usually implicates the test; an unhandled
+  exception or stack trace surfacing from application code usually implicates the code. This is a hint, not a
+  verified fact — it does not change the Rules above, you still fix nothing. Use `unknown` whenever signals
+  conflict or you're not confident; it's the safe default.
 - If nothing could run, gate `pass` is wrong — report it as a skip in the summary so the loop knows tests are unverified.
 
 Your final structured output is that GATE plus the per-tool results.
