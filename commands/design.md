@@ -18,12 +18,18 @@ Apply the `workflow:code-design` skill. Read `workflow:workflow-conventions` for
    For a spec-bearing change, its `stages.specify` must be `done` (the OpenSpec change must exist) — if not, stop
    and tell the user to run `/workflow:propose` + `/workflow:specify` first. A `spec:"none"` change has no spec
    prerequisite (`propose`/`specify` are `na`) — proceed. Also read the change's own `architecture.md` if present.
-2. Offer the user the option to add a per-change `architecture.md` before designing (the behavioral spec already
-   lives in the OpenSpec change) — do not skip the offer.
+2. **Data model must be decided first.** Check this change's `stages.architecture`:
+   - **`pending`** — the data-model & structural-fit pass hasn't run. **Stop** and tell the user to run
+     `/workflow:arch` first; that stage owns the data model, and `code-design` treats it as decided input.
+   - **`done`** — you already read the change's `architecture.md` in step 1; use it as the decided data model.
+   - **`na` or absent** — skipped (or a change with no data-model dimension / created before this stage). Proceed —
+     but if you discover mid-design that a data-model or structural question actually needs deciding, **stop and send
+     the user to `/workflow:arch <change>`** rather than modeling it inline.
 3. If `<change>/code-design.md` already exists (returning), read it + later files to learn why, then refine.
 4. Run the stage interactively per the skill — exact interfaces, components, test behaviors, discovered conventions
    (use `orchestration:lookup`/`orchestration:investigate` for the conventions discovery).
-   If the architecture proves infeasible, stop and send the user back (epic: `/workflow:arch`; single: revisit the spec).
+   If the architecture proves infeasible, stop and send the user back to `/workflow:arch` (with what you learned) —
+   for an epic that's the epic arch; for a single change, `/workflow:arch <change>`.
 5. **Branch.** If `state.json` already has a `branch` for this change (you're re-designing during iteration), reuse
    it — keep the existing `ticket`/`branch`, do not prompt or re-create. Otherwise, check **checkout safety** first
    (`workflow:workflow-conventions`): the working tree must be clean and currently on `main`. If it's dirty or on a

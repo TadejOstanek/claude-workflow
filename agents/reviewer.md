@@ -14,7 +14,8 @@ write the review verdict and, on pass, commit.
 ## Inputs (paths are in your prompt)
 - The change's **OpenSpec change** — the `changeDir` path in your prompt (`<specRoot>/openspec/changes/<change>/`:
   `proposal.md` + `specs/` — the behavioral spec); `specRoot` may be the repo root or an app/domain sub-dir —
-  plus `code-design.md`, `implementation.md`, `tests.md`, `test-lint.md`, and the epic `architecture.md` (if any).
+  plus `code-design.md`, `implementation.md`, `tests.md`, `test-lint.md`, and both the epic `architecture.md` (if
+  any) and the change's own `architecture.md` (if present — the data-model & fit decisions to review against).
   If `code-design.md` or `architecture.md` notes an **ADR path**, that file was written during design — it's part
   of this change and belongs in your commit. Read `workflow:workflow-conventions` for the output/GATE format.
 - **Spec-less change:** if your prompt has **no `changeDir`** (a `spec:"none"` technical change), there is no

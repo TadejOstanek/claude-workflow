@@ -45,15 +45,18 @@ Derive a kebab-case `<change-id>` from the feature + change slug (e.g. `add-foo-
 ```
 Set this change's `change` to `<change-id>` in `state.json`.
 
-## 4. Author the proposal — the why/what (capture EVERYTHING)
+## 4. Author the proposal — the why/what (record everything the user gives)
 Pull the exact format and path (don't assume them) — run from `specRoot`:
 ```bash
 (cd "<specRoot>" && openspec instructions proposal --change "<change-id>" --json)
 ```
-Use its `template`, `instruction`, and `resolvedOutputPath` (paths are relative to `<specRoot>`). Following the specification skill — clarify, challenge
-assumptions, **never drop a requirement the user gave** — write `proposal.md`: `## Why`, `## What Changes`,
-`## Capabilities` (list each new/modified capability in kebab-case; each becomes a `specs/<capability>/spec.md`),
-`## Impact`. Keep it scope-level — the testable requirement/scenario detail is the next step.
+Use its `template`, `instruction`, and `resolvedOutputPath` (paths are relative to `<specRoot>`). Following the
+specification skill — clarify, challenge assumptions, **never drop a requirement the user gave** — write
+`proposal.md`: `## Why`, `## What Changes`, `## Capabilities` (list each new/modified capability in kebab-case; each
+becomes a `specs/<capability>/spec.md`), `## Impact`. **Keep it scope-level:** do **not** ask the user to enumerate
+acceptance criteria or reason about the data model — that's `/workflow:specify` and the architecture/design step. If
+the user *volunteers* that detail, **record it in `proposal.md`** so `/workflow:specify` can formalize it (never drop
+it); just don't go fishing for it here.
 
 ## 5. Finalize
 Set this change's `stages.propose = "done"`, append a `transitions` entry, and tell the user to run

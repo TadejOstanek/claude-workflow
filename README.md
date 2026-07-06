@@ -14,6 +14,7 @@ technical change** (refactor, code org, infra/CI, deps) can opt out of OpenSpec 
 |------|------|-----|--------|
 | Propose | interactive *(spec-bearing only)* | `/workflow:propose` | OpenSpec change `proposal.md` (why/what + capabilities) |
 | Specify | interactive *(spec-bearing only)* | `/workflow:specify` | OpenSpec `specs/<cap>/spec.md` (requirement/scenario deltas) |
+| Architectural design | interactive *(data model & fit; default-on for spec-bearing, skippable)* | `/workflow:arch` | `architecture.md` (data-model & structural-fit decisions; an ADR too, if warranted) |
 | Code design | interactive | `/workflow:design` | `code-design.md` (interfaces + test behaviors; an ADR too, if warranted) |
 | Implement ‖ Test | auto (sonnet) | `implementer` ‖ `test-author` | code, tests |
 | Test & lint | auto (haiku) | `test-runner` | `test-lint.md` |
@@ -25,12 +26,15 @@ Implement → PR runs as one background **Workflow** (launched by `/workflow:bui
 models, file-based handoff, failure loops, and escalation back to you only when a decision is genuinely needed.
 **Archive is a deliberate manual step you run when the change is truly done** — never automated.
 
-For an **epic** (multi-change), one extra interactive stage runs first:
+`/workflow:arch` above is the per-change **data-model & fit** pass (after specify, before code design; runs by
+default for a spec-bearing change — skip it when there's genuinely no data model). For an **epic** (multi-change)
+the same command *also* runs once up front — before any change — to capture the epic's intent and break the work
+into changes:
 
-| Architectural design | interactive | `/workflow:arch` | `architecture.md` (epic intent + the change breakdown; an ADR too, if warranted) |
+| Architectural design (epic) | interactive | `/workflow:arch` | `architecture.md` (epic intent + the change breakdown; an ADR too, if warranted) |
 
-The epic has no spec of its own — its intent lives in `architecture.md`; each change it spawns is specced via
-propose + specify.
+The epic has no spec of its own — its intent lives in the epic `architecture.md`; each change it spawns is specced
+via propose + specify (and gets its own per-change data-model pass only if it needs one).
 
 ## Spec layer: OpenSpec (thin seam)
 
@@ -86,6 +90,7 @@ Or add to `~/.claude/settings.json`:
 # single change (spec-bearing):
 /workflow:propose                           # why/what + capabilities → OpenSpec change; /clear optional
 /workflow:specify                           # requirement/scenario deltas → OpenSpec change; then /clear
+/workflow:arch                              # data model & structural fit → architecture.md (default; skip if none); then /clear
 /workflow:design                            # interfaces + tests → code-design.md; then /clear
 # single change (spec-less / refactor): /workflow:start triages → skip propose+specify, go straight to design:
 # /workflow:design  →  /workflow:build      # code-design.md is the whole contract; nothing to archive
@@ -145,8 +150,9 @@ command keeps **no** `.workflow/` state — it's a one-shot review.
 
 ```
 .workflow/<feature>/                  # planning + execution state (this engine)
-  state.json  architecture.md   # architecture.md is epic-mode only
-  <NN>-<change>/  code-design.md  implementation.md  tests.md  test-lint.md  review.md
+  state.json  architecture.md   # top-level architecture.md is epic-only (epic intent + change breakdown)
+  <NN>-<change>/  architecture.md  code-design.md  implementation.md  tests.md  test-lint.md  review.md
+                  # per-change architecture.md = data-model & fit (present when the arch stage ran)
 
 <specRoot>/openspec/                  # the spec layer (thin seam); <specRoot> defaults to the repo root
   changes/<change-id>/  proposal.md  specs/<capability>/spec.md   # one change per PR

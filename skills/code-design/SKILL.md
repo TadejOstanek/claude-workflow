@@ -11,11 +11,15 @@ is the last interactive stage — the user approves before the autonomous loop r
 ## Method
 - **Spec-bearing change (`spec:"openspec"`):** read the change's behavioral spec — its **OpenSpec change**
   (`<specRoot>/openspec/changes/<change>/`: `proposal.md` + `specs/**/*.md`; `specRoot` from `state.json`, default
-  `"."`) — plus the epic `architecture.md` (if any) for context.
+  `"."`) — plus the change's `architecture.md` (its own per-change one from `/workflow:arch`, and the epic's if any).
 - **Spec-less change (`spec:"none"`):** there is no OpenSpec change — take the intent from the feature description
   and the epic/per-change `architecture.md`. Because there is no `proposal.md` to carry the rationale downstream,
   capture a short **Why / Context** in `code-design.md` (below); for a refactor, also note the externally-observable
   behavior that must stay unchanged.
+- **Data model is decided input.** If this change has an `architecture.md` (its own per-change one, or the epic's),
+  read it and treat its data-model + structural-fit decisions as **given** — `code-design` specifies interfaces and
+  tests, it does **not** re-model. If a data-model question is genuinely still open, **stop and return to
+  `/workflow:arch`** rather than deciding it here.
 - Follow existing repo conventions; prioritize target conventions over deprecated ones. Use `orchestration:lookup`
   for quick, targeted pattern checks and `orchestration:investigate` for broader area understanding — rather than
   grepping file-by-file.

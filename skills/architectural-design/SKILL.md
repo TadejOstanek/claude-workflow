@@ -1,28 +1,36 @@
 ---
 name: architectural-design
-description: Methodology for the workflow's Architectural Design stage — decide how an epic fits the existing codebase, the data model, and how it breaks into changes (PRs). Use when running /workflow:arch.
+description: Methodology for the workflow's Architectural Design stage — decide how a change (or epic) fits the existing codebase and its data model, and (for an epic) how it breaks into changes (PRs). Use when running /workflow:arch.
 ---
 
-# Architectural design stage (epic only)
+# Architectural design stage
 
-Goal: agree **how** the epic fits the existing codebase — structure, data model, and a breakdown into **changes**
-(each = one PR). Not code-level design (no function/class names). The epic has no spec of its own, so capture its
-intent (why/what) here. (Single changes skip this stage and go straight to `/workflow:propose`.)
+Goal: agree **how** the work fits the existing codebase — structure and, above all, the **data model** — before any
+code-level design (no function/class names here; that's `/workflow:design`). Runs in two shapes:
+- **Single change** (`mode:"single"`): scrutinize the data model + structural fit for this **one** change, after
+  its why/what are defined (`/workflow:specify`) and before `/workflow:design`. No change breakdown.
+- **Epic** (`mode:"epic"`): the epic planning stage, run first. Same data-model + fit method, **plus** it captures
+  the epic intent (there is no epic spec) and breaks the work into **changes** (each = one PR).
 
-## Method
-- Input is the feature intent (the workflow `title`/description — there is **no** epic spec file). Read the
-  **code** and any **architecture/practice docs** in the repo. Use `orchestration:investigate` for codebase
-  understanding rather than grepping file-by-file.
+`/workflow:arch` resolves the mode and applies the right shape.
+
+## Method (both shapes) — data model & structural fit
+- Read the **code** and any **architecture/practice docs** in the repo. Use `orchestration:investigate` for
+  codebase understanding rather than grepping file-by-file.
 - Understand the currently modelled business processes and the **delta** this work introduces.
 - Scrutinize the **data model**: store vs. compute a field? extend an existing model vs. add a new one? Cover all
-  stored state — DB, cache, in-memory, browser.
+  stored state — DB, cache, in-memory, browser. "No data-model change" is a valid conclusion — but reach it
+  **explicitly**, don't leave the model unexamined.
 - Respect existing architecture and conventions; where **target/desired** conventions exist, prioritize them over
   existing-but-deprecated patterns.
 - Challenge the user's assumptions. Surface the big and small fit decisions — for each, **recommend** an option and
   say why, then get the user's call.
 - **Pressure-test** the chosen design against the real code when complexity warrants.
+- Input differs by shape: a **single** change's why/what is its OpenSpec change (`proposal.md` + `specs/**`, or the
+  feature description for a `spec:"none"` change); an **epic**'s intent is the workflow `title`/description (there
+  is **no** epic spec file).
 
-## Change breakdown (important)
+## Change breakdown (epic only)
 Split the work into **changes** (each = one PR). A change is independent if it can run in a fresh session needing
 only this architecture doc (which carries the epic intent + breakdown) and prior sequential changes' outputs. Each
 change runs the full pipeline from its `/workflow:propose` + `/workflow:specify` and code-design on.
@@ -38,22 +46,25 @@ the user.
 
 ## ADRs (if warranted)
 The only permanent doc this workflow writes is the **ADR** — business-process/behavioral documentation is OpenSpec's
-job (the canonical spec library, grown via `/workflow:archive`), not this stage's. If a decision made *here* — at
-epic scope, not one specific change's — is heavy enough to outlive this conversation's memory, write the ADR
-directly, now, while the reasoning is fresh; ask the user where ADRs live if the repo has no convention yet. Most
-epics need none. A decision scoped to a single change belongs in that change's `/workflow:design` instead.
+job (the canonical spec library, grown via `/workflow:archive`), not this stage's. If a decision made *here* is
+heavy enough to outlive this conversation's memory, write the ADR directly, now, while the reasoning is fresh; ask
+the user where ADRs live if the repo has no convention yet. Most changes/epics need none.
 
 ## Output: `architecture.md`
-- The epic intent (why/what) — since there is no separate epic spec.
+Write to the epic's `.workflow/<feature>/architecture.md` (epic) or the change's
+`.workflow/<feature>/<NN>-<slug>/architecture.md` (single). Include:
+- **Data-model modifications** — every kind of stored state (or an explicit "none").
 - How the work fits; **all parts to modify** (flows, views/controllers, templates, modules).
-- Data-model modifications (every kind of stored state).
 - Hard decisions taken and why.
 - Architectural patterns the code design + implementation must follow.
-- Change breakdown (with type + order + dependencies + `spec` openspec/none per change).
 - ADR path, if one was written (see above). Omit otherwise.
+- **Epic only:** the epic intent (why/what — there is no separate epic spec), and the **change breakdown** (with
+  type + order + dependencies + `spec` openspec/none per change).
 Concise prose and plain bullets — no checkboxes here. End with the standard `## GATE`.
 
 ## Done when
-User agrees the approach. Then `/clear` and, per change, run `/workflow:propose` then `/workflow:specify` then
-`/workflow:design` for a spec-bearing change — or `/workflow:design` directly for a `spec:"none"` change. A complex
-change may also get a per-change `architecture.md`.
+User agrees the approach. Then `/clear`, and:
+- **Single change:** run `/workflow:design` (the data model is now decided input).
+- **Epic:** per change, run `/workflow:propose` → `/workflow:specify` → `/workflow:design` for a spec-bearing change,
+  or `/workflow:design` directly for a `spec:"none"` change. A complex change within an epic can still opt into its
+  own per-change architecture step (mark its `architecture` stage `pending` and run `/workflow:arch <change>`).

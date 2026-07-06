@@ -5,26 +5,53 @@ description: Methodology for the workflow's spec stages — establish the why an
 
 # Specification stage
 
-Goal: reach shared understanding of **why** and **what** — never **how**. Build what's actually needed.
+Goal: reach shared understanding of **why** and **what** — never **how**. Build what's actually needed. A change's
+spec is authored in **two steps** — `/workflow:propose` (the why/what + scope) then `/workflow:specify` (the testable
+behavioral detail) — both into the OpenSpec change at `<specRoot>/openspec/changes/<change>/` (`specRoot` is the
+change's OpenSpec root — repo root by default, or an app/domain sub-dir; `/workflow:propose` picks it). The
+**Method** and **Never drop a requirement** sections apply to *both* steps; the two stage sections say what changes
+between them.
 
-## Capture EVERYTHING — non-negotiable
-Write down and define **every** requirement, acceptance criterion, constraint, and non-goal the user gives —
-completely and explicitly. If their input is itself a detailed spec, **preserve all of it**: restructure it into the
-proposal and the requirement/scenario deltas, but **never drop, merge away, generalize, or summarize criteria into
-vaguer ones**. The spec is the exhaustive, authoritative contract every later stage and the final review are
-validated against — a criterion you omit here silently never gets built or checked.
-
-## Method
+## Method (both steps)
 - Do **NOT** read code or implementation. You may read repo **documentation** (README, docs/) for business context.
 - Ask the user clarifying questions until the goal and business context are genuinely clear. Challenge their
   assumptions — surface where their stated need and the real need may differ. Don't silently accept defaults.
 - If relevant information likely lives elsewhere (another repo, a ticket, a doc, a person), **prompt the user for a
   pointer** rather than guessing.
-- Push for **specific, testable conditions** over vague outcomes. Phrase acceptance criteria as
-  **given** (situation) / **when** (action) / **then** (outcome) wherever it fits.
 - Use the `orchestration:request-clarification` skill to structure the questioning if helpful.
 
-## Write at behavioral altitude — not implementation altitude
+## Never drop a requirement (both steps) — non-negotiable
+Whatever the user gives you — a constraint, an acceptance criterion, a non-goal, or a whole detailed spec — must be
+**recorded** completely and explicitly in the right artifact; **never dropped, merged away, generalized, or
+summarized into something vaguer.** The catch: the two steps run in **separate sessions with a `/clear` between
+them** (stages share files, not conversation — see `workflow:workflow-conventions`), so anything you don't *write
+down* is lost. So if the user volunteers testable detail during `/workflow:propose`, **write it into `proposal.md`**
+(even if it sits a little below scope-level) so `/workflow:specify` can pick it up and formalize it — never keep it
+"in your head for the spec step." The rule is *don't proactively push for detail before its step* — **not** *refuse
+to record detail the user hands you*.
+
+## During /workflow:propose — the why / what / scope
+Establish the **motivation** and business context, the **scope** of the change, and the **capabilities** that change
+(each becomes a `specs/<capability>/spec.md`). Stay scope-level:
+- Do **not** push the user to enumerate acceptance criteria — that is `/workflow:specify`'s job.
+- Do **not** reason at field / data-model altitude — that belongs to the architecture / design step, not the spec.
+- If the user *volunteers* criteria or data detail anyway, record it in `proposal.md` (per "Never drop a
+  requirement") — just don't go fishing for it here.
+
+Output → `proposal.md`: `## Why`, `## What Changes`, `## Capabilities`, `## Impact`. Scope-level — no behavioral
+detail beyond what the user volunteered.
+
+## During /workflow:specify — the testable what
+Now pin the behavior down. **Push for specific, testable conditions** over vague outcomes; phrase acceptance criteria
+as **given** (situation) / **when** (action) / **then** (outcome). Be **complete in coverage** — terseness means
+tight wording, never fewer specs. These deltas are the exhaustive, authoritative contract every later stage and the
+final review are validated against; a criterion you omit here silently never gets built or checked.
+
+Output → `specs/<capability>/spec.md`: the behavioral deltas — `### Requirement:` (SHALL/MUST) + `#### Scenario:`
+(WHEN/THEN); the given/when/then above maps to WHEN/THEN. (An epic has no spec of its own — its intent lives in
+`architecture.md`.)
+
+### Write at behavioral altitude — not implementation altitude
 
 Specs describe **what** the system does for actors, not **how** the code achieves it. A spec that survives a full
 data-model refactor is at the right level; one that needs updating every time a field is renamed is too low.
@@ -49,19 +76,7 @@ If yes, the altitude is right. If they need to grep the repo first, rewrite it.
 translate every finding into domain language before writing. The existing tests are excellent acceptance-criteria
 anchors — mirror their intent, not their syntax.
 
-## Output — two steps, into one OpenSpec change
-
-A change's spec is authored in two steps, both into the OpenSpec change at `<specRoot>/openspec/changes/<change>/`
-(`specRoot` is the change's OpenSpec root — repo root by default, or an app/domain sub-dir; `/workflow:propose`
-picks it), exactly as each command specifies:
-- **`/workflow:propose`** → `proposal.md`: the why/what + the **capabilities** that change (each becomes a
-  `specs/<capability>/spec.md`). Scope-level — no behavioral detail yet.
-- **`/workflow:specify`** → `specs/<capability>/spec.md`: the behavioral deltas — `### Requirement:` (SHALL/MUST) +
-  `#### Scenario:` (WHEN/THEN). Each scenario is a testable acceptance criterion; the given/when/then above maps to
-  WHEN/THEN. (An epic has no spec of its own — its intent lives in `architecture.md`.)
-
-Be concise per criterion but **complete in coverage** — terseness means tight wording, never fewer specs.
-
 ## Done when
 The user agrees. After `/workflow:propose` → run `/workflow:specify`. After `/workflow:specify` → `openspec
-validate` passes and the user agrees → `/clear`, then `/workflow:design`.
+validate` passes and the user agrees → `/clear`, then the change's next step (its architecture step if it needs one,
+else `/workflow:design`).

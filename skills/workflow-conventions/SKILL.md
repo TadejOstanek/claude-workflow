@@ -13,8 +13,9 @@ Losing a requirement in a handoff silently breaks every stage after it. Prefer a
 ## Unit of work: the change
 
 The unit is a **change** = one PR. A *spec-bearing* change is authored in two steps —
-`/workflow:propose` (why/what + capabilities) then `/workflow:specify` (requirement/scenario deltas) — then
-`/workflow:design` (code design) and `/workflow:build` (the autonomous loop → draft PR), and finally
+`/workflow:propose` (why/what + capabilities) then `/workflow:specify` (requirement/scenario deltas) — then, by
+default, `/workflow:arch` (the data-model & structural-fit pass; skippable) — then `/workflow:design` (code design)
+and `/workflow:build` (the autonomous loop → draft PR), and finally
 `/workflow:archive` (manual, when you're sure it's done). A *spec-less* change (`spec: "none"` — see below) skips
 the two spec steps and goes straight to `/workflow:design` → `/workflow:build`; there is no OpenSpec change and
 nothing to archive. When the work is too big for one PR, an **epic** groups
@@ -51,7 +52,8 @@ spec as a per-change OpenSpec change plus the accumulating canonical library (se
   state.json          # machine state — source of truth for resume + status (schema below)
   architecture.md     # EPIC ONLY: intent + how the work splits into changes (absent in single mode)
   <NN>-<change-slug>/ # one folder per change (single mode = exactly one; zero-padded order) — execution state
-    architecture.md   # OPTIONAL per-change architectural detail; may note an ADR path if one was written
+    architecture.md   # data model & structural fit — output of the `architecture` stage (/workflow:arch); present
+                      #   when that stage ran (single spec-bearing changes by default); may note an ADR path
     code-design.md    # interactive; may note an ADR path if one was written
     implementation.md # code agent's discoveries/deviations
     tests.md          # test agent's discoveries/deviations
@@ -101,8 +103,8 @@ format. Everything else — descriptions, decisions, discoveries, findings, rati
       "spec": "openspec", "change": null, "specRoot": ".",
       "ticket": null, "branch": null,
       "stages": {
-        "propose": "pending", "specify": "pending", "design": "pending", "build": "pending",
-        "test-lint": "pending", "review": "pending", "pr": "pending", "archive": "pending"
+        "propose": "pending", "specify": "pending", "architecture": "pending", "design": "pending",
+        "build": "pending", "test-lint": "pending", "review": "pending", "pr": "pending", "archive": "pending"
       }
     }
   ],
@@ -122,6 +124,13 @@ format. Everything else — descriptions, decisions, discoveries, findings, rati
   change need a spec?"): it **skips `propose` + `specify`** (both `na`), keeps `change: null`, has `archive: "na"`,
   and goes `/workflow:start` (or `/workflow:arch`) → `/workflow:design` → `/workflow:build` directly. Its
   `code-design.md` is then the sole behavioral contract (no OpenSpec change, no `proposal.md`, no scenarios).
+- `architecture` is the per-change data-model & structural-fit stage (`/workflow:arch` in single mode), run **after
+  `specify` and before `design`**. Default status when a change is first scoped: **single `spec:"openspec"`** →
+  `"pending"` (data modeling runs by default; the user may pre-skip to `"na"`); **single `spec:"none"`** → `"na"`
+  (opt in by setting `"pending"`); **epic** change → `"na"` (the epic-level `/workflow:arch` already decided the
+  data model; a complex change may opt in). **Back-compat:** a change created before this stage has **no**
+  `architecture` key — treat absent ⇒ `"na"`, so old single changes flow `specify` → `design` unchanged and only
+  new changes get default-on.
 - `change` is the OpenSpec change id (kebab-case), set by `/workflow:propose`. Null until then — and stays null for
   a `spec: "none"` change.
 - `specRoot` is this change's OpenSpec root — the repo-relative dir whose `openspec/` holds it (default `"."`).
@@ -135,7 +144,7 @@ format. Everything else — descriptions, decisions, discoveries, findings, rati
   `single`-mode workflow (its one change unambiguously owned the top-level fields); for an in-flight `epic` the
   top-level fields only ever reflected the most-recently-designed change anyway, so applying this fallback is no
   worse than the old behavior, just not a full fix for older changes in that epic.
-- Per-change stages run: `propose` → `specify` → `design` → `build` (the parallel implement + test-author pair,
+- Per-change stages run: `propose` → `specify` → `architecture` → `design` → `build` (the parallel implement + test-author pair,
   both green = `done`) → `test-lint` → `review` → `pr` → `archive`. There is no separate docs/QA stage: an ADR (the
   only permanent doc this workflow writes — business-process documentation is OpenSpec's job) is written directly
   during `design` (or `architecture`) when warranted, and manual QA is authored directly by `pr`. **Back-compat**:
@@ -281,7 +290,7 @@ active workflow's mode, current stage, and exact next command.
 ## Resume
 
 `state.json` is the sole cross-session recovery path. On entering any stage: read `state.json`, the epic
-`architecture.md` if present, the change's OpenSpec change (`<specRoot>/openspec/changes/<change>/` —
+`architecture.md` and the change's own `architecture.md` if present, the change's OpenSpec change (`<specRoot>/openspec/changes/<change>/` —
 its behavioral spec; `specRoot` from `state.json`; **absent for a `spec: "none"` change** — there is none to read),
 and the change's prior `.workflow/` files. If this stage's own file already exists, also read the *next* stages'
 files to learn why it was sent back, then fix accordingly.

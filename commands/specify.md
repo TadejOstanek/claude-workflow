@@ -34,8 +34,14 @@ the reviewer later checks against. For a MODIFIED requirement, copy the full exi
 ```bash
 (cd "<specRoot>" && openspec validate "<change-id>")
 ```
-Fix any structural errors until it passes. Then set this change's `stages.specify = "done"`, append a transition,
-and tell the user to `/clear`, then run `/workflow:design`.
+Fix any structural errors until it passes. Then set this change's `stages.specify = "done"` and append a transition.
+Route by this change's `stages.architecture`:
+- **`pending`** (the default for a spec-bearing change — data modeling comes next): set `currentStage="architecture"`
+  and tell the user to `/clear`, then run `/workflow:arch` (the data-model & structural-fit pass) and then
+  `/workflow:design`.
+- **`na`** (the user pre-skipped the architecture step): set `currentStage="design"` and tell the user to `/clear`,
+  then run `/workflow:design`.
+- **absent** (a change created before the architecture stage existed): treat as `na` — route to `/workflow:design`.
 
 **Iterating?** If you're amending the spec of a change whose `design`/`build`/later stages were already `done`
 (e.g. manual QA surfaced a gap), say so: those downstream outputs now describe the **old** spec. Don't flip them to
