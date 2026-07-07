@@ -7,8 +7,8 @@ description: Shared file layout, state schema, GATE format, and naming for the m
 
 Every workflow stage reads prior stages' files and writes its own. Stages share **no conversation context** — the
 files (and the OpenSpec change) are the only handoff. Keep produced `.md` terse in *wording*, but **never drop
-content to be terse**: capture every requirement, criterion, and decision the prior stage or the user provided.
-Losing a requirement in a handoff silently breaks every stage after it. Prefer adding more over cutting.
+content to be terse**: capture every requirement, criterion, and decision — losing one in a handoff silently breaks
+every later stage.
 
 ## Unit of work: the change
 
@@ -55,6 +55,7 @@ spec as a per-change OpenSpec change plus the accumulating canonical library (se
     architecture.md   # data model & structural fit — output of the `architecture` stage (/workflow:arch); present
                       #   when that stage ran (single spec-bearing changes by default); may note an ADR path
     code-design.md    # interactive; may note an ADR path if one was written
+    design-critique.md # adversarial design-critic findings — present when that pass ran
     implementation.md # code agent's discoveries/deviations
     tests.md          # test agent's discoveries/deviations
     test-lint.md      # test & lint run report
@@ -136,14 +137,11 @@ format. Everything else — descriptions, decisions, discoveries, findings, rati
 - `specRoot` is this change's OpenSpec root — the repo-relative dir whose `openspec/` holds it (default `"."`).
   Set by `/workflow:propose`; absent ⇒ treat as `"."` (back-compat). Every `openspec` call for this change runs
   with `<specRoot>` as the working directory.
-- `ticket`, `branch` live **on each change** (not top-level — a workflow can have several changes, each
-  with its own branch/PR). `null` until provisioned; see "Branch provisioning" below for when and how.
-  **Back-compat**: if a change's own `ticket`/`branch` are absent/`null` but the now-removed top-level
-  `state.json` fields of the same name are present (a workflow created before this schema moved them per-change),
-  treat those top-level values as this change's — don't re-provision. This only disambiguates cleanly for a
-  `single`-mode workflow (its one change unambiguously owned the top-level fields); for an in-flight `epic` the
-  top-level fields only ever reflected the most-recently-designed change anyway, so applying this fallback is no
-  worse than the old behavior, just not a full fix for older changes in that epic.
+- `ticket`, `branch` live **on each change** (not top-level — a workflow can have several changes, each with its
+  own branch/PR). `null` until provisioned; see "Branch provisioning" below. **Back-compat**: if a change's own
+  `ticket`/`branch` are absent but the now-removed top-level fields of the same name are present (a pre-schema
+  workflow), treat those as this change's — don't re-provision. (Disambiguates cleanly only for `single` mode; for
+  an in-flight `epic` it's no worse than the old behavior.)
 - Per-change stages run: `propose` → `specify` → `architecture` → `design` → `build` (the parallel implement + test-author pair,
   both green = `done`) → `test-lint` → `review` → `pr` → `archive`. There is no separate docs/QA stage: an ADR (the
   only permanent doc this workflow writes — business-process documentation is OpenSpec's job) is written directly

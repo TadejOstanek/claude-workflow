@@ -32,26 +32,21 @@ is the last interactive stage — the user approves before the autonomous loop r
   user to return to `/workflow:arch` with what you learned.
 
 ## ADRs (if warranted)
-If a decision made here is heavy enough to outlive this change's memory — a real tradeoff between viable
-alternatives, not just "the obvious way to do it" — write an ADR directly, now, while you and the user both know
-the why. Ask the user where ADRs live if the repo doesn't already have a convention; use the repo's ADR template if
-one exists. **Under-write rather than over-write** — most changes need none. This is the *only* kind of permanent
-doc this stage writes: business-process/behavioral documentation already lives in the OpenSpec spec (accumulated
-into the canonical library via `/workflow:archive`) — there's nothing else to keep in sync here.
+If a decision here is heavy enough to outlive this change's memory — a real tradeoff between viable alternatives,
+not "the obvious way" — write an ADR directly, now, while the why is fresh (ask the user where ADRs live if the
+repo has no convention; use its template if one exists). **Under-write** — most changes need none. It's the only
+permanent doc this stage writes; behavioral documentation lives in the OpenSpec spec.
 
 ## Adversarial critique (default-on, skippable)
-Before the user approves the design, run it past the `workflow:design-critic` agent — an independent, non-
-interactive pass that pressure-tests `code-design.md` against real repo conventions and the spec, since this stage
-is otherwise purely generative (you and the user drafting it together, with no second look). This runs by default;
-skipping it is a legitimate call for a trivial or low-risk change. It's advisory, not a gate — `code-design.md`'s
-own `## GATE` still reflects the user's explicit approval, not the critic's verdict. If a finding reveals a real
-problem, revise the design (and re-run the critic if the revision was substantial) before the user approves.
+Before the user approves, run the drafted `code-design.md` past the `workflow:design-critic` agent — an independent
+pass that pressure-tests it against real repo conventions and the spec (this stage is otherwise purely generative,
+with no second look). It writes `design-critique.md`. Default-on; skip only for a trivial/low-risk change. Advisory,
+not a gate — the `## GATE` reflects the user's approval, not the critic's verdict. If a finding is real, revise the
+design (re-running the critic if the revision was substantial) before approval.
 
 ## Prepare for implementation
-If `state.json` already has a `branch` for this change (re-designing during iteration), reuse it — do not prompt or
-re-create. Otherwise prompt the user for the **story/ticket number** and create the **branch**:
-`{username}/sc-{ticket}/{description}` (username from `git config user.name` / `gh api user --jq .login`). Target
-branch `main` (`git checkout -b <branch> main`).
+Provision this change's branch per **Branch provisioning** in `workflow:workflow-conventions` (reuse an existing
+`branch`, else create `{username}/sc-{ticket}/{description}` off `main`).
 
 ## Output: `code-design.md`
 - **Why / Context** — **required for a `spec:"none"` change** (there is no `proposal.md`): one short paragraph on

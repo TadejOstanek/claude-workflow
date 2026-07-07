@@ -38,17 +38,14 @@ change runs the full pipeline from its `/workflow:propose` + `/workflow:specify`
 - **Feature** changes: the work itself, marked independent / parallel / sequential.
 - **Tidy-after**: cleanup enabled once the feature lands → final change(s).
 
-For each change, also decide whether it needs a behavioral spec (`spec: "openspec"` vs `"none"`) per the "Does a
-change need a spec?" heuristic in `workflow:workflow-conventions`. Tidy-first/tidy-after (and many fix) changes are
-usually **spec-less** — pure refactors with no observable behavior change skip `/workflow:propose` + `/workflow:specify`
-and go straight to code design; feature changes are usually **spec-bearing**. Recommend per change and confirm with
-the user.
+For each change, also triage whether it needs a behavioral spec (`spec: "openspec"` vs `"none"`) per the "Does a
+change need a spec?" heuristic in `workflow:workflow-conventions` — tidy-first/tidy-after (and many fix) changes are
+usually spec-less, feature changes usually spec-bearing. Recommend per change and confirm with the user.
 
 ## ADRs (if warranted)
-The only permanent doc this workflow writes is the **ADR** — business-process/behavioral documentation is OpenSpec's
-job (the canonical spec library, grown via `/workflow:archive`), not this stage's. If a decision made *here* is
-heavy enough to outlive this conversation's memory, write the ADR directly, now, while the reasoning is fresh; ask
-the user where ADRs live if the repo has no convention yet. Most changes/epics need none.
+If a decision made here is heavy enough to outlive this conversation, write the ADR directly, now, while the
+reasoning is fresh (ask the user where ADRs live if the repo has no convention yet). Most changes/epics need none —
+**under-write**. The ADR is the only permanent doc this workflow writes; behavioral documentation is OpenSpec's job.
 
 ## Output: `architecture.md`
 Write to the epic's `.workflow/<feature>/architecture.md` (epic) or the change's

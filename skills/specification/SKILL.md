@@ -25,10 +25,8 @@ Whatever the user gives you — a constraint, an acceptance criterion, a non-goa
 **recorded** completely and explicitly in the right artifact; **never dropped, merged away, generalized, or
 summarized into something vaguer.** The catch: the two steps run in **separate sessions with a `/clear` between
 them** (stages share files, not conversation — see `workflow:workflow-conventions`), so anything you don't *write
-down* is lost. So if the user volunteers testable detail during `/workflow:propose`, **write it into `proposal.md`**
-(even if it sits a little below scope-level) so `/workflow:specify` can pick it up and formalize it — never keep it
-"in your head for the spec step." The rule is *don't proactively push for detail before its step* — **not** *refuse
-to record detail the user hands you*.
+down* is lost. If the user volunteers testable detail during `/workflow:propose`, **write it into `proposal.md`** so
+`/workflow:specify` can formalize it — don't keep it "in your head for the spec step."
 
 ## During /workflow:propose — the why / what / scope
 Establish the **motivation** and business context, the **scope** of the change, and the **capabilities** that change
