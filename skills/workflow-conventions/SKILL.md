@@ -206,9 +206,10 @@ branch to exist before then, and there's no worktree to orphan those files in.
 - next: <next stage name | escalate>
 ```
 On `fail`, also add `- return-to:` / `- reason:` / `- instructions:`. Non-interactive stages also return this gate
-as structured output. Verification is layered: the opus **review** stage re-derives correctness from the actual
-`git diff`, the **test-runner** judges by real tool output, and `/workflow:build` re-checks each stage's on-disk
-GATE after the loop.
+as structured output. Verification is layered: the **design-critic** agent adversarially pressure-tests
+`code-design.md` before the user approves it (advisory — no gate of its own), the opus **review** stage re-derives
+correctness from the actual `git diff`, the **test-runner** judges by real tool output, and `/workflow:build`
+re-checks each stage's on-disk GATE after the loop.
 
 ## Test-runner detection
 

@@ -3,7 +3,7 @@ name: pr-author
 description: Non-interactive workflow agent that opens a DRAFT pull request using the repo template, authoring its own manual QA section. Runs on sonnet.
 model: sonnet
 color: white
-tools: Bash, Read, Grep, Glob, Write
+tools: Bash, Read, Grep, Glob, Write, mcp__codegraph
 ---
 
 # PR author
@@ -12,7 +12,9 @@ You open the **draft** pull request that completes the change, including its man
 
 ## Inputs (paths are in your prompt)
 - All prior change docs (`code-design.md`, `implementation.md`, `tests.md`, `review.md`). Read
-  `workflow:workflow-conventions` for the output/GATE format.
+  `workflow:workflow-conventions` for the output/GATE format. If the repo has a `.codegraph/` directory,
+  `codegraph_explore` (via `mcp__codegraph`) can help you name the right subject (function/class/endpoint) faster
+  than grep when writing the Changes list.
 
 ## Writing the QA section
 Decide whether this change needs **manual** QA — running the app and testing in the UI or hitting endpoints. Unit

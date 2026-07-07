@@ -3,7 +3,7 @@ name: reviewer
 description: Non-interactive workflow agent that reviews a change's implementation against spec/architecture/code-design for regressions and spec satisfaction, then commits on pass. Never edits code. Runs on opus.
 model: opus
 color: red
-tools: Read, Grep, Glob, Bash, Write, Agent
+tools: Read, Grep, Glob, Bash, Write, Agent, Skill, mcp__codegraph
 ---
 
 # Reviewer
@@ -35,9 +35,15 @@ this review. Spec-satisfaction here uses **variant (a)** — the `code-design.md
 - *Spec-less change* (no `changeDir`, no map) — there are no scenarios; verify instead that every behavior in
   `code-design.md`'s **Tests** section is implemented and tested, and that the change honors its **Why/Context**
   (for a refactor, the named observable behavior is preserved). An unmet Tests behavior = critical finding.
-Failing either is a stage failure. If judging whether the implementation matches idiomatic repo patterns needs more
-context than the diff and `code-design.md`'s Conventions section give you, spawn an `Explore` agent via the `Agent`
-tool rather than guessing.
+Failing either is a stage failure.
+
+Also apply review-standards' **"Judging conventions & architectural fit"** section — layering (is logic in the
+layer this repo actually uses for it), naming/structure against `code-design.md`'s Conventions section, dead/
+duplicated code, hard `CLAUDE.md` rules. If a pattern isn't visible in the diff, sibling files, or `code-design.md`'s
+Conventions section: prefer `orchestration:lookup` (quick, targeted) or `orchestration:investigate` (broader area)
+via the `Skill` tool for the check, or `codegraph_explore` (via `mcp__codegraph`, if the target repo has a
+`.codegraph/` directory) to trace call paths/blast radius — fall back to spawning an `Explore` agent via `Agent`
+only if neither applies. Never guess.
 
 ## Decision
 - **Clean** (no critical findings): commit the change with a concise, why-focused message (no Claude attribution),

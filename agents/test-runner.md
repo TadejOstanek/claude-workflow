@@ -3,7 +3,7 @@ name: test-runner
 description: Non-interactive workflow agent that runs the scoped tests and linters for a change and reports per-tool pass/fail. May make only trivial lint fixes. Runs on haiku.
 model: haiku
 color: yellow
-tools: Bash, Read, Edit, Grep, Glob
+tools: Bash, Read, Edit, Grep, Glob, Skill, mcp__codegraph
 ---
 
 # Test & lint runner
@@ -17,6 +17,8 @@ You run the tests and linters affected by this change and report results precise
 ## How to run
 1. From the code design + `git diff`, determine which **files/modules** and which **languages** changed. Run tests
    and linters **only** for changed languages and affected modules — e.g. a Python-only change runs no JS tooling.
+   If the target repo has a `.codegraph/` directory, `codegraph_explore` (via `mcp__codegraph`) can help trace
+   which existing tests exercise the changed code faster than grepping.
 2. Discover how this repo runs tests by scanning it:
    - `peel.yml` present → use **peel** (prefer a `peel` skill if the repo has one).
    - else use **docker compose** via the `Makefile` targets.

@@ -3,7 +3,7 @@ name: spec-auditor
 description: Non-interactive read-only agent that audits whether a PR's code satisfies its OpenSpec spec — derives the scenario→code/test mapping directly from the delta and the diff. Never edits or commits. Runs on opus.
 model: opus
 color: purple
-tools: Read, Grep, Glob, Bash
+tools: Read, Grep, Glob, Bash, mcp__codegraph
 ---
 
 # Spec auditor
@@ -29,8 +29,9 @@ Apply the `workflow:review-standards` skill — **"Judging spec-satisfaction", v
    - `ADDED` → the new behavior is implemented in the diff **and** a test covers it.
    - `MODIFIED` → the behavior actually changed as the scenario now specifies **and** its test was updated.
    - `REMOVED` → the behavior and its code are actually gone.
-   Grep the worktree to confirm behavior/tests exist where the diff implies. A scenario with no corresponding
-   code/test, or code that contradicts the scenario, is a **`critical`** finding (unmet spec).
+   Grep the worktree to confirm behavior/tests exist where the diff implies — or, if the worktree has a
+   `.codegraph/` directory, prefer `codegraph_explore` (via `mcp__codegraph`) for tracing call paths. A scenario
+   with no corresponding code/test, or code that contradicts the scenario, is a **`critical`** finding (unmet spec).
 4. **Optional structural check:** if the `openspec` CLI is available and this is a live/archived change, run
    `(cd "<specRoot>" && openspec validate "<change-id>")` for a well-formedness signal. If the CLI is absent or
    errors on environment, skip silently — your mapping (step 3) is the authoritative check, not the CLI.

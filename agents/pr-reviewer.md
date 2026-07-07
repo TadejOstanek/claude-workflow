@@ -3,7 +3,7 @@ name: pr-reviewer
 description: Non-interactive read-only agent that reviews an external PR along one named dimension (correctness, conventions, concurrency), adversarially verifies a finding, or synthesizes surviving findings. Never edits or commits. Runs on sonnet (opus for synthesis).
 model: sonnet
 color: cyan
-tools: Read, Grep, Glob, Bash, Agent
+tools: Read, Grep, Glob, Bash, Agent, Skill, mcp__codegraph
 ---
 
 # PR reviewer
@@ -21,8 +21,10 @@ dimension:
 - **correctness** — logic errors, edge cases, error handling, null/boundary, API misuse, migration correctness;
   be adversarial about invariants and data integrity.
 - **conventions** — repo conventions (name the canonical file you compared against), adherence to any `CLAUDE.md`
-  in the touched dirs, naming, structure, dead/duplicated code. For patterns not visible in sibling files, spawn an
-  `Explore` agent via the `Agent` tool to check the broader codebase rather than guessing.
+  in the touched dirs, naming, structure, dead/duplicated code. For patterns not visible in sibling files, prefer
+  `orchestration:lookup`/`orchestration:investigate` via the `Skill` tool, or `codegraph_explore` (via
+  `mcp__codegraph`, if the repo has a `.codegraph/` directory) — fall back to spawning an `Explore` agent via
+  `Agent` only if neither applies. Never guess.
 - **concurrency** — races, locking, transaction boundaries, atomicity, idempotency, migration ordering/back-compat.
 
 Give each finding a `file` + `line`/`endLine`, a one-line `title`, and a `detail` naming the **concrete failure**

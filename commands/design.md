@@ -39,9 +39,16 @@ Apply the `workflow:code-design` skill. Read `workflow:workflow-conventions` for
    — this switches the current checkout onto it, carrying forward any uncommitted OpenSpec files written before the
    branch existed), and record `ticket`, `branch` on this change in `state.json`.
 6. Write `.workflow/<feature>/<change>/code-design.md` (interfaces, components, tests, conventions; checkboxes + `## GATE`).
-7. Update `state.json` (change `stages["code-design"]="done"`, `currentStage="build"`, append a transition).
-8. Get the user's explicit approval. Then tell them to `/clear` and run `/workflow:build` for this change.
-9. **Iterating?** If any later stage (`test-lint`/`review`/`pr`) was already `done` before this re-design, those
+7. **Adversarial critique — default-on, skippable.** Ask the user whether to run the `workflow:design-critic` agent
+   against the drafted `code-design.md` (default: yes; skip only for a trivial/low-risk change). If run, spawn it
+   with this change's `code-design.md`, `architecture.md` (if any), and OpenSpec change (if spec-bearing) — it
+   writes `.workflow/<feature>/<change>/design-critique.md` and returns findings. Present any findings to the user
+   next to the design. This is advisory, not a gate: if a finding reveals a real problem, revise `code-design.md`
+   (re-running the critic afterward if the revision was substantial); proceeding without addressing a finding is
+   the user's call, not yours.
+8. Update `state.json` (change `stages["code-design"]="done"`, `currentStage="build"`, append a transition).
+9. Get the user's explicit approval. Then tell them to `/clear` and run `/workflow:build` for this change.
+10. **Iterating?** If any later stage (`test-lint`/`review`/`pr`) was already `done` before this re-design, those
    outputs now describe **older** code — say so, and leave them as-is (do **not** flip them to `pending`; the user
    decides what to redo). Give the exact redo command for what they want, e.g.
    `/workflow:build <change> only build commit` (re-implement + land, no review/PR rewrite).

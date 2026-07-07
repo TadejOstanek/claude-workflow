@@ -39,6 +39,14 @@ one exists. **Under-write rather than over-write** — most changes need none. T
 doc this stage writes: business-process/behavioral documentation already lives in the OpenSpec spec (accumulated
 into the canonical library via `/workflow:archive`) — there's nothing else to keep in sync here.
 
+## Adversarial critique (default-on, skippable)
+Before the user approves the design, run it past the `workflow:design-critic` agent — an independent, non-
+interactive pass that pressure-tests `code-design.md` against real repo conventions and the spec, since this stage
+is otherwise purely generative (you and the user drafting it together, with no second look). This runs by default;
+skipping it is a legitimate call for a trivial or low-risk change. It's advisory, not a gate — `code-design.md`'s
+own `## GATE` still reflects the user's explicit approval, not the critic's verdict. If a finding reveals a real
+problem, revise the design (and re-run the critic if the revision was substantial) before the user approves.
+
 ## Prepare for implementation
 If `state.json` already has a `branch` for this change (re-designing during iteration), reuse it — do not prompt or
 re-create. Otherwise prompt the user for the **story/ticket number** and create the **branch**:

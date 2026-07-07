@@ -56,3 +56,21 @@ satisfies **every** scenario. There are two ways to establish the scenario → c
   corresponding code/test, or code that contradicts the scenario, = **critical** (unmet spec).
 
 Either way: an unmet or unverifiable scenario is a `critical` finding — the spec is the authoritative contract.
+
+## Judging conventions & architectural fit
+
+Beyond "does it work" and "does it satisfy the spec," check whether the change fits how this repo is actually
+built. Keep this concrete — an open-ended "is this well-architected?" pass just generates subjective nits the
+false-positive discipline above exists to suppress. Check specifically:
+
+- **Layering.** Is logic placed in the layer this repo actually uses for it — e.g. business logic living in a
+  view/controller when this repo's own convention (visible in sibling files) puts it in the model/service layer.
+  Name the sibling file(s) you compared against.
+- **Naming/structure.** Matches the canonical files named in `code-design.md`'s Conventions section (or, for a
+  change with no `code-design.md`, the nearest sibling files).
+- **Dead/duplicated code** the change introduced.
+- **A hard rule** in a `CLAUDE.md` covering a touched directory being violated.
+
+Severity follows the existing vocabulary, not a new tier: a real layering violation or hard-rule break is
+`critical`/`major` (per the "hard convention break the team would reject" clause above); a style preference stays
+`minor`/`nit` — or gets dropped per false-positive discipline if it's territory a senior wouldn't block on.

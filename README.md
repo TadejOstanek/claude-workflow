@@ -15,7 +15,7 @@ technical change** (refactor, code org, infra/CI, deps) can opt out of OpenSpec 
 | Propose | interactive *(spec-bearing only)* | `/workflow:propose` | OpenSpec change `proposal.md` (why/what + capabilities) |
 | Specify | interactive *(spec-bearing only)* | `/workflow:specify` | OpenSpec `specs/<cap>/spec.md` (requirement/scenario deltas) |
 | Architectural design | interactive *(data model & fit; default-on for spec-bearing, skippable)* | `/workflow:arch` | `architecture.md` (data-model & structural-fit decisions; an ADR too, if warranted) |
-| Code design | interactive | `/workflow:design` | `code-design.md` (interfaces + test behaviors; an ADR too, if warranted) |
+| Code design | interactive (+ adversarial `design-critic` pass; default-on, skippable) | `/workflow:design` | `code-design.md` (interfaces + test behaviors; an ADR too, if warranted), `design-critique.md` |
 | Implement ‖ Test | auto (sonnet) | `implementer` ‖ `test-author` | code, tests |
 | Test & lint | auto (haiku) | `test-runner` | `test-lint.md` |
 | Review | auto (opus) | `reviewer` | `review.md` (+ commit) |
@@ -151,8 +151,9 @@ command keeps **no** `.workflow/` state — it's a one-shot review.
 ```
 .workflow/<feature>/                  # planning + execution state (this engine)
   state.json  architecture.md   # top-level architecture.md is epic-only (epic intent + change breakdown)
-  <NN>-<change>/  architecture.md  code-design.md  implementation.md  tests.md  test-lint.md  review.md
+  <NN>-<change>/  architecture.md  code-design.md  design-critique.md  implementation.md  tests.md  test-lint.md  review.md
                   # per-change architecture.md = data-model & fit (present when the arch stage ran)
+                  # design-critique.md = adversarial design-critic findings (present when that pass ran)
 
 <specRoot>/openspec/                  # the spec layer (thin seam); <specRoot> defaults to the repo root
   changes/<change-id>/  proposal.md  specs/<capability>/spec.md   # one change per PR
@@ -180,3 +181,6 @@ from the app folder (document the convention in each root's `AGENTS.md`).
   `workflows/` are not auto-discovered by name.
 - This repo dogfoods its own process — see `.workflow/build-workflow-plugin/spec.md` for the original acceptance
   contract.
+- All workflow agents can invoke `Skill` (target-repo skills, plus `orchestration:lookup`/`investigate` for
+  pattern discovery) and, if you have a `codegraph` MCP server configured, `codegraph_explore` — both degrade to a
+  no-op where unavailable, so neither is required.
