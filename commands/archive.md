@@ -6,13 +6,10 @@ argument-hint: [change slug or change id] — blank to pick the next change read
 # /workflow:archive
 
 Read `workflow:workflow-conventions` (the OpenSpec integration section). This is a **deliberate manual step** — run
-it yourself when you are sure the change is fully done. It merges the change's spec deltas into the canonical
-`<specRoot>/openspec/specs/` (the change's OpenSpec root, default repo root) and moves the change to
-`changes/archive/`. It is **not** automated by the loop. Requires the
-`openspec` CLI (`@fission-ai/openspec`).
-
-**When to run it:** typically on the change's branch *before merging*, so the canonical spec ships in the same PR —
-or after merge; your call. Just don't archive a change you might still revise (the deltas fold in irreversibly).
+it when you're sure the change is done: it merges the change's spec deltas into the canonical
+`<specRoot>/openspec/specs/` and moves the change to `changes/archive/`. Requires the `openspec` CLI. Run it
+typically on the change's branch *before merging* (so the canonical spec ships in the PR) — or after; your call.
+Don't archive a change you might still revise (the merge is irreversible).
 
 ## Steps
 1. Resolve the change from `$ARGUMENTS` (change slug or id); else from `state.json` pick a change whose `pr` is

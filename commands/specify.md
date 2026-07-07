@@ -43,7 +43,7 @@ Route by this change's `stages.architecture`:
   then run `/workflow:design`.
 - **absent** (a change created before the architecture stage existed): treat as `na` — route to `/workflow:design`.
 
-**Iterating?** If you're amending the spec of a change whose `design`/`build`/later stages were already `done`
-(e.g. manual QA surfaced a gap), say so: those downstream outputs now describe the **old** spec. Don't flip them to
-`pending` — the user chooses what to redo. Point them at `/workflow:design` (to refine the code-design) then
-`/workflow:build <change> only build commit`, or straight to `/workflow:build` if the design still holds.
+**Iterating?** If you're amending the spec of a change whose later stages were already `done`, those outputs now
+describe the **old** spec — leave them as-is (the user chooses what to redo, per `workflow:workflow-conventions`).
+Point them at `/workflow:design` then `/workflow:build <change> only build commit`, or straight to `/workflow:build`
+if the design still holds.

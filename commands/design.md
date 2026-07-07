@@ -30,14 +30,11 @@ Apply the `workflow:code-design` skill. Read `workflow:workflow-conventions` for
    (use `orchestration:lookup`/`orchestration:investigate` for the conventions discovery).
    If the architecture proves infeasible, stop and send the user back to `/workflow:arch` (with what you learned) —
    for an epic that's the epic arch; for a single change, `/workflow:arch <change>`.
-5. **Branch.** If `state.json` already has a `branch` for this change (you're re-designing during iteration), reuse
-   it — keep the existing `ticket`/`branch`, do not prompt or re-create. Otherwise, check **checkout safety** first
-   (`workflow:workflow-conventions`): the working tree must be clean and currently on `main`. If it's dirty or on a
-   different branch (e.g. another in-progress change owns the checkout), **stop and tell the user** what's checked
-   out and what this change needs, and let them resolve it — never switch over foreign work. Once safe, prompt for
-   the **ticket number**, create the branch `{user}/sc-{ticket}/{desc}` off `main` (`git checkout -b <branch> main`
-   — this switches the current checkout onto it, carrying forward any uncommitted OpenSpec files written before the
-   branch existed), and record `ticket`, `branch` on this change in `state.json`.
+5. **Branch.** If `state.json` already has a `branch` for this change (re-designing), reuse it — keep the existing
+   `ticket`/`branch`, don't re-create. Otherwise check **checkout safety** (`workflow:workflow-conventions`): the
+   tree must be clean and on `main`; if not, **stop and tell the user** to resolve it — never switch over foreign
+   work. Once safe, prompt for the **ticket number**, create `{user}/sc-{ticket}/{desc}` off `main`
+   (`git checkout -b <branch> main`), and record `ticket`, `branch` on this change in `state.json`.
 6. Write `.workflow/<feature>/<change>/code-design.md` (interfaces, components, tests, conventions; checkboxes + `## GATE`).
 7. **Adversarial critique — default-on, skippable.** Ask the user whether to run the `workflow:design-critic` agent
    against the drafted `code-design.md` (default: yes; skip only for a trivial/low-risk change). If run, spawn it
@@ -48,7 +45,6 @@ Apply the `workflow:code-design` skill. Read `workflow:workflow-conventions` for
    the user's call, not yours.
 8. Update `state.json` (change `stages["code-design"]="done"`, `currentStage="build"`, append a transition).
 9. Get the user's explicit approval. Then tell them to `/clear` and run `/workflow:build` for this change.
-10. **Iterating?** If any later stage (`test-lint`/`review`/`pr`) was already `done` before this re-design, those
-   outputs now describe **older** code — say so, and leave them as-is (do **not** flip them to `pending`; the user
-   decides what to redo). Give the exact redo command for what they want, e.g.
-   `/workflow:build <change> only build commit` (re-implement + land, no review/PR rewrite).
+10. **Iterating?** If any later stage was already `done` before this re-design, its output now describes **older**
+   code — leave stages as-is (the user decides what to redo, per `workflow:workflow-conventions`) and give the exact
+   redo command, e.g. `/workflow:build <change> only build commit` (re-implement + land, no review/PR rewrite).

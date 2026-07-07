@@ -41,9 +41,7 @@ Runs for a **single**-mode change, or a **named epic change** (`$ARGUMENTS`) who
 
 ## Epic planning (`mode:"epic"`, `epic.architecture` not yet `"done"`)
 This is the epic planning stage; the epic intent + the change breakdown live here, and each resulting change is
-specced individually via `/workflow:propose` + `/workflow:specify`. (Once `epic.architecture` is `"done"`, a later
-`/workflow:arch <change>` runs the **per-change pass** above instead — for a change you flipped to
-`architecture:"pending"`.)
+specced individually via `/workflow:propose` + `/workflow:specify`.
 1. Resolve the active workflow from `state.json` (expects `mode:"epic"`). The epic intent is the feature
    `title`/description — there is no epic spec file.
 2. If `architecture.md` already exists (returning), read it and any later-stage files first to learn why, then refine.
@@ -55,15 +53,12 @@ specced individually via `/workflow:propose` + `/workflow:specify`. (Once `epic.
 5. Update `state.json`:
    - set `epic.architecture="done"`, append a `transitions` entry, and set `currentStage` to the first change's
      next stage — `"propose"` if the lowest-`order` change is `spec:"openspec"`, `"design"` if it's `spec:"none"`;
-   - populate `changes[]` from the agreed breakdown — each with `slug` (`<NN>-<name>`), `type`, `order`,
-     `depends_on`, `spec` (`"openspec"` or `"none"` — triaged per the heuristic in `workflow:workflow-conventions`:
-     behavioral → `"openspec"`, purely technical refactor/infra/tidy → `"none"`; recommend per change and **confirm
-     with the user**), `change:null`, `specRoot:"."` (the change's OpenSpec root — `/workflow:propose` may retarget
-     it to an app/domain sub-dir), `ticket:null`, `branch:null` (each change's branch is provisioned lazily by its
-     own `/workflow:design` — not batched here; see `workflow:workflow-conventions`), and all stages set to
-     `pending` — **except**: set `architecture` to `"na"` (the epic-level data model is decided here; a complex
-     change can opt back in by flipping it to `pending` and running `/workflow:arch <change>`), and for a
-     `spec:"none"` change set `propose`, `specify`, and `archive` to `na` too;
+   - populate `changes[]` from the agreed breakdown per the conventions schema (field defaults there) — each with
+     the breakdown-specific `slug` (`<NN>-<name>`), `type`, `order`, `depends_on`, and a `spec` you triaged per the
+     heuristic (recommend per change, **confirm with the user**). Set all stages `pending` **except**
+     `architecture:"na"` (the epic-level data model is decided here; a complex change can opt back in by flipping it
+     to `pending` and running `/workflow:arch <change>`), and for a `spec:"none"` change also `propose`/`specify`/
+     `archive` = `na`;
    - create each change folder `.workflow/<feature>/<NN>-<slug>/`.
 6. Tell the user to `/clear`, then run the next stage for the first change: `/workflow:propose` (then
    `/workflow:specify`) for a `spec:"openspec"` change, or `/workflow:design` directly for a `spec:"none"` one.

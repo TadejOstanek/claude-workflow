@@ -27,17 +27,14 @@ This command **authorizes** running the Workflow tool. Read `workflow:workflow-c
 2. **Choose which stages to run — and whether to *resume* or *redo*.** The stages, in order, are `build` (the
    parallel implementer + test-author — they always run **together**), then `test-lint`, `review`, `pr` (the PR
    stage authors its own manual-QA section — there is no separate QA stage). Two modes, picked from `$ARGUMENTS`:
-   - **Resume** (`full` or blank) — *finish an interrupted forward run.* Selected = all stages; then **subtract any
+   - **Resume** (`full` or blank) — *finish an interrupted forward run.* Selected = all stages, then **subtract any
      already `done`** (a stage is done if `state.json` says `done` **or** its output file has a `## GATE` of
-     `status: pass`; `pr` is done if a draft PR exists via `gh pr view`). This never redoes completed work — it
-     picks up where a stopped loop left off.
+     `status: pass`; `pr` is done if a draft PR exists via `gh pr view`).
    - **Redo** (`light` / `only <stages>` / `skip <stages>`) — *re-run an explicit subset against amended inputs*
-     (you changed the spec or code-design and want to rebuild — the non-waterfall path). Run **exactly** the
-     selection, **without** subtracting `done` — redoing finished work is the whole point. `light` = just `build`;
-     `only <stages>` = exactly those (e.g. `only build` to re-implement, `only test-lint` to just re-test,
-     `only build commit` to re-implement and land it); `skip <stages>` = every stage except those. Because redo
-     trusts your selection, it won't second-guess you — if you name a downstream stage whose upstream isn't built,
-     it just runs what you asked.
+     (the non-waterfall path). Run **exactly** the selection, **without** subtracting `done`. `light` = just
+     `build`; `only <stages>` = exactly those (e.g. `only build` to re-implement, `only build commit` to
+     re-implement and land it); `skip <stages>` = every stage except those. Redo trusts your selection — it runs
+     what you name even if an upstream stage isn't built.
 
    Build `pendingStages` from the mode above and pass it to the loop; unselected stages are omitted (the loop skips
    them). **`archive` is never in the loop** — it's the manual `/workflow:archive`.
@@ -52,16 +49,13 @@ This command **authorizes** running the Workflow tool. Read `workflow:workflow-c
    set `isPeel:true` when the runner is peel. If no runner can be detected, **ask the user** for a command instead
    of passing `testCmd: null` — a null `testCmd` silently skips the whole test-lint stage. Detect a migrate command
    only if the change touches models (e.g. `peel makemigrations <app>`).
-   `baseRef` = `main`; `appDir` = the change's primary directory **to test/migrate** if obvious, else `.`. (`appDir`
-is independent of the change's `specRoot` — `specRoot` is where `openspec` runs, `appDir` is what gets
-tested/migrated; they often coincide but need not.)
-4. Determine `workdir` — the **absolute** repo root path (there is no worktree). Before launching the loop, check
-   **checkout safety** (`workflow:workflow-conventions`): the working tree must be clean and currently on this
-   change's `branch`. The loop's subagents trust `workdir` blindly and never switch branches themselves — once the
-   loop is running in the background it cannot pause to ask — so if a different branch is checked out (e.g. another
-   in-progress change) or the tree is dirty, **stop and ask the user** to check out the right branch (and
-   commit/stash foreign work) instead of launching the loop. Once safe, the loop's git/test/PR commands run there,
-   and it commits and pushes there. Resolve `changeDir` (step 1) under this same `workdir`.
+   `baseRef` = `main`; `appDir` = the change's primary directory **to test/migrate** if obvious, else `.` (this is
+   independent of `specRoot`, which is only where `openspec` runs).
+4. Determine `workdir` — the **absolute** repo root path (there is no worktree). Before launching, check **checkout
+   safety** (`workflow:workflow-conventions`): the working tree must be clean and currently on this change's
+   `branch` — the background loop can't pause to ask. If not, **stop and ask the user** to check out the right
+   branch (committing/stashing foreign work) instead of launching. Once safe, the loop's git/test/PR commands run
+   there; resolve `changeDir` (step 1) under this same `workdir`.
 
 ## 2. Launch the loop (async — then end your turn)
 Call the **Workflow** tool with `scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/autonomous-loop.js"` and `args`

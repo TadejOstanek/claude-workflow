@@ -20,8 +20,8 @@ point the user to `/workflow:design`. (If they truly want to add a spec, they fi
 code**; you may read repo documentation.
 
 ## 2. Pick the change's OpenSpec root (`specRoot`)
-A change's spec lives wherever you run `openspec` (the CLI is cwd-bound). Choose that directory now — generically,
-**never hardcoding app names**:
+A change's spec lives wherever you run `openspec` (cwd-bound; see `workflow:workflow-conventions`). Choose it now —
+generically, **never hardcoding app names**:
 1. Discover existing roots: list dirs containing an `openspec/` (excluding archives):
    ```bash
    find . -type d -name openspec -not -path '*/changes/archive/*' -not -path '*/node_modules/*' 2>/dev/null
@@ -52,11 +52,9 @@ Pull the exact format and path (don't assume them) — run from `specRoot`:
 ```
 Use its `template`, `instruction`, and `resolvedOutputPath` (paths are relative to `<specRoot>`). Following the
 specification skill — clarify, challenge assumptions, **never drop a requirement the user gave** — write
-`proposal.md`: `## Why`, `## What Changes`, `## Capabilities` (list each new/modified capability in kebab-case; each
-becomes a `specs/<capability>/spec.md`), `## Impact`. **Keep it scope-level:** do **not** ask the user to enumerate
-acceptance criteria or reason about the data model — that's `/workflow:specify` and the architecture/design step. If
-the user *volunteers* that detail, **record it in `proposal.md`** so `/workflow:specify` can formalize it (never drop
-it); just don't go fishing for it here.
+`proposal.md`: `## Why`, `## What Changes`, `## Capabilities` (each new/modified capability in kebab-case → a
+`specs/<capability>/spec.md`), `## Impact`. Keep it scope-level: don't fish for acceptance criteria or data model
+here (that's `/workflow:specify` and arch/design), but record any such detail the user volunteers.
 
 ## 5. Finalize
 Set this change's `stages.propose = "done"`, append a `transitions` entry, and tell the user to run
