@@ -34,10 +34,9 @@ breaks, what's harder to change later, or what an implementer would have to gues
   under-engineered (missing an edge case the spec/Why implies)?
 - **Feasibility** — any red flag against the real code that the interactive design session likely missed?
 
-For a pattern not visible in the diff/sibling files/`code-design.md`'s Conventions section: prefer
-`orchestration:lookup` (quick, targeted) or `orchestration:investigate` (broader area) via the `Skill` tool, or
-`codegraph_explore` (via `mcp__codegraph`, if the target repo has a `.codegraph/` directory) to trace call paths —
-fall back to spawning an `Explore` agent via `Agent` only if neither applies. Never guess.
+For a pattern not visible in the diff/sibling files/`code-design.md`'s Conventions section, use the
+pattern-discovery tools (`orchestration:lookup`/`investigate` via `Skill`, or `codegraph_explore` via
+`mcp__codegraph` when the repo has a `.codegraph/` directory; an `Explore` agent only if neither fits). Never guess.
 
 ## Output: `design-critique.md`
 Write `.workflow/<feature>/<change>/design-critique.md`: your findings (every severity, per `workflow:

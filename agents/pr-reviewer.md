@@ -20,11 +20,10 @@ dirs). Review **only** the modified/added lines and their direct consequences. R
 dimension:
 - **correctness** — logic errors, edge cases, error handling, null/boundary, API misuse, migration correctness;
   be adversarial about invariants and data integrity.
-- **conventions** — repo conventions (name the canonical file you compared against), adherence to any `CLAUDE.md`
-  in the touched dirs, naming, structure, dead/duplicated code. For patterns not visible in sibling files, prefer
-  `orchestration:lookup`/`orchestration:investigate` via the `Skill` tool, or `codegraph_explore` (via
-  `mcp__codegraph`, if the repo has a `.codegraph/` directory) — fall back to spawning an `Explore` agent via
-  `Agent` only if neither applies. Never guess.
+- **conventions** — repo conventions (name the canonical file you compared against), any `CLAUDE.md` in the touched
+  dirs, naming, structure, dead/duplicated code. For patterns not visible in sibling files, use the
+  pattern-discovery tools (`orchestration:lookup`/`investigate` via `Skill`, or `codegraph_explore` via
+  `mcp__codegraph` when the repo has a `.codegraph/` directory; an `Explore` agent only if neither fits). Never guess.
 - **concurrency** — races, locking, transaction boundaries, atomicity, idempotency, migration ordering/back-compat.
 
 Give each finding a `file` + `line`/`endLine`, a one-line `title`, and a `detail` naming the **concrete failure**
@@ -40,5 +39,5 @@ Include a one-line `rationale` and, if severity should change, `adjustedSeverity
 
 ## Synthesize
 Your prompt gives you the surviving (CONFIRMED + PLAUSIBLE) findings across dimensions. Dedup near-identical ones,
-rank by severity (`critical > major > minor > nit`), and return the final verdict (`clean` = no criticals left).
-You are reviewing, not committing — `committed` is always false.
+rank by severity (per review-standards), and return the final verdict (`clean` = no criticals left). You are
+reviewing, not committing — `committed` is always false.

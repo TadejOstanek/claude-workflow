@@ -25,13 +25,10 @@ Apply the `workflow:review-standards` skill — **"Judging spec-satisfaction", v
 1. Read the spec files. Parse the deltas: `## ADDED / MODIFIED / REMOVED Requirements` → `### Requirement:`
    (SHALL/MUST) → `#### Scenario:` (**exactly four hashes**) with `- **WHEN**` / `- **THEN**`.
 2. Bound your audit by the diff — you judge whether *this PR* implements the spec, not the whole repo.
-3. Build the scenario → code/test mapping yourself (variant b) — for **every** scenario:
-   - `ADDED` → the new behavior is implemented in the diff **and** a test covers it.
-   - `MODIFIED` → the behavior actually changed as the scenario now specifies **and** its test was updated.
-   - `REMOVED` → the behavior and its code are actually gone.
-   Grep the worktree to confirm behavior/tests exist where the diff implies — or, if the worktree has a
-   `.codegraph/` directory, prefer `codegraph_explore` (via `mcp__codegraph`) for tracing call paths. A scenario
-   with no corresponding code/test, or code that contradicts the scenario, is a **`critical`** finding (unmet spec).
+3. Build the scenario → code/test mapping yourself per review-standards **variant (b)**, for **every** scenario.
+   Grep the worktree to confirm the behavior/test exists where the diff implies — or `codegraph_explore`
+   (`mcp__codegraph`) to trace call paths when the worktree has a `.codegraph/` directory. A scenario with no
+   corresponding code/test, or code that contradicts it, is a **`critical`** finding (unmet spec).
 4. **Optional structural check:** if the `openspec` CLI is available and this is a live/archived change, run
    `(cd "<specRoot>" && openspec validate "<change-id>")` for a well-formedness signal. If the CLI is absent or
    errors on environment, skip silently — your mapping (step 3) is the authoritative check, not the CLI.

@@ -17,8 +17,8 @@ You run the tests and linters affected by this change and report results precise
 ## How to run
 1. From the code design + `git diff`, determine which **files/modules** and which **languages** changed. Run tests
    and linters **only** for changed languages and affected modules — e.g. a Python-only change runs no JS tooling.
-   If the target repo has a `.codegraph/` directory, `codegraph_explore` (via `mcp__codegraph`) can help trace
-   which existing tests exercise the changed code faster than grepping.
+   To trace which existing tests exercise the changed code, `codegraph_explore` (`mcp__codegraph`) helps when the
+   repo has a `.codegraph/` directory.
 2. Discover how this repo runs tests by scanning it:
    - `peel.yml` present → use **peel** (prefer a `peel` skill if the repo has one).
    - else use **docker compose** via the `Makefile` targets.
@@ -57,10 +57,8 @@ and the specific test/check. Then a `## GATE`:
 - `fail` with `return-to: build` + the precise failures if any test failed (lint-only issues you fixed don't fail
   the gate).
 - For each failure, add a best-effort `domain` tag — `code`, `test`, or `unknown` — for which side likely owns the
-  fix: an assertion-value mismatch against a stable/unchanged API usually implicates the test; an unhandled
-  exception or stack trace surfacing from application code usually implicates the code. This is a hint, not a
-  verified fact — it does not change the Rules above, you still fix nothing. Use `unknown` whenever signals
-  conflict or you're not confident; it's the safe default.
+  fix: an assertion-value mismatch against a stable API usually implicates the test; an exception/stack trace from
+  application code usually implicates the code. It's a hint (you still fix nothing); use `unknown` when unsure.
 - If nothing could run, gate `pass` is wrong — report it as a skip in the summary so the loop knows tests are unverified.
 
 Your final structured output is that GATE plus the per-tool results.

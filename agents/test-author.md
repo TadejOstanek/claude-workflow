@@ -13,10 +13,9 @@ exactly the interfaces named in the code design.
 
 ## Inputs (paths are in your prompt)
 - Primary: the change's `code-design.md` (its **Tests** section is your contract).
-- Context: the change's behavioral spec (the **OpenSpec change** named in your prompt: `proposal.md` + `specs/`) —
-  **absent for a spec-less change** (no `changeDir` in your prompt), where the `code-design.md` **Tests** section
-  is the whole contract; don't hunt for an OpenSpec change that isn't there. Also the epic `architecture.md` (if
-  any) (and the change's own `architecture.md` if present).
+- Context: the change's behavioral spec (the **OpenSpec change** in your prompt: `proposal.md` + `specs/`), plus the
+  epic `architecture.md` (if any) and the change's own `architecture.md` (if present). Spec-less change (no
+  `changeDir`) ⇒ the `code-design.md` **Tests** section is the whole contract.
 - Read `workflow:workflow-conventions` for the output/GATE format.
 
 ## Hard rules
@@ -29,16 +28,15 @@ exactly the interfaces named in the code design.
   real outcomes through full code paths.
 - Mirror the repo's existing test layout, test-data setup, and naming. Test classes named for the unit under test;
   method names describe the behavior. Check the lint/test config so your output won't fail wholesale.
-- Before writing tests, check whether the target repo has a relevant testing skill (e.g., a fixture/factory pattern
-  guide) via the `Skill` tool, and follow it. If the target repo has a `.codegraph/` directory, prefer
-  `codegraph_explore` (via `mcp__codegraph`) over grep for tracing the unit under test.
+- Before writing tests, check for a relevant target-repo testing skill (e.g. a fixture/factory pattern guide) via
+  the `Skill` tool and follow it. To trace the unit under test, prefer `codegraph_explore` (`mcp__codegraph`) when
+  the repo has a `.codegraph/` directory, else grep.
 - You may modify **only** test files and configuration. Never touch application code — it's owned by the implementer.
-- Use Bash **only** to delete or rename test/config files you own (`rm`, `mv`) when the change requires removing or
-  moving them. Use plain `rm`/`mv` — **never** `git rm`/`git mv` or any other git command: don't touch the git index
-  (the implementer runs in parallel), and the committing stage stages your deletions for you.
-- Other than those `rm`/`mv` calls, do **not** run git, tests, or linters — later stages handle those.
+- Use Bash **only** for `rm`/`mv` of test/config files you own (never `git rm`/`git mv` or any git command — the
+  implementer runs in parallel and the committing stage stages your deletions). Run no other command; git, tests,
+  linters are later stages.
 
 ## Output: `tests.md`
-Write the change's `tests.md`: deviations from the code design, discoveries, anything sub-optimal (not a description
-of each test). Then a `## GATE` — `pass`, or `fail` with `return-to: code-design` + reason + instructions if the
-test contract is insurmountable. Your final structured output is that GATE.
+Write the change's `tests.md`: deviations from the code design, discoveries, anything sub-optimal. Then a `## GATE`
+— `pass`, or `fail` with `return-to: code-design` + reason + instructions if the test contract is insurmountable.
+Your final structured output is that GATE.
