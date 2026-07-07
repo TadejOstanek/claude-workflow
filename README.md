@@ -42,9 +42,8 @@ The behavioral spec lives in **[OpenSpec](https://github.com/Fission-AI/OpenSpec
 (`proposal.md` + capability requirement deltas); each change you archive accumulates into a canonical
 `openspec/specs/` library — portable, tool-agnostic, living documentation. OpenSpec sits *under* this workflow as
 a passive store: you author the change (`propose` + `specify`), the loop reads it, and **you** merge it into the
-canonical specs with `/workflow:archive` when you're sure it's done. The engine (per-stage models, parallel
-agents, review, PR) is unchanged. We use OpenSpec's `proposal` + `specs` only — not its `design`/`tasks`; this
-workflow's own architecture + code design + loop replace those.
+canonical specs with `/workflow:archive` when done. We use OpenSpec's `proposal` + `specs` only — not its
+`design`/`tasks`; this workflow's architecture + code design + loop replace those.
 
 ### Spec-less changes (opt out of OpenSpec)
 
@@ -124,10 +123,9 @@ change name needed; in an epic, name the change on each command):
 /workflow:build only build commit           # re-implement + push to the existing draft PR — no review/body rewrite
 ```
 
-Re-opening an upstream stage never auto-invalidates the downstream ones — they stay `done` (their outputs now
-describe older code); the command warns you and you choose what to redo. Add `review`/`pr` to the `only` list the
-rounds you *do* want them (`pr` re-authors the manual-QA section too). Just don't `/workflow:archive` until you're
-truly done — that merge is irreversible.
+Re-opening an upstream stage never auto-invalidates the downstream ones — they stay `done` and you choose what to
+redo (add `review`/`pr` to the `only` list the rounds you want them). Don't `/workflow:archive` until you're truly
+done — that merge is irreversible.
 
 ## Reviewing a PR (standalone)
 
@@ -162,13 +160,11 @@ command keeps **no** `.workflow/` state — it's a one-shot review.
 (The PR stage writes no file — its draft-PR link is reported by `/workflow:build`. The canonical
 `<specRoot>/openspec/specs/` is updated only by the manual `/workflow:archive`.)
 
-**Per-app / per-domain specs.** OpenSpec is flat (one level: `specs/<capability>/`), so to organize specs by app
-or domain in a monorepo/modular monolith you give each one its own `openspec/` root (`goods/openspec/`,
-`packages/api/openspec/`, …). Each change records a **`specRoot`** (default `"."` = repo root); `/workflow:propose`
-discovers existing roots and lets you target one, and every `openspec` call for that change runs from there.
-Cross-cutting changes use the repo root. The plugin never hardcodes app names — a repo opts in purely by creating
-`openspec/` dirs. Developers not using this workflow get the same organization with plain `openspec` by running it
-from the app folder (document the convention in each root's `AGENTS.md`).
+**Per-app / per-domain specs.** To organize specs by app/domain in a monorepo, give each its own `openspec/` root
+(`goods/openspec/`, `packages/api/openspec/`, …); each change records a **`specRoot`** (default `"."` = repo root)
+that `/workflow:propose` discovers and targets. Cross-cutting changes use the repo root. The plugin never hardcodes
+app names — a repo opts in purely by creating `openspec/` dirs. See the `workflow-conventions` skill for the full
+mechanic.
 
 `state.json` is the source of truth for resume; run `/workflow:start` with no argument for a human-readable status
 (mode, current stage, next command). See the `workflow-conventions` skill for the full contract.
@@ -181,6 +177,5 @@ from the app folder (document the convention in each root's `AGENTS.md`).
   `workflows/` are not auto-discovered by name.
 - This repo dogfoods its own process — see `.workflow/build-workflow-plugin/spec.md` for the original acceptance
   contract.
-- All workflow agents can invoke `Skill` (target-repo skills, plus `orchestration:lookup`/`investigate` for
-  pattern discovery) and, if you have a `codegraph` MCP server configured, `codegraph_explore` — both degrade to a
-  no-op where unavailable, so neither is required.
+- All workflow agents can invoke `Skill` (target-repo skills, plus `orchestration:lookup`/`investigate`) and
+  `codegraph_explore` if a `codegraph` MCP server is configured — both degrade to a no-op where unavailable.
