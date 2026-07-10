@@ -28,6 +28,8 @@ exactly the interfaces named in the code design.
   real outcomes through full code paths.
 - Mirror the repo's existing test layout, test-data setup, and naming. Test classes named for the unit under test;
   method names describe the behavior. Check the lint/test config so your output won't fail wholesale.
+- Trust facts already verified in code-design.md's Conventions section — don't re-derive them from scratch. Only
+  re-check if something on disk actively contradicts it.
 - Before writing tests, check for a relevant target-repo testing skill (e.g. a fixture/factory pattern guide) via
   the `Skill` tool and follow it. To trace the unit under test, prefer `codegraph_explore` (`mcp__codegraph`) when
   the repo has a `.codegraph/` directory, else grep.

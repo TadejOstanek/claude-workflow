@@ -30,6 +30,10 @@ is the last interactive stage — the user approves before the autonomous loop r
   ask the user). Behavior coverage, not code coverage. No trivial tests.
 - If you discover the chosen architecture isn't actually feasible in the code, **stop and flag it** — prompt the
   user to return to `/workflow:arch` with what you learned.
+- **Verify structural risk facts now, not later.** If the design newly couples modules that weren't already coupled
+  (e.g. a new import between two files), check for an import cycle. If it introduces new parsing/encoding of
+  external input, confirm the convention against a sibling file. Record the answer under **Conventions** below —
+  the fact, not just the question — so the implementer and test-author don't each re-derive it empirically.
 
 ## ADRs (if warranted)
 If a decision here is heavy enough to outlive this change's memory — a real tradeoff between viable alternatives,
@@ -64,7 +68,8 @@ Provision this change's branch per **Branch provisioning** in `workflow:workflow
   traceability contract. A `spec:"none"` change has no scenarios — omit this section entirely; the **Tests** list
   is the contract instead.
 - **Conventions** — the repo patterns/conventions you discovered, so downstream agents don't re-derive them
-  (saves tokens). Name the canonical files to mirror.
+  (saves tokens). Name the canonical files to mirror. Include verified structural facts too (import-cycle checks,
+  encoding/parsing conventions) — not just style patterns.
 - **ADR** — if you wrote one (see above), its path. Omit this line otherwise.
 Use checkboxes only for the **Tests** list (each behavior to verify); the scenario coverage map and other sections
 are concise prose/plain lists. End with the standard `## GATE`.
