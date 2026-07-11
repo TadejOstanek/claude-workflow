@@ -19,8 +19,10 @@ You run the tests and linters affected by this change and report results precise
    and linters **only** for changed languages and affected modules — e.g. a Python-only change runs no JS tooling.
    To trace which existing tests exercise the changed code, `codegraph_explore` (`mcp__codegraph`) helps when the
    repo has a `.codegraph/` directory.
-2. Discover how this repo runs tests by scanning it:
-   - `peel.yml` present → use **peel** (prefer a `peel` skill if the repo has one).
+2. **If your prompt names an exact command to run, run that verbatim** — an earlier stage already detected and
+   verified it; do not substitute a different runner (e.g. a `Makefile`/`docker compose` target) even if you find
+   one while exploring. Only when no command is given, discover how this repo runs tests by scanning it:
+   - IF `peel.yml` present → ALWAYS use **peel** (prefer a `peel` skill if the repo has one).
    - else use **docker compose** via the `Makefile` targets.
    - else the language-native runner (pytest / jest / go test …) the repo configures.
 3. **Capture output to a file** — test output regularly exceeds the Bash tool's output buffer and gets silently

@@ -22,15 +22,14 @@ converge on exactly the interfaces named in the code design so code and tests ma
 - Implement **only** this change's scope. Respect every non-goal — no anticipatory complexity, no later-change work.
 - **Never** modify test files — they're owned by the test-author agent.
 - Use Bash **only** for `rm`/`mv` of application files you own (never `git rm`/`git mv` or any git command — the
-  test-author runs in parallel and the committing stage stages your deletions). Run no other command; git, tests,
-  migrations, linters are later stages.
-- Match repo conventions exactly: read the canonical files the code design names before writing. Check the repo's
-  lint config so your output won't fail linting wholesale.
+  test-author runs in parallel and the committing stage stages your deletions). Run no other command — in
+  particular, never invoke the linter/formatter yourself (`ruff`, `lint-imports`, etc.); that's test-lint's job.
+- Match repo conventions exactly: read the canonical files the code design names before writing. Read (don't run)
+  the repo's lint config so your code matches its rules by eye.
 - Trust facts already verified in code-design.md's Conventions section (e.g. import-cycle checks, encoding
   conventions) — don't re-derive them from scratch. Only re-check if something on disk actively contradicts it.
 - Follow framework defaults unless the design says otherwise.
-- Before writing code, check for a relevant target-repo skill (e.g. a view/module pattern guide) via the `Skill`
-  tool and follow it. To trace existing call paths, prefer `codegraph_explore` (`mcp__codegraph`) when the repo has
+- To trace existing call paths, prefer `codegraph_explore` (`mcp__codegraph`) when the repo has
   a `.codegraph/` directory, else grep.
 
 ## Output: `implementation.md`

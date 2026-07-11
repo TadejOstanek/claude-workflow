@@ -169,7 +169,7 @@ if (todo('test-lint') && !result.escalation) {
     result.skipped.push('test-lint')
   } else {
     phase('Test')
-    const RUN = `${CTX}\nRun the scoped tests and linters for this change and write ${PHASE_DIR}/test-lint.md.${PEEL_NOTE}\nReport every real failure precisely (target + test + error).`
+    const RUN = `${CTX}\nRun \`${TEST_CMD}\` (plus this repo's linters) for this change and write ${PHASE_DIR}/test-lint.md.${PEEL_NOTE}\nReport every real failure precisely (target + test + error).`
     const MAX = 2
     for (let i = 1; i <= MAX; i++) {
       test = await agent(RUN, { agentType: 'workflow:test-runner', model: M.run, phase: 'Test', label: `test #${i}:${SCOPE}`, schema: TEST_SCHEMA })
@@ -200,9 +200,14 @@ let review = null
 if (todo('review') && !result.escalation) {
   phase('Review')
   const RUN = `${CTX}\nStrict senior review. Inspect \`git -C ${WORKDIR} diff ${BASE_REF} -- ${APP_DIR}\` plus new untracked files. Judge: (1) no regressions/bugs, (2) every spec + code-design criterion met. Write ${PHASE_DIR}/review.md. If clean, COMMIT the change (stage only this change's files — the code/test/doc files${SPEC_CLAUSE}, including any ADR noted in code-design.md/architecture.md — never \`.workflow/\`${CANON_CLAUSE}, never unrelated edits). If a fix is a design decision, set escalate=true.`
+  // After a fix round, re-check ONLY the fixed findings instead of a full re-review — the first pass already
+  // derived the spec/scenario coverage map, and the harness already re-runs tests below.
+  const verifyRun = (crits) => `${CTX}\nFocused re-check, not a full review: a fix was applied for the CRITICAL findings below. Re-inspect only the touched files/lines in \`git -C ${WORKDIR} diff ${BASE_REF} -- ${APP_DIR}\` to confirm each is actually resolved and the fix didn't introduce an obvious new critical nearby. Do not re-derive the full spec/scenario coverage map — the first pass already did that. Write ${PHASE_DIR}/review.md. If resolved, COMMIT the change (stage only this change's files — the code/test/doc files${SPEC_CLAUSE}, including any ADR noted in code-design.md/architecture.md — never \`.workflow/\`${CANON_CLAUSE}, never unrelated edits). If a fix is a design decision, set escalate=true.\nFindings to verify:\n${JSON.stringify(crits, null, 2)}`
   const MAX = 2
+  let prevCriticals = null
   for (let i = 1; i <= MAX; i++) {
-    review = await agent(RUN, { agentType: 'workflow:reviewer', model: M.review, phase: 'Review', label: `review #${i}:${SCOPE}`, schema: REVIEW_SCHEMA })
+    const prompt = prevCriticals ? verifyRun(prevCriticals) : RUN
+    review = await agent(prompt, { agentType: 'workflow:reviewer', model: M.review, phase: 'Review', label: `review #${i}:${SCOPE}`, schema: REVIEW_SCHEMA })
     result.openFindings = (review && review.findings) || []
     if (review && review.committed) result.committed = true
     const criticals = ((review && review.findings) || []).filter((f) => f.severity === 'critical')
@@ -213,7 +218,7 @@ if (todo('review') && !result.escalation) {
     await agent(`${CTX}\nApply fixes for these CRITICAL findings, minimal and faithful to ${PHASE_DIR}/code-design.md. Then stop.\n${JSON.stringify(criticals, null, 2)}`,
       { agentType: 'workflow:implementer', model: M.code, phase: 'Review', label: `review-fix #${i}:${SCOPE}`, schema: GATE_SCHEMA })
     if (TEST_CMD && result.testsVerified) {
-      const t = await agent(`${CTX}\nRe-run scoped tests after the fix; write ${PHASE_DIR}/test-lint.md.${PEEL_NOTE}`,
+      const t = await agent(`${CTX}\nRe-run \`${TEST_CMD}\` after the fix; write ${PHASE_DIR}/test-lint.md.${PEEL_NOTE}`,
         { agentType: 'workflow:test-runner', model: M.run, phase: 'Review', label: `re-test #${i}:${SCOPE}`, schema: TEST_SCHEMA })
       if (t && t.ran && !t.passed) {
         const tDomains = fixDomains(t.failures)
@@ -223,6 +228,7 @@ if (todo('review') && !result.escalation) {
         await parallel(reFixers)
       }
     }
+    prevCriticals = criticals
   }
   result.stageGates.review = review
 }

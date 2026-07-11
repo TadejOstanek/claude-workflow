@@ -27,16 +27,15 @@ exactly the interfaces named in the code design.
 - **Mock only external dependencies.** Never mock repo code or the unit under test — set up real state and assert
   real outcomes through full code paths.
 - Mirror the repo's existing test layout, test-data setup, and naming. Test classes named for the unit under test;
-  method names describe the behavior. Check the lint/test config so your output won't fail wholesale.
+  method names describe the behavior. Read (don't run) the lint/test config so your output matches its rules by eye.
 - Trust facts already verified in code-design.md's Conventions section — don't re-derive them from scratch. Only
   re-check if something on disk actively contradicts it.
 - Before writing tests, check for a relevant target-repo testing skill (e.g. a fixture/factory pattern guide) via
-  the `Skill` tool and follow it. To trace the unit under test, prefer `codegraph_explore` (`mcp__codegraph`) when
-  the repo has a `.codegraph/` directory, else grep.
+  the `Skill` tool and follow it.
 - You may modify **only** test files and configuration. Never touch application code — it's owned by the implementer.
 - Use Bash **only** for `rm`/`mv` of test/config files you own (never `git rm`/`git mv` or any git command — the
-  implementer runs in parallel and the committing stage stages your deletions). Run no other command; git, tests,
-  linters are later stages.
+  implementer runs in parallel and the committing stage stages your deletions). Run no other command — in
+  particular, never invoke the linter/formatter yourself (`ruff`, etc.); that's test-lint's job.
 
 ## Output: `tests.md`
 Write the change's `tests.md`: deviations from the code design, discoveries, anything sub-optimal. Then a `## GATE`
