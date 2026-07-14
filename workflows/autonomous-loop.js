@@ -169,7 +169,10 @@ if (todo('test-lint') && !result.escalation) {
     result.skipped.push('test-lint')
   } else {
     phase('Test')
-    const RUN = `${CTX}\nRun \`${TEST_CMD}\` (plus this repo's linters) for this change and write ${PHASE_DIR}/test-lint.md.${PEEL_NOTE}\nReport every real failure precisely (target + test + error).`
+    const RUN_INSTR = IS_PEEL
+      ? 'This repo uses peel. Decide which peel targets apply to this change (test framework + linters for the changed languages only, per your own scoping) and run them together in ONE `peel test -t ...` invocation — never call peel once per tool.'
+      : `Run \`${TEST_CMD}\` (plus this repo's linters)`
+    const RUN = `${CTX}\n${RUN_INSTR} for this change and write ${PHASE_DIR}/test-lint.md.${PEEL_NOTE}\nReport every real failure precisely (target + test + error).`
     const MAX = 2
     for (let i = 1; i <= MAX; i++) {
       test = await agent(RUN, { agentType: 'workflow:test-runner', model: M.run, phase: 'Test', label: `test #${i}:${SCOPE}`, schema: TEST_SCHEMA })
@@ -218,7 +221,10 @@ if (todo('review') && !result.escalation) {
     await agent(`${CTX}\nApply fixes for these CRITICAL findings, minimal and faithful to ${PHASE_DIR}/code-design.md. Then stop.\n${JSON.stringify(criticals, null, 2)}`,
       { agentType: 'workflow:implementer', model: M.code, phase: 'Review', label: `review-fix #${i}:${SCOPE}`, schema: GATE_SCHEMA })
     if (TEST_CMD && result.testsVerified) {
-      const t = await agent(`${CTX}\nRe-run \`${TEST_CMD}\` after the fix; write ${PHASE_DIR}/test-lint.md.${PEEL_NOTE}`,
+      const RERUN_INSTR = IS_PEEL
+        ? 'This repo uses peel. Re-determine which peel targets apply (same scoping as before) and re-run them together in ONE `peel test -t ...` invocation'
+        : `Re-run \`${TEST_CMD}\``
+      const t = await agent(`${CTX}\n${RERUN_INSTR} after the fix; write ${PHASE_DIR}/test-lint.md.${PEEL_NOTE}`,
         { agentType: 'workflow:test-runner', model: M.run, phase: 'Review', label: `re-test #${i}:${SCOPE}`, schema: TEST_SCHEMA })
       if (t && t.ran && !t.passed) {
         const tDomains = fixDomains(t.failures)

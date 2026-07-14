@@ -19,12 +19,19 @@ You run the tests and linters affected by this change and report results precise
    and linters **only** for changed languages and affected modules — e.g. a Python-only change runs no JS tooling.
    To trace which existing tests exercise the changed code, `codegraph_explore` (`mcp__codegraph`) helps when the
    repo has a `.codegraph/` directory.
-2. **If your prompt names an exact command to run, run that verbatim** — an earlier stage already detected and
-   verified it; do not substitute a different runner (e.g. a `Makefile`/`docker compose` target) even if you find
-   one while exploring. Only when no command is given, discover how this repo runs tests by scanning it:
-   - IF `peel.yml` present → ALWAYS use **peel** (prefer a `peel` skill if the repo has one).
-   - else use **docker compose** via the `Makefile` targets.
-   - else the language-native runner (pytest / jest / go test …) the repo configures.
+2. **The runner named in your prompt is already verified — never substitute a different one** (e.g. don't switch
+   to a `Makefile`/`docker compose` target you find while exploring, even if the given command looks unfamiliar).
+   - If the named runner is a complete command (`pytest`, `make test`, `npm test`, …), **run it verbatim** — it's
+     already the full, correct invocation.
+   - If the named runner is **peel** (`isPeel:true`, or the command starts with `peel`), the given command is only
+     a placeholder confirming the runner — decide the targets yourself: from step 1's language/module scoping,
+     list every applicable tool (test framework + linters for the changed languages only) and issue **one single**
+     `peel test -t <a> -t <b> ...` invocation with all of them — never call peel once per tool.
+   - Only when no command is named at all, discover the runner yourself by scanning the repo:
+     - IF `peel.yml` present → ALWAYS use **peel**, same one-invocation rule as above (prefer a `peel` skill if
+       the repo has one).
+     - else use **docker compose** via the `Makefile` targets.
+     - else the language-native runner (pytest / jest / go test …) the repo configures.
 3. **Capture output to a file** — test output regularly exceeds the Bash tool's output buffer and gets silently
    truncated. Always tee to a temp file with a done-sentinel:
    ```bash

@@ -45,8 +45,9 @@ This command **authorizes** running the Workflow tool. Read `workflow:workflow-c
      selected (pr does the commit). Select **none** of `review`/`pr`/`commit` (e.g. plain `light`) and the loop
      leaves your changes uncommitted for you to handle.
 3. Detect the test runner per the **Test-runner detection** heuristic in `workflow:workflow-conventions` — this
-   must resolve to a concrete `testCmd` string (e.g. `peel test --target pytest`), never a bare flag; additionally
-   set `isPeel:true` when the runner is peel. If no runner can be detected, **ask the user** for a command instead
+   must resolve to a concrete `testCmd` string (e.g. `pytest`, `npm test`, or `peel test` as a runner placeholder
+   for peel — see the heuristic), never a bare flag; additionally set `isPeel:true` when the runner is peel. If no
+   runner can be detected, **ask the user** for a command instead
    of passing `testCmd: null` — a null `testCmd` silently skips the whole test-lint stage. Detect a migrate command
    only if the change touches models (e.g. `peel makemigrations <app>`).
    `baseRef` = `main`; `appDir` = the change's primary directory **to test/migrate** if obvious, else `.` (this is
