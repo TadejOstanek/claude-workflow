@@ -12,8 +12,7 @@ technical change** (refactor, code org, infra/CI, deps) can opt out of OpenSpec 
 
 | Stage | Mode | Who | Output |
 |------|------|-----|--------|
-| Propose | interactive *(spec-bearing only)* | `/workflow:propose` | OpenSpec change `proposal.md` (why/what + capabilities) |
-| Specify | interactive *(spec-bearing only)* | `/workflow:specify` | OpenSpec `specs/<cap>/spec.md` (requirement/scenario deltas) |
+| Propose | interactive *(spec-bearing only)* | `/workflow:propose` | OpenSpec change: `proposal.md` (why/what + capabilities) **and** `specs/<cap>/spec.md` (requirement/scenario deltas) — one session, two phases |
 | Architectural design | interactive *(data model & fit; default-on for spec-bearing, skippable)* | `/workflow:arch` | `architecture.md` (data-model & structural-fit decisions; an ADR too, if warranted) |
 | Code design | interactive (+ adversarial `design-critic` pass; default-on, skippable) | `/workflow:design` | `code-design.md` (interfaces + test behaviors; an ADR too, if warranted), `design-critique.md` |
 | Implement ‖ Test | auto (sonnet) | `implementer` ‖ `test-author` | code, tests |
@@ -26,7 +25,7 @@ Implement → PR runs as one background **Workflow** (launched by `/workflow:bui
 models, file-based handoff, failure loops, and escalation back to you only when a decision is genuinely needed.
 **Archive is a deliberate manual step you run when the change is truly done** — never automated.
 
-`/workflow:arch` above is the per-change **data-model & fit** pass (after specify, before code design; runs by
+`/workflow:arch` above is the per-change **data-model & fit** pass (after propose, before code design; runs by
 default for a spec-bearing change — skip it when there's genuinely no data model). For an **epic** (multi-change)
 the same command *also* runs once up front — before any change — to capture the epic's intent and break the work
 into changes:
@@ -34,14 +33,14 @@ into changes:
 | Architectural design (epic) | interactive | `/workflow:arch` | `architecture.md` (epic intent + the change breakdown; an ADR too, if warranted) |
 
 The epic has no spec of its own — its intent lives in the epic `architecture.md`; each change it spawns is specced
-via propose + specify (and gets its own per-change data-model pass only if it needs one).
+via `/workflow:propose` (and gets its own per-change data-model pass only if it needs one).
 
 ## Spec layer: OpenSpec (thin seam)
 
 The behavioral spec lives in **[OpenSpec](https://github.com/Fission-AI/OpenSpec)** as one *change per PR*
 (`proposal.md` + capability requirement deltas); each change you archive accumulates into a canonical
 `openspec/specs/` library — portable, tool-agnostic, living documentation. OpenSpec sits *under* this workflow as
-a passive store: you author the change (`propose` + `specify`), the loop reads it, and **you** merge it into the
+a passive store: you author the change (`/workflow:propose`), the loop reads it, and **you** merge it into the
 canonical specs with `/workflow:archive` when done. We use OpenSpec's `proposal` + `specs` only — not its
 `design`/`tasks`; this workflow's architecture + code design + loop replace those.
 
@@ -51,7 +50,7 @@ Not every change has behavior to spec. A purely technical change — refactor, c
 dependency bumps, performance-neutral cleanup — can skip OpenSpec entirely. When a change is first scoped
 (`/workflow:start` for a single change, `/workflow:arch` per change for an epic), the workflow **recommends**
 spec vs no-spec based on whether the change alters observable application behavior, and **you confirm** (it's your
-call per change). A spec-less change (`spec:"none"`) skips `propose` + `specify`, goes straight to
+call per change). A spec-less change (`spec:"none"`) skips `propose`, goes straight to
 `/workflow:design`, and runs the full autonomous loop — its `code-design.md` (a short *Why/Context* + the *Tests*
 list) becomes the sole behavioral contract, and there is nothing to archive. The default is still to write a spec;
 when in doubt, keep it.
@@ -83,15 +82,13 @@ Or add to `~/.claude/settings.json`:
 
 ## Use
 
-```
 /workflow:start <what you want to build>   # scaffolds .workflow/<feature>/ ; picks single-change vs epic
 
 # single change (spec-bearing):
-/workflow:propose                           # why/what + capabilities → OpenSpec change; /clear optional
-/workflow:specify                           # requirement/scenario deltas → OpenSpec change; then /clear
+/workflow:propose                           # why/what + capabilities, then requirement/scenario deltas → OpenSpec change (one session); then /clear
 /workflow:arch                              # data model & structural fit → architecture.md (default; skip if none); then /clear
 /workflow:design                            # interfaces + tests → code-design.md; then /clear
-# single change (spec-less / refactor): /workflow:start triages → skip propose+specify, go straight to design:
+# single change (spec-less / refactor): /workflow:start triages → skip propose, go straight to design:
 # /workflow:design  →  /workflow:build      # code-design.md is the whole contract; nothing to archive
 /workflow:build                             # full autonomous loop → draft PR (blank/full = resume: skip done stages)
 /workflow:build light                       #   …or light: just implement + tests (skip test-run/review/PR)
@@ -100,7 +97,7 @@ Or add to `~/.claude/settings.json`:
 /workflow:archive                           # WHEN you're sure it's done → canonical openspec/specs/
 
 # epic (multi-change): run /workflow:arch right after start to break it into changes,
-# then propose → specify → design → build → archive per change.
+# then propose → design → build → archive per change.
 ```
 
 `/clear` between stages is lossless — each command re-reads `.workflow/` + the OpenSpec change. Run
@@ -118,7 +115,7 @@ This is not a waterfall — you'll loop back. Typical flow after manual QA finds
 change name needed; in an epic, name the change on each command):
 
 ```
-/workflow:specify                           # add the missing requirement to the spec (re-validates)
+/workflow:propose                           # add the missing requirement to the spec (re-validates)
 /workflow:design                            # refine code-design; reuses the existing branch
 /workflow:build only build commit           # re-implement + push to the existing draft PR — no review/body rewrite
 ```

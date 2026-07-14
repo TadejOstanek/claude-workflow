@@ -1,18 +1,18 @@
 ---
 name: specification
-description: Methodology for the workflow's spec stages — establish the why and what of a change with the user before any code or design. Use when running /workflow:propose (the proposal) or /workflow:specify (the requirement specs).
+description: Methodology for the workflow's spec stage — establish the why and what of a change with the user before any code or design. Use when running /workflow:propose.
 ---
 
 # Specification stage
 
 Goal: reach shared understanding of **why** and **what** — never **how**. Build what's actually needed. A change's
-spec is authored in **two steps** — `/workflow:propose` (the why/what + scope) then `/workflow:specify` (the testable
-behavioral detail) — both into the OpenSpec change at `<specRoot>/openspec/changes/<change>/` (`specRoot` is the
-change's OpenSpec root — repo root by default, or an app/domain sub-dir; `/workflow:propose` picks it). The
-**Method** and **Never drop a requirement** sections apply to *both* steps; the two stage sections say what changes
-between them.
+spec is authored by `/workflow:propose` in **one session, two phases** — Phase A (the why/what + scope) then Phase B
+(the testable behavioral detail) — both into the OpenSpec change at `<specRoot>/openspec/changes/<change>/`
+(`specRoot` is the change's OpenSpec root — repo root by default, or an app/domain sub-dir; `/workflow:propose`
+picks it). The **Method** and **Never drop a requirement** sections apply to *both* phases; the two phase sections
+say what changes between them.
 
-## Method (both steps)
+## Method (both phases)
 - Do **NOT** read code or implementation. You may read repo **documentation** (README, docs/) for business context.
 - Ask the user clarifying questions until the goal and business context are genuinely clear. Challenge their
   assumptions — surface where their stated need and the real need may differ. Don't silently accept defaults.
@@ -20,26 +20,25 @@ between them.
   pointer** rather than guessing.
 - Use the `orchestration:request-clarification` skill to structure the questioning if helpful.
 
-## Never drop a requirement (both steps) — non-negotiable
+## Never drop a requirement (both phases) — non-negotiable
 Whatever the user gives you — a constraint, an acceptance criterion, a non-goal, or a whole detailed spec — must be
 **recorded** completely and explicitly in the right artifact; **never dropped, merged away, generalized, or
-summarized into something vaguer.** The catch: the two steps run in **separate sessions with a `/clear` between
-them** (stages share files, not conversation — see `workflow:workflow-conventions`), so anything you don't *write
-down* is lost. If the user volunteers testable detail during `/workflow:propose`, **write it into `proposal.md`** so
-`/workflow:specify` can formalize it — don't keep it "in your head for the spec step."
+summarized into something vaguer.** Because both phases run in one session, testable detail the user volunteers
+during Phase A doesn't have to be parked in `proposal.md` to survive — Phase B follows immediately and formalizes it
+straight into the specs. Just don't lose it: if it's genuinely scope-level, it belongs in `proposal.md`; if it's a
+concrete acceptance criterion, carry it into the Phase B deltas.
 
-## During /workflow:propose — the why / what / scope
+## Phase A — the why / what / scope
 Establish the **motivation** and business context, the **scope** of the change, and the **capabilities** that change
 (each becomes a `specs/<capability>/spec.md`). Stay scope-level:
-- Do **not** push the user to enumerate acceptance criteria — that is `/workflow:specify`'s job.
 - Do **not** reason at field / data-model altitude — that belongs to the architecture / design step, not the spec.
-- If the user *volunteers* criteria or data detail anyway, record it in `proposal.md` (per "Never drop a
-  requirement") — just don't go fishing for it here.
+- You need not exhaustively enumerate acceptance criteria yet — Phase B pins those down. But when the user
+  volunteers a criterion, note it (in `proposal.md` if scope-level, or carry it into Phase B) — never lose it.
 
-Output → `proposal.md`: `## Why`, `## What Changes`, `## Capabilities`, `## Impact`. Scope-level — no behavioral
-detail beyond what the user volunteered.
+Output → `proposal.md`: `## Why`, `## What Changes`, `## Capabilities`, `## Impact`. Scope-level — the exhaustive
+behavioral detail lands in Phase B.
 
-## During /workflow:specify — the testable what
+## Phase B — the testable what
 Now pin the behavior down. **Push for specific, testable conditions** over vague outcomes; phrase acceptance criteria
 as **given** (situation) / **when** (action) / **then** (outcome). Be **complete in coverage** — terseness means
 tight wording, never fewer specs. These deltas are the exhaustive, authoritative contract every later stage and the
@@ -75,6 +74,5 @@ translate every finding into domain language before writing. The existing tests 
 anchors — mirror their intent, not their syntax.
 
 ## Done when
-The user agrees. After `/workflow:propose` → run `/workflow:specify`. After `/workflow:specify` → `openspec
-validate` passes and the user agrees → `/clear`, then the change's next step (its architecture step if it needs one,
-else `/workflow:design`).
+The user agrees, `openspec validate` passes, and both `proposal.md` and the `specs/<capability>/spec.md` deltas
+exist. Then `/clear`, and run the change's next step (its architecture step if it needs one, else `/workflow:design`).

@@ -8,7 +8,7 @@ description: Methodology for the workflow's Architectural Design stage — decid
 Goal: agree **how** the work fits the existing codebase — structure and, above all, the **data model** — before any
 code-level design (no function/class names here; that's `/workflow:design`). Runs in two shapes:
 - **Single change** (`mode:"single"`): scrutinize the data model + structural fit for this **one** change, after
-  its why/what are defined (`/workflow:specify`) and before `/workflow:design`. No change breakdown.
+  its why/what are defined (`/workflow:propose`) and before `/workflow:design`. No change breakdown.
 - **Epic** (`mode:"epic"`): the epic planning stage, run first. Same data-model + fit method, **plus** it captures
   the epic intent (there is no epic spec) and breaks the work into **changes** (each = one PR).
 
@@ -33,7 +33,7 @@ code-level design (no function/class names here; that's `/workflow:design`). Run
 ## Change breakdown (epic only)
 Split the work into **changes** (each = one PR). A change is independent if it can run in a fresh session needing
 only this architecture doc (which carries the epic intent + breakdown) and prior sequential changes' outputs. Each
-change runs the full pipeline from its `/workflow:propose` + `/workflow:specify` and code-design on.
+change runs the full pipeline from its `/workflow:propose` and code-design on.
 - **Tidy-first**: refactors that make the work easier → initial sequential change(s).
 - **Feature** changes: the work itself, marked independent / parallel / sequential.
 - **Tidy-after**: cleanup enabled once the feature lands → final change(s).
@@ -62,6 +62,6 @@ Concise prose and plain bullets — no checkboxes here. End with the standard `#
 ## Done when
 User agrees the approach. Then `/clear`, and:
 - **Single change:** run `/workflow:design` (the data model is now decided input).
-- **Epic:** per change, run `/workflow:propose` → `/workflow:specify` → `/workflow:design` for a spec-bearing change,
+- **Epic:** per change, run `/workflow:propose` → `/workflow:design` for a spec-bearing change,
   or `/workflow:design` directly for a `spec:"none"` change. A complex change within an epic can still opt into its
   own per-change architecture step (mark its `architecture` stage `pending` and run `/workflow:arch <change>`).

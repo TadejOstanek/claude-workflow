@@ -12,9 +12,9 @@ This command **authorizes** running the Workflow tool. Read `workflow:workflow-c
    lowest-`order` change whose `code-design` is `done` and whose later stages aren't all `done` (respect
    `depends_on`; an `na` stage counts as satisfied here — e.g. a spec-less change's `archive:"na"` does **not** make
    it look unbuilt, so a fully-built spec-less change isn't auto-re-picked).
-   `code-design` must be `done`; for a **spec-bearing** change (`spec:"openspec"`) `stages.specify` must also be
-   `done` — if not, stop and point the user to `/workflow:specify` then `/workflow:design`. A **spec-less** change
-   (`spec:"none"`) has `propose`/`specify` as `na`, so only `code-design` is required. Note this change's `change`
+   `code-design` must be `done`; for a **spec-bearing** change (`spec:"openspec"`) `stages.propose` must also be
+   `done` — if not, stop and point the user to `/workflow:propose` then `/workflow:design`. A **spec-less** change
+   (`spec:"none"`) has `propose` as `na`, so only `code-design` is required. Note this change's `change`
    id, `specRoot` (default `"."`), and `ticket`/`branch` (both live on the change entry — see
    `workflow:workflow-conventions`). For a spec-bearing change, its OpenSpec change — the behavioral spec the loop's
    agents read — lives at `<workdir>/<specRoot>/openspec/changes/<change>/` (`workdir` from step 4 below); you pass

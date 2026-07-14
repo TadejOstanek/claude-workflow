@@ -15,9 +15,9 @@ Apply the `workflow:code-design` skill. Read `workflow:workflow-conventions` for
    `$ARGUMENTS`, else the lowest-`order`
    change whose `code-design` stage is `pending` (respect `depends_on`); in `single` mode, if none is `pending`
    (you're **refining** an already-designed change), default to the sole change — `epic` mode requires naming it.
-   For a spec-bearing change, its `stages.specify` must be `done` (the OpenSpec change must exist) — if not, stop
-   and tell the user to run `/workflow:propose` + `/workflow:specify` first. A `spec:"none"` change has no spec
-   prerequisite (`propose`/`specify` are `na`) — proceed. Also read the change's own `architecture.md` if present.
+   For a spec-bearing change, its `stages.propose` must be `done` (the OpenSpec change must exist) — if not, stop
+   and tell the user to run `/workflow:propose` first. A `spec:"none"` change has no spec
+   prerequisite (`propose` is `na`) — proceed. Also read the change's own `architecture.md` if present.
 2. **Data model must be decided first.** Check this change's `stages.architecture`:
    - **`pending`** — the data-model & structural-fit pass hasn't run. **Stop** and tell the user to run
      `/workflow:arch` first; that stage owns the data model, and `code-design` treats it as decided input.

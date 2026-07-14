@@ -12,15 +12,15 @@ every later stage.
 
 ## Unit of work: the change
 
-The unit is a **change** = one PR. A *spec-bearing* change is authored in two steps —
-`/workflow:propose` (why/what + capabilities) then `/workflow:specify` (requirement/scenario deltas) — then, by
-default, `/workflow:arch` (the data-model & structural-fit pass; skippable) — then `/workflow:design` (code design)
-and `/workflow:build` (the autonomous loop → draft PR), and finally
+The unit is a **change** = one PR. A *spec-bearing* change's spec is authored by
+`/workflow:propose` (why/what + capabilities, then the requirement/scenario deltas — one session, two phases) —
+then, by default, `/workflow:arch` (the data-model & structural-fit pass; skippable) — then `/workflow:design`
+(code design) and `/workflow:build` (the autonomous loop → draft PR), and finally
 `/workflow:archive` (manual, when you're sure it's done). A *spec-less* change (`spec: "none"` — see below) skips
-the two spec steps and goes straight to `/workflow:design` → `/workflow:build`; there is no OpenSpec change and
+the spec step and goes straight to `/workflow:design` → `/workflow:build`; there is no OpenSpec change and
 nothing to archive. When the work is too big for one PR, an **epic** groups
 several changes: `/workflow:arch` plans the breakdown — the epic has **no spec of its own**, its intent lives in
-the architecture doc — then each change runs the same propose → specify → design → build → archive.
+the architecture doc — then each change runs the same propose → design → build → archive.
 
 `/workflow:start` picks the **mode**: `single` (one change, no epic architecture) or `epic` (architecture
 breakdown + multiple changes).
@@ -62,7 +62,7 @@ spec as a per-change OpenSpec change plus the accumulating canonical library (se
     review.md         # review verdict + findings
 
 <specRoot>/openspec/   # OpenSpec home for this change (one-time `openspec init` in <specRoot>)
-  changes/<change-id>/          # the change's behavioral spec (authored by propose + specify)
+  changes/<change-id>/          # the change's behavioral spec (authored by /workflow:propose)
     proposal.md                 # why/what + capabilities
     specs/<capability>/spec.md  # ADDED/MODIFIED/REMOVED deltas: `### Requirement:` + `#### Scenario:` (4 hashes)
   specs/<capability>/spec.md    # CANONICAL living library — you merge into it with /workflow:archive when done
@@ -104,7 +104,7 @@ format. Everything else — descriptions, decisions, discoveries, findings, rati
       "spec": "openspec", "change": null, "specRoot": ".",
       "ticket": null, "branch": null,
       "stages": {
-        "propose": "pending", "specify": "pending", "architecture": "pending", "design": "pending",
+        "propose": "pending", "architecture": "pending", "design": "pending",
         "build": "pending", "test-lint": "pending", "review": "pending", "pr": "pending", "archive": "pending"
       }
     }
@@ -122,15 +122,15 @@ format. Everything else — descriptions, decisions, discoveries, findings, rati
   done" treats `na` as satisfied.
 - `spec` is whether this change carries an OpenSpec behavioral spec: `"openspec"` (default; absent ⇒ `"openspec"`
   for back-compat) or `"none"`. A `"none"` change is purely technical (no observable behavior change — see "Does a
-  change need a spec?"): it **skips `propose` + `specify`** (both `na`), keeps `change: null`, has `archive: "na"`,
+  change need a spec?"): it **skips `propose`** (`na`), keeps `change: null`, has `archive: "na"`,
   and goes `/workflow:start` (or `/workflow:arch`) → `/workflow:design` → `/workflow:build` directly. Its
   `code-design.md` is then the sole behavioral contract (no OpenSpec change, no `proposal.md`, no scenarios).
 - `architecture` is the per-change data-model & structural-fit stage (`/workflow:arch` in single mode), run **after
-  `specify` and before `design`**. Default status when a change is first scoped: **single `spec:"openspec"`** →
+  `propose` and before `design`**. Default status when a change is first scoped: **single `spec:"openspec"`** →
   `"pending"` (data modeling runs by default; the user may pre-skip to `"na"`); **single `spec:"none"`** → `"na"`
   (opt in by setting `"pending"`); **epic** change → `"na"` (the epic-level `/workflow:arch` already decided the
   data model; a complex change may opt in). **Back-compat:** a change created before this stage has **no**
-  `architecture` key — treat absent ⇒ `"na"`, so old single changes flow `specify` → `design` unchanged and only
+  `architecture` key — treat absent ⇒ `"na"`, so old single changes flow `propose` → `design` unchanged and only
   new changes get default-on.
 - `change` is the OpenSpec change id (kebab-case), set by `/workflow:propose`. Null until then — and stays null for
   a `spec: "none"` change.
@@ -142,12 +142,11 @@ format. Everything else — descriptions, decisions, discoveries, findings, rati
   `ticket`/`branch` are absent but the now-removed top-level fields of the same name are present (a pre-schema
   workflow), treat those as this change's — don't re-provision. (Disambiguates cleanly only for `single` mode; for
   an in-flight `epic` it's no worse than the old behavior.)
-- Per-change stages run: `propose` → `specify` → `architecture` → `design` → `build` (the parallel implement + test-author pair,
-  both green = `done`) → `test-lint` → `review` → `pr` → `archive`. There is no separate docs/QA stage: an ADR (the
+- Per-change stages run: `propose` → `architecture` → `design` → `build` (the parallel implement + test-author pair,
+  both green = `done`) → `test-lint` → `review` → `pr` → `archive`. The `propose` stage authors the whole spec
+  (`proposal.md` + the `specs/` deltas) in one session. There is no separate docs/QA stage: an ADR (the
   only permanent doc this workflow writes — business-process documentation is OpenSpec's job) is written directly
-  during `design` (or `architecture`) when warranted, and manual QA is authored directly by `pr`. **Back-compat**:
-  a `state.json` from before this change may still carry `"docs"`/`"qa"` keys under `stages` — harmless, just
-  ignore them; resume/redo only ever look up the stage names above. **`archive` is
+  during `design` (or `architecture`) when warranted, and manual QA is authored directly by `pr`. **`archive` is
   `done` only once you've run `/workflow:archive`** — a deliberate manual step.
 - `/workflow:build` has two modes (see "Iterating" below). **Resume** (`full`/blank) runs all stages minus those
   already `done`. **Redo** (`light` / `only <stages>` / `skip <stages>`) runs exactly the named subset *without*
@@ -177,8 +176,8 @@ is the only escape hatch.
 ## Branch provisioning (per change)
 
 Every change gets its own branch (one change = one PR), created once at the top of `/workflow:design` — this is the
-**one place** that owns creating it, regardless of whether the change is spec-bearing or spec-less. Propose/specify
-(when they run) write the OpenSpec change directly onto whatever checkout is currently active — nothing forces a
+**one place** that owns creating it, regardless of whether the change is spec-bearing or spec-less. Propose
+(when it runs) writes the OpenSpec change directly onto whatever checkout is currently active — nothing forces a
 branch to exist before then, and there's no worktree to orphan those files in.
 
 - **How**: if `state.json` already has a `branch` for this change (you're re-designing during iteration), reuse it
@@ -239,10 +238,11 @@ Grain: **one OpenSpec change = one change = one PR.**
   (repo root). A repo organizes specs **per app/domain** simply by creating sub-root `openspec/` dirs
   (`goods/openspec/`, …) and pointing a change's `specRoot` at one; cross-cutting changes use `"."`. The engine
   **discovers** existing roots — it never hardcodes paths or app names, so this stays repo-agnostic.
-- **Authoring** — `/workflow:propose` picks `specRoot`, runs `openspec new change <id>` and writes `proposal.md`;
-  `/workflow:specify` writes the `specs/<capability>/spec.md` deltas. Both pull the exact format from
-  `openspec instructions <artifact> --change <id> --json`. All of these run with cwd = `<specRoot>`, on whatever
-  checkout is currently active (the change's branch doesn't exist yet — see "Branch provisioning").
+- **Authoring** — `/workflow:propose` picks `specRoot`, runs `openspec new change <id>`, and writes both
+  `proposal.md` (why/what) and the `specs/<capability>/spec.md` deltas (testable behavior) in one session. It pulls
+  the exact format from `openspec instructions <artifact> --change <id> --json`. All of these run with cwd =
+  `<specRoot>`, on whatever checkout is currently active (the change's branch doesn't exist yet — see "Branch
+  provisioning").
 - **Consumption** — for a spec-bearing change, code-design and the loop's agents read the change's behavioral spec
   from `<specRoot>/openspec/changes/<change>/` (passed to the loop as the absolute `changeDir` — see
   `/workflow:build`). The reviewer commits the change's proposal + specs into its PR, but
@@ -263,8 +263,8 @@ This is **not** a waterfall. You will routinely learn something late (manual QA 
 and move *backward*: amend the spec, refine the code-design, rebuild only what changed — without re-running the
 stages you don't want. The workflow supports this, and stages are revisitable. The rules that keep it sane:
 
-- **Re-open an upstream stage by naming the change.** `/workflow:specify <change>` and `/workflow:design <change>`
-  re-author in place — `specify` just re-edits the OpenSpec `spec.md` (then re-validates); `design` reuses the
+- **Re-open an upstream stage by naming the change.** `/workflow:propose <change>` and `/workflow:design <change>`
+  re-author in place — `propose` re-edits the OpenSpec `proposal.md` + `spec.md` (then re-validates); `design` reuses the
   change's existing `ticket`/`branch` (per "Branch provisioning" — set by an earlier `/workflow:design`; it does
   **not** re-create them). Auto-resolution normally finds only *pending* stages; in `single` mode (one change) a blank
   invocation still defaults to that change so you needn't name it, but in `epic` mode you pass the change
@@ -274,7 +274,7 @@ stages you don't want. The workflow supports this, and stages are revisitable. T
   upstream command *warns* that they're stale and gives the redo command — it never forces a cascade.
 - **Resume vs. redo is your keyword, not inferred state** (the engine can't tell a crashed run from a deliberate
   rebuild). `/workflow:build` blank/`full` = resume (skip done); `light`/`only`/`skip` = redo the named subset even
-  if done. So the QA→fix loop is: `/workflow:specify <c>` → `/workflow:design <c>` → `/workflow:build <c> only
+  if done. So the QA→fix loop is: `/workflow:propose <c>` → `/workflow:design <c>` → `/workflow:build <c> only
   build commit` (re-implement + push to the existing draft PR, no review/PR-body rewrite). Use `only build` (no
   commit) to leave it uncommitted, or add `review`/`pr` to the `only` list when you *do* want them this round (`pr`
   re-authors the manual-QA section too).

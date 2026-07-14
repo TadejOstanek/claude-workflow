@@ -11,7 +11,7 @@ Input: `$ARGUMENTS`
 
 ## No argument → status / resume
 Find every `.workflow/*/state.json` in the repo. For each active workflow report: title, `mode`, `currentStage`,
-and the **exact next command** (e.g. "`/clear`, then `/workflow:specify`"; `currentStage:"architecture"` maps to
+and the **exact next command** (e.g. "`/clear`, then `/workflow:propose`"; `currentStage:"architecture"` maps to
 `/workflow:arch`). Name the change if mid-pipeline. If
 none exist, say so and explain that `/workflow:start <what you want to build>` begins one.
 
@@ -29,7 +29,7 @@ Do not read code or design anything — only scaffold:
    - **single, `spec:"openspec"`:** `currentStage:"propose"`; one change entry `slug:"01-<feature-slug>"`, all
      stages `pending`. `architecture` stays `pending` (data modeling runs by default); if the user already knows
      this change touches no data model, offer to **pre-skip** it (`architecture:"na"`).
-   - **single, `spec:"none"`:** same entry with `spec:"none"`, `propose`/`specify`/`architecture`/`archive` = `na`,
+   - **single, `spec:"none"`:** same entry with `spec:"none"`, `propose`/`architecture`/`archive` = `na`,
      `currentStage:"design"`. Offer `architecture:"pending"` if this refactor does need data modeling.
    - **epic:** `mode:"epic"`, `epic:{architecture:"pending"}`, `currentStage:"architecture"`, `changes:[]`.
    - all: one `transitions` entry `{from:"init", to:<currentStage>, reason:"workflow created (<mode>)"}`.
@@ -39,5 +39,5 @@ Do not read code or design anything — only scaffold:
    `openspec/` dirs are created on demand by `/workflow:propose` (it picks the change's `specRoot`), so only the
    baseline root is needed up front.
 6. Tell the user the next command — **single + `spec:"openspec"` →** `/workflow:propose`; **single +
-   `spec:"none"` →** `/workflow:design` (the spec steps are skipped); **epic →** `/workflow:arch` (no `/clear`
+   `spec:"none"` →** `/workflow:design` (the spec step is skipped); **epic →** `/workflow:arch` (no `/clear`
    needed; it's the first stage).

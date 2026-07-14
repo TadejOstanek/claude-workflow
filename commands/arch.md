@@ -13,7 +13,7 @@ runs in two:
   the work into changes (**plus** the data-model + fit method). Runs once, first, before any change.
 - **Per-change data-model & fit pass** — for a **single** change, or a **named epic change** whose
   `stages.architecture` is `"pending"`: scrutinize the data model + structural fit for that **one** change, after
-  its why/what are defined (`/workflow:specify`, or the feature description for a `spec:"none"` change) and before
+  its why/what are defined (`/workflow:propose`, or the feature description for a `spec:"none"` change) and before
   `/workflow:design`. No change breakdown.
 
 Dispatch: `mode:"epic"` **and** `epic.architecture != "done"` → **Epic planning**; otherwise (single mode, or an
@@ -22,8 +22,8 @@ epic whose planning is `done` and you named a change with `architecture:"pending
 ## Per-change data-model & fit pass
 Runs for a **single**-mode change, or a **named epic change** (`$ARGUMENTS`) whose `stages.architecture` is
 `"pending"`. Argument: `$ARGUMENTS` (a change slug; blank in single mode = the sole change; **required** in an epic).
-1. Resolve the change. For a `spec:"openspec"` change its `stages.specify` must be `"done"` — if not, stop and tell
-   the user to run `/workflow:propose` + `/workflow:specify` first. Read its why/what: the OpenSpec change at
+1. Resolve the change. For a `spec:"openspec"` change its `stages.propose` must be `"done"` — if not, stop and tell
+   the user to run `/workflow:propose` first. Read its why/what: the OpenSpec change at
    `<specRoot>/openspec/changes/<change>/` (`proposal.md` + `specs/**`), or the feature description for a
    `spec:"none"` change. If `<NN>-<slug>/architecture.md` already exists (returning), read it and any later-stage
    files first to learn why, then refine.
@@ -41,7 +41,7 @@ Runs for a **single**-mode change, or a **named epic change** (`$ARGUMENTS`) who
 
 ## Epic planning (`mode:"epic"`, `epic.architecture` not yet `"done"`)
 This is the epic planning stage; the epic intent + the change breakdown live here, and each resulting change is
-specced individually via `/workflow:propose` + `/workflow:specify`.
+specced individually via `/workflow:propose`.
 1. Resolve the active workflow from `state.json` (expects `mode:"epic"`). The epic intent is the feature
    `title`/description — there is no epic spec file.
 2. If `architecture.md` already exists (returning), read it and any later-stage files first to learn why, then refine.
@@ -57,8 +57,8 @@ specced individually via `/workflow:propose` + `/workflow:specify`.
      the breakdown-specific `slug` (`<NN>-<name>`), `type`, `order`, `depends_on`, and a `spec` you triaged per the
      heuristic (recommend per change, **confirm with the user**). Set all stages `pending` **except**
      `architecture:"na"` (the epic-level data model is decided here; a complex change can opt back in by flipping it
-     to `pending` and running `/workflow:arch <change>`), and for a `spec:"none"` change also `propose`/`specify`/
+     to `pending` and running `/workflow:arch <change>`), and for a `spec:"none"` change also `propose`/
      `archive` = `na`;
    - create each change folder `.workflow/<feature>/<NN>-<slug>/`.
-6. Tell the user to `/clear`, then run the next stage for the first change: `/workflow:propose` (then
-   `/workflow:specify`) for a `spec:"openspec"` change, or `/workflow:design` directly for a `spec:"none"` one.
+6. Tell the user to `/clear`, then run the next stage for the first change: `/workflow:propose` for a
+   `spec:"openspec"` change, or `/workflow:design` directly for a `spec:"none"` one.
