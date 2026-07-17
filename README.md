@@ -141,6 +141,27 @@ prints a severity-ranked report — then removes the worktree. It's **read-only*
 optional `--comment`. If the PR has no OpenSpec change, the spec dimension is skipped and the rest still runs. This
 command keeps **no** `.workflow/` state — it's a one-shot review.
 
+## Working on something small (standalone)
+
+`/workflow:side-task <description>` is for a small change you want to make in parallel with bigger work already in
+progress in your current worktree. It forks a fresh worktree off the latest `origin/main`, implements the change
+there, skips lint/tests entirely, and opens a PR — never touching your current checkout. It removes the worktree
+once the PR is open; on failure it leaves the worktree in place so the work isn't lost. Like `/workflow:review-pr`,
+it keeps no `.workflow/` state.
+
+```
+/workflow:side-task add a retry to the webhook sender
+```
+
+Opening the PR itself is `/workflow:creating-pull-requests` — a generic, repo-agnostic draft-PR workflow that
+`/workflow:side-task` falls back to when the target repo doesn't define its own project-level
+`creating-pull-requests` skill. It can also be run directly from any branch with commits ready to go out.
+
+```
+/workflow:creating-pull-requests
+/workflow:creating-pull-requests ready   # open non-draft
+```
+
 ## Layout (created in the target repo)
 
 ```
