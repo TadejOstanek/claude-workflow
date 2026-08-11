@@ -60,6 +60,11 @@ specification skill — clarify, challenge assumptions, **never drop a requireme
 arch/design). Volunteered acceptance criteria don't need to be parked here — Phase B is the same session and will
 formalize them straight into the specs.
 
+After writing `proposal.md`, confirm scope with the user before writing specs: present the capability list from
+`## Capabilities` and ask: "I've written `proposal.md`. The capabilities this change touches are: `<list>`. Does this
+capture the right scope, or would you like to adjust before I write the behavioral specs?" Wait for the user's
+go-ahead (or any corrections) before continuing.
+
 ## 5. Phase B — the testable behavior (capture EVERYTHING)
 Now pin the behavior down in the **same session**. Pull the format (don't assume it) — run from `specRoot`:
 ```bash
