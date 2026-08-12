@@ -110,7 +110,7 @@ format. Everything else — descriptions, decisions, discoveries, findings, rati
     }
   ],
   "transitions": [
-    { "at": "2026-06-17T10:00:00Z", "from": "init", "to": "propose", "reason": "workflow created (single)" }
+    { "at": "2026-06-17T10:00:00Z", "from": "init", "to": "propose", "reason": "workflow created (single)", "sessionId": "9493afd2-7fcf-497e-9813-355c67d2a79f" }
   ]
 }
 ```
@@ -155,7 +155,11 @@ format. Everything else — descriptions, decisions, discoveries, findings, rati
   redo-only **`commit`** token (commit + push, no PR rewrite); pick none of the three and the loop leaves it
   uncommitted. Unselected stages keep their prior status (run them in a later build, or mark `na` if never wanted).
 - A stage is marked `done` only when its output file exists and its GATE is `pass` (where it has one). Append a
-  `transitions` entry on every status change with a one-line reason.
+  `transitions` entry on every status change with a one-line reason **and this session's `sessionId`** — the
+  value of the `CLAUDE_CODE_SESSION_ID` env var (fetch it once per session and reuse the same value for every
+  entry you append that session). It identifies which session transcript
+  (`~/.claude/projects/<project-slug>/<sessionId>.jsonl`) performed the transition. **Back-compat:** entries
+  written before this field existed simply lack it — there is no way to backfill; treat those as unattributed.
 
 ## Checkout safety (before any checkout switch or loop launch)
 

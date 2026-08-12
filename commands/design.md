@@ -43,7 +43,8 @@ Apply the `workflow:code-design` skill. Read `workflow:workflow-conventions` for
    next to the design. This is advisory, not a gate: if a finding reveals a real problem, revise `code-design.md`
    (re-running the critic afterward if the revision was substantial); proceeding without addressing a finding is
    the user's call, not yours.
-8. Update `state.json` (change `stages["code-design"]="done"`, `currentStage="build"`, append a transition).
+8. Update `state.json` (change `stages["code-design"]="done"`, `currentStage="build"`, append a transition with
+   `sessionId`, per `workflow:workflow-conventions`).
 9. Get the user's explicit approval. Then tell them to `/clear` and run `/workflow:build` for this change.
 10. **Iterating?** If any later stage was already `done` before this re-design, its output now describes **older**
    code — leave stages as-is (the user decides what to redo, per `workflow:workflow-conventions`) and give the exact

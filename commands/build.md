@@ -73,15 +73,18 @@ Call the **Workflow** tool with `scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/au
   "pendingStages": ["..."]
 }
 ```
-Set `state.json` stage `build` (and the rest of this change's pipeline) to `in_progress`, append a transition, then
-tell the user the loop is running in the background (they can watch with `/workflows`) and **end your turn**. The
-loop returns later via a task notification.
+Set `state.json` stage `build` (and the rest of this change's pipeline) to `in_progress`, append a transition —
+capture this session's `sessionId` once now (the `CLAUDE_CODE_SESSION_ID` env var, per
+`workflow:workflow-conventions`) and reuse the same value for every transitions entry this command appends,
+including step 3 below, since it's the same session finishing the loop it launched — then tell the user the loop
+is running in the background (they can watch with `/workflows`) and **end your turn**. The loop returns later via
+a task notification.
 
 ## 3. When the loop finishes (you'll be notified) — verify, don't trust
 Read the loop's returned result, then **confirm against disk**: for each stage that ran, read its output file
 (`implementation.md`, `tests.md`, `test-lint.md`, `review.md`) and mark the stage `done` only if its `## GATE` is
 `status: pass`; otherwise `failed`. The draft PR link comes from the loop result (no file). Update `state.json`
-accordingly with transitions.
+accordingly with transitions (reuse the `sessionId` captured when launching in step 2 above).
 Report to the user: tests green / skipped, review committed?, draft PR url, open non-critical findings — and the
 reminder to run **`/workflow:archive`** when they're sure the change is done (the canonical-spec merge is manual).
 If the change was **committed** (by `review`, `pr`, or the `commit` token), say so and report the result. If

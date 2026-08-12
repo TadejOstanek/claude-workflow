@@ -27,5 +27,5 @@ Don't archive a change you might still revise (the merge is irreversible).
    `<specRoot>/openspec/changes/archive/YYYY-MM-DD-<change-id>/`.
    For a tooling- or doc-only change with no spec deltas, use `--skip-specs`. If you ran it on the branch, commit
    the result so it lands in the PR.
-3. Set this change's `stages.archive = "done"` in `state.json`, append a `transitions` entry, and report which
-   capabilities the canonical library gained or changed.
+3. Set this change's `stages.archive = "done"` in `state.json`, append a `transitions` entry (with `sessionId`, per
+   `workflow:workflow-conventions`), and report which capabilities the canonical library gained or changed.

@@ -32,7 +32,8 @@ Do not read code or design anything — only scaffold:
    - **single, `spec:"none"`:** same entry with `spec:"none"`, `propose`/`architecture`/`archive` = `na`,
      `currentStage:"design"`. Offer `architecture:"pending"` if this refactor does need data modeling.
    - **epic:** `mode:"epic"`, `epic:{architecture:"pending"}`, `currentStage:"architecture"`, `changes:[]`.
-   - all: one `transitions` entry `{from:"init", to:<currentStage>, reason:"workflow created (<mode>)"}`.
+   - all: one `transitions` entry `{from:"init", to:<currentStage>, reason:"workflow created (<mode>)"}` (include
+     this session's `sessionId`, per `workflow:workflow-conventions`).
 5. **OpenSpec prerequisite** (skip for a `spec:"none"` single change — it uses no OpenSpec): if the repo has no
    `openspec/` directory anywhere, tell the user to run `openspec init --tools claude` (installing
    `@fission-ai/openspec` if needed) at the repo root before `/workflow:propose`. Per-app/domain sub-root

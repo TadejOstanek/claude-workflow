@@ -81,7 +81,8 @@ the reviewer later checks against. For a MODIFIED requirement, copy the full exi
 ```bash
 (cd "<specRoot>" && openspec validate "<change-id>")
 ```
-Fix any structural errors until it passes. Then set this change's `stages.propose = "done"` and append a transition.
+Fix any structural errors until it passes. Then set this change's `stages.propose = "done"` and append a transition
+(include this session's `sessionId`, per `workflow:workflow-conventions`).
 Route by this change's `stages.architecture`:
 - **`pending`** (the default for a spec-bearing change — data modeling comes next): set `currentStage="architecture"`
   and tell the user to `/clear`, then run `/workflow:arch` (the data-model & structural-fit pass) and then

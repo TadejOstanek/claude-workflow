@@ -29,14 +29,15 @@ Runs for a **single**-mode change, or a **named epic change** (`$ARGUMENTS`) who
    files first to learn why, then refine.
 2. **Skip check.** If the change plainly has **no data-model or structural dimension** (a pure content/copy tweak, a
    config flip), say so and offer to skip: set `stages.architecture="na"`, `currentStage="design"`, append a
-   transition, and point the user at `/workflow:design`. Otherwise continue — the data-model conversation is the
-   point of this stage.
+   transition (with `sessionId`, per `workflow:workflow-conventions`), and point the user at `/workflow:design`.
+   Otherwise continue — the data-model conversation is the point of this stage.
 3. Run the stage interactively per the skill (single shape) — scrutinize the data model, challenge assumptions,
    recommend on each fit decision, pressure-test. **No change breakdown.** "No data-model change" is a valid
    *explicit* outcome.
 4. Write `.workflow/<feature>/<NN>-<slug>/architecture.md` per the skill (data-model modifications, how it fits,
    hard decisions, patterns the code design must follow; ADR path if one was written) ending with a `## GATE`.
-5. Update `state.json`: set this change's `stages.architecture="done"`, `currentStage="design"`, append a transition.
+5. Update `state.json`: set this change's `stages.architecture="done"`, `currentStage="design"`, append a
+   transition (with `sessionId`, per `workflow:workflow-conventions`).
 6. Tell the user to `/clear`, then run `/workflow:design` for this change.
 
 ## Epic planning (`mode:"epic"`, `epic.architecture` not yet `"done"`)
@@ -51,7 +52,8 @@ specced individually via `/workflow:propose`.
 4. Write `.workflow/<feature>/architecture.md` per the skill — including the epic intent (why/what), since there is
    no separate epic spec — ending with a `## GATE`.
 5. Update `state.json`:
-   - set `epic.architecture="done"`, append a `transitions` entry, and set `currentStage` to the first change's
+   - set `epic.architecture="done"`, append a `transitions` entry (with `sessionId`, per
+     `workflow:workflow-conventions`), and set `currentStage` to the first change's
      next stage — `"propose"` if the lowest-`order` change is `spec:"openspec"`, `"design"` if it's `spec:"none"`;
    - populate `changes[]` from the agreed breakdown per the conventions schema (field defaults there) — each with
      the breakdown-specific `slug` (`<NN>-<name>`), `type`, `order`, `depends_on`, and a `spec` you triaged per the

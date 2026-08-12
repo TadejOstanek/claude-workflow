@@ -162,6 +162,25 @@ Opening the PR itself is `/workflow:creating-pull-requests` — a generic, repo-
 /workflow:creating-pull-requests ready   # open non-draft
 ```
 
+## Getting insights on a change (standalone)
+
+`/workflow:insights [feature[/NN-change]] [--write-memory]` analyzes the Claude Code sessions behind one change —
+or, given just a feature in epic mode, the whole epic — for workflow-process quality (review efficacy, design-doc
+accuracy, gate friction/rework), cost/token stats scoped to exactly those sessions (via the separate
+`session-report` plugin), and explicit learnings extraction into project memory. Blank picks the change matching
+your current git branch.
+
+```
+/workflow:insights                          # the change on your current branch
+/workflow:insights add-foo/01-data-model    # a specific change
+/workflow:insights add-foo --write-memory   # whole epic, and actually persist drafted memories
+```
+
+It never touches `.workflow/state.json` — no stage, no GATE. Learnings only **drafts** proposed memories by
+default; nothing is written outside the repo until you pass `--write-memory`. It writes `insights.md` and a scoped
+`session-report-<date>.html` into the change's (or epic's) own `.workflow/` folder — informational artifacts, not
+pipeline stages.
+
 ## Layout (created in the target repo)
 
 ```
