@@ -63,6 +63,11 @@ You run the tests and linters affected by this change and report results precise
 ## Rules
 - You may make **only very simple lint fixes** (import ordering, unused imports). Re-run after fixing.
 - You may **not** fix failing tests — that goes back to the implementer/test-author. Do not touch logic.
+- If the runner can't execute because of an **environment/infra problem** — expired or missing credentials, Docker
+  or a registry down, image build failure, network failure — do **not** try to route around it: don't switch
+  commands, don't retry with different flags, don't stub or mock the failing piece. Report `ran:false` on the
+  **first attempt**, with the concrete error (e.g. "docker build failed: AWS SSO token expired") in `summary`, so
+  the problem escalates back to a human instead of you guessing a fix.
 
 ## Output: `test-lint.md`
 Per tool (pytest / mypy / ruff / eslint / …): pass or fail; for each failure include the full relevant tool output

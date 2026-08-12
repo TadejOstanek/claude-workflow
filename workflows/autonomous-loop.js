@@ -176,7 +176,13 @@ if (todo('test-lint') && !result.escalation) {
     const MAX = 2
     for (let i = 1; i <= MAX; i++) {
       test = await agent(RUN, { agentType: 'workflow:test-runner', model: M.run, phase: 'Test', label: `test #${i}:${SCOPE}`, schema: TEST_SCHEMA })
-      if (!test || !test.ran) { log('Tests SKIPPED (runner unavailable) — must run before merge.'); result.skipped.push('test-lint'); break }
+      if (!test || !test.ran) {
+        const reason = (test && test.summary) || 'test runner could not execute (environment/infra issue)'
+        log(`Tests could not run — escalating instead of continuing unverified: ${reason}`)
+        escalate('test-lint', reason)
+        result.skipped.push('test-lint')
+        break
+      }
       if (test.passed) { log(`Tests green on attempt ${i}.`); break }
       log(`Test attempt ${i} failed: ${test.summary}`)
       if (i === MAX) {
@@ -232,6 +238,11 @@ if (todo('review') && !result.escalation) {
         if (tDomains.includes('code')) reFixers.push(() => agent(`${CTX}\nFix failing tests within your (CODE) domain.\n${JSON.stringify(t.failures, null, 2)}`, { agentType: 'workflow:implementer', model: M.code, phase: 'Review', label: `re-fix-code #${i}`, schema: GATE_SCHEMA }))
         if (tDomains.includes('test')) reFixers.push(() => agent(`${CTX}\nFix failing tests within your (TESTS) domain.\n${JSON.stringify(t.failures, null, 2)}`, { agentType: 'workflow:test-author', model: M.test, phase: 'Review', label: `re-fix-tests #${i}`, schema: GATE_SCHEMA }))
         await parallel(reFixers)
+      } else if (t && !t.ran) {
+        const reason = t.summary || 'test runner could not execute during the post-review re-test (environment/infra issue)'
+        log(`Re-test could not run — escalating: ${reason}`)
+        escalate('test-lint', reason)
+        break
       }
     }
     prevCriticals = criticals

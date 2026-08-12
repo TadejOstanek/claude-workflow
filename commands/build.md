@@ -91,7 +91,11 @@ If the change was **committed** (by `review`, `pr`, or the `commit` token), say 
 **none** of those ran (a pure light build), the loop leaves the change uncommitted — report that and remind them to
 review, commit, and `/workflow:archive` it themselves. When a redo used `only build commit`, note that the existing
 draft PR picked up the push (its description was left as-is).
-- If the result has an **escalation** (`returnTo`), set that stage back to `pending`, tell the user what decision is
-  needed, and point them to `/workflow:design` or `/workflow:arch`.
+- If the result has an **escalation** (`returnTo`), set that stage back to `pending`. If `returnTo` is `test-lint`,
+  tests could not run at all — an environment/infra problem (missing/expired credentials, Docker down, image build
+  failure), not a design issue. Just describe the concrete problem from `reason` and tell the user to fix their
+  environment, then re-run `/workflow:build` to resume — do **not** point them at `/workflow:design` or
+  `/workflow:arch` for this case. For any other `returnTo`, tell the user what decision is needed and point them to
+  `/workflow:design` or `/workflow:arch`.
 - If tests were **skipped** (runner unavailable), remind the user to run them before merging.
 Do not edit code yourself — corrections always go back through the loop.
