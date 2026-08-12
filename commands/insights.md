@@ -31,8 +31,7 @@ Input: `$ARGUMENTS`
    git rev-parse --abbrev-ref HEAD
    ```
 
-   Scan every `.workflow/*/state.json` for a `changes[].branch` (or the back-compat top-level `branch`) matching
-   it.
+   Scan every `.workflow/*/state.json` for a `changes[].branch` matching it.
    - Exactly one match → that change, `scope:"single-change"` (even inside an epic — a branch names one change, so
      this is a drill-down, not "the whole epic").
    - Zero matches and exactly one `.workflow/*/` exists in single mode → default to its sole change.

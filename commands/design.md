@@ -26,8 +26,8 @@ reference files:
    - **`pending`** — the data-model & structural-fit pass hasn't run. **Stop** and tell the user to run
      `/workflow:arch` first; that stage owns the data model, and `code-design` treats it as decided input.
    - **`done`** — you already read the change's `architecture.md` in step 1; use it as the decided data model.
-   - **`na` or absent** — skipped (or a change with no data-model dimension / created before this stage). Proceed —
-     but if you discover mid-design that a data-model or structural question actually needs deciding, **stop and send
+   - **`na`** — skipped (no data-model dimension for this change). Proceed — but if you discover mid-design that a
+     data-model or structural question actually needs deciding, **stop and send
      the user to `/workflow:arch <change>`** rather than modeling it inline.
 3. If `<change>/code-design.md` already exists (returning), read it + later files to learn why, then refine.
 4. Run the stage interactively per the skill — exact interfaces, components, test behaviors, discovered conventions

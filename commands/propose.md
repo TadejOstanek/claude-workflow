@@ -95,7 +95,6 @@ Route by this change's `stages.architecture`:
   `/workflow:design`.
 - **`na`** (the user pre-skipped the architecture step): set `currentStage="design"` and tell the user to `/clear`,
   then run `/workflow:design`.
-- **absent** (a change created before the architecture stage existed): treat as `na` — route to `/workflow:design`.
 
 **Iterating?** If you're amending the spec of a change whose later stages were already `done`, those outputs now
 describe the **old** spec — leave them as-is (the user chooses what to redo, per the iterating reference above).

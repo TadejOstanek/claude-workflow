@@ -35,7 +35,6 @@ branch to exist before then, and there's no worktree to orphan those files in.
   fresh checkout elsewhere.
 
   Record `ticket`, `branch` on **this change's entry** in `state.json`.
-- **Re-entry**: if `ticket`/`branch` are already set on the change (checking the back-compat fallback above too),
-  reuse them — never re-prompt or re-create. This is what lets re-running `/workflow:design` land on the same
+- **Re-entry**: if `ticket`/`branch` are already set on the change, reuse them — never re-prompt or re-create. This is what lets re-running `/workflow:design` land on the same
   branch, and what keeps a pre-this-change workflow from having its already-provisioned branch clobbered by a
   `git checkout -b` that would fail on a branch that already exists.

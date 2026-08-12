@@ -101,8 +101,8 @@ spec as a per-change OpenSpec change plus the accumulating canonical library (se
 - Stage status values: `pending` · `in_progress` · `done` · `failed` · `na`. An `na` stage is one that will
   **never** run for this change — it is neither `pending` nor blocking: resume never picks it, and "all stages
   done" treats `na` as satisfied.
-- `spec` is whether this change carries an OpenSpec behavioral spec: `"openspec"` (default; absent ⇒ `"openspec"`
-  for back-compat) or `"none"`. A `"none"` change is purely technical (no observable behavior change — see "Does a
+- `spec` is whether this change carries an OpenSpec behavioral spec: `"openspec"` (default) or `"none"`. A
+  `"none"` change is purely technical (no observable behavior change — see "Does a
   change need a spec?"): it **skips `propose`** (`na`), keeps `change: null`, has `archive: "na"`,
   and goes `/workflow:start` (or `/workflow:arch`) → `/workflow:design` → `/workflow:build` directly. Its
   `code-design.md` is then the sole behavioral contract (no OpenSpec change, no `proposal.md`, no scenarios).
@@ -110,19 +110,14 @@ spec as a per-change OpenSpec change plus the accumulating canonical library (se
   `propose` and before `design`**. Default status when a change is first scoped: **single `spec:"openspec"`** →
   `"pending"` (data modeling runs by default; the user may pre-skip to `"na"`); **single `spec:"none"`** → `"na"`
   (opt in by setting `"pending"`); **epic** change → `"na"` (the epic-level `/workflow:arch` already decided the
-  data model; a complex change may opt in). **Back-compat:** a change created before this stage has **no**
-  `architecture` key — treat absent ⇒ `"na"`, so old single changes flow `propose` → `design` unchanged and only
-  new changes get default-on.
+  data model; a complex change may opt in).
 - `change` is the OpenSpec change id (kebab-case), set by `/workflow:propose`. Null until then — and stays null for
   a `spec: "none"` change.
 - `specRoot` is this change's OpenSpec root — the repo-relative dir whose `openspec/` holds it (default `"."`).
-  Set by `/workflow:propose`; absent ⇒ treat as `"."` (back-compat). Every `openspec` call for this change runs
-  with `<specRoot>` as the working directory.
+  Set by `/workflow:propose`. Every `openspec` call for this change runs with `<specRoot>` as the working
+  directory.
 - `ticket`, `branch` live **on each change** (not top-level — a workflow can have several changes, each with its
-  own branch/PR). `null` until provisioned; see `reference/git-safety.md`. **Back-compat**: if a change's own
-  `ticket`/`branch` are absent but the now-removed top-level fields of the same name are present (a pre-schema
-  workflow), treat those as this change's — don't re-provision. (Disambiguates cleanly only for `single` mode; for
-  an in-flight `epic` it's no worse than the old behavior.)
+  own branch/PR). `null` until provisioned; see `reference/git-safety.md`.
 - Per-change stages run: `propose` → `architecture` → `design` → `build` (the parallel implement + test-author pair,
   both green = `done`) → `test-lint` → `review` → `pr` → `archive`. The `propose` stage authors the whole spec
   (`proposal.md` + the `specs/` deltas) in one session. There is no separate docs/QA stage: an ADR (the
@@ -140,8 +135,7 @@ spec as a per-change OpenSpec change plus the accumulating canonical library (se
   `transitions` entry on every status change with a one-line reason **and this session's `sessionId`** — the
   value of the `CLAUDE_CODE_SESSION_ID` env var (fetch it once per session and reuse the same value for every
   entry you append that session). It identifies which session transcript
-  (`~/.claude/projects/<project-slug>/<sessionId>.jsonl`) performed the transition. **Back-compat:** entries
-  written before this field existed simply lack it — there is no way to backfill; treat those as unattributed.
+  (`~/.claude/projects/<project-slug>/<sessionId>.jsonl`) performed the transition.
 
 ## Status (human-readable)
 
