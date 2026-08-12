@@ -5,7 +5,12 @@ argument-hint: [change slug] [full | light | only <stages> | skip <stages>] — 
 
 # /workflow:build
 
-This command **authorizes** running the Workflow tool. Read `workflow:workflow-conventions` first.
+This command **authorizes** running the Workflow tool. Read `workflow:workflow-conventions` for the GATE format,
+plus its reference files:
+- `${CLAUDE_PLUGIN_ROOT}/skills/workflow-conventions/reference/state-and-layout.md`
+- `${CLAUDE_PLUGIN_ROOT}/skills/workflow-conventions/reference/git-safety.md`
+- `${CLAUDE_PLUGIN_ROOT}/skills/workflow-conventions/reference/test-runner-detection.md`
+- `${CLAUDE_PLUGIN_ROOT}/skills/workflow-conventions/reference/iterating.md` — only if this is a redo
 
 ## 1. Resolve the change + compute what's left (you have filesystem access — the loop does not)
 1. Find the active workflow under `.workflow/` from `state.json`. Pick the change from `$ARGUMENTS`, else the
@@ -15,8 +20,8 @@ This command **authorizes** running the Workflow tool. Read `workflow:workflow-c
    `code-design` must be `done`; for a **spec-bearing** change (`spec:"openspec"`) `stages.propose` must also be
    `done` — if not, stop and point the user to `/workflow:propose` then `/workflow:design`. A **spec-less** change
    (`spec:"none"`) has `propose` as `na`, so only `code-design` is required. Note this change's `change`
-   id, `specRoot` (default `"."`), and `ticket`/`branch` (both live on the change entry — see
-   `workflow:workflow-conventions`). For a spec-bearing change, its OpenSpec change — the behavioral spec the loop's
+   id, `specRoot` (default `"."`), and `ticket`/`branch` (both live on the change entry — see the state-and-layout
+   reference above). For a spec-bearing change, its OpenSpec change — the behavioral spec the loop's
    agents read — lives at `<workdir>/<specRoot>/openspec/changes/<change>/` (`workdir` from step 4 below); you pass
    that absolute path as `changeDir`. For a spec-less change there is no OpenSpec change — pass `changeDir: null`
    (the loop then uses `code-design.md` as the whole contract). (`$ARGUMENTS` may also carry a stage selection — see
@@ -44,7 +49,7 @@ This command **authorizes** running the Workflow tool. Read `workflow:workflow-c
      an existing draft PR picks up the push automatically, body untouched. `commit` is inert if `pr` is also
      selected (pr does the commit). Select **none** of `review`/`pr`/`commit` (e.g. plain `light`) and the loop
      leaves your changes uncommitted for you to handle.
-3. Detect the test runner per the **Test-runner detection** heuristic in `workflow:workflow-conventions` — this
+3. Detect the test runner per the test-runner-detection reference above — this
    must resolve to a concrete `testCmd` string (e.g. `pytest`, `npm test`, or `peel test` as a runner placeholder
    for peel — see the heuristic), never a bare flag; additionally set `isPeel:true` when the runner is peel. If no
    runner can be detected, **ask the user** for a command instead
@@ -53,7 +58,7 @@ This command **authorizes** running the Workflow tool. Read `workflow:workflow-c
    `baseRef` = `main`; `appDir` = the change's primary directory **to test/migrate** if obvious, else `.` (this is
    independent of `specRoot`, which is only where `openspec` runs).
 4. Determine `workdir` — the **absolute** repo root path (there is no worktree). Before launching, check **checkout
-   safety** (`workflow:workflow-conventions`): the working tree must be clean and currently on this change's
+   safety** (the git-safety reference above): the working tree must be clean and currently on this change's
    `branch` — the background loop can't pause to ask. If not, **stop and ask the user** to check out the right
    branch (committing/stashing foreign work) instead of launching. Once safe, the loop's git/test/PR commands run
    there; resolve `changeDir` (step 1) under this same `workdir`.
@@ -74,8 +79,8 @@ Call the **Workflow** tool with `scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/au
 }
 ```
 Set `state.json` stage `build` (and the rest of this change's pipeline) to `in_progress`, append a transition —
-capture this session's `sessionId` once now (the `CLAUDE_CODE_SESSION_ID` env var, per
-`workflow:workflow-conventions`) and reuse the same value for every transitions entry this command appends,
+capture this session's `sessionId` once now (the `CLAUDE_CODE_SESSION_ID` env var, per the state-and-layout
+reference above) and reuse the same value for every transitions entry this command appends,
 including step 3 below, since it's the same session finishing the loop it launched — then tell the user the loop
 is running in the background (they can watch with `/workflows`) and **end your turn**. The loop returns later via
 a task notification.

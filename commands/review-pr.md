@@ -55,8 +55,9 @@ add` fails (e.g. path exists), pick a `mktemp -d` path instead.
     `{ capability:<capability>, specRoot:<dir containing openspec/>, specDir:<abs .../openspec/specs/<capability>/> }`
 
   Build the `specTargets` array (absolute paths). Empty ⇒ the spec dimension is simply skipped (report says N/A).
-- **Test command (best-effort, optional):** detect it per the **Test-runner detection** heuristic in
-  `workflow:workflow-conventions`, scanning the worktree; if none, pass `null`. Pass it through; the finders run it
+- **Test command (best-effort, optional):** detect it per the test-runner-detection heuristic
+  (`${CLAUDE_PLUGIN_ROOT}/skills/workflow-conventions/reference/test-runner-detection.md`), scanning the worktree;
+  if none, pass `null`. Pass it through; the finders run it
   only if they can. Don't block on it.
 
 ## 5. Launch the Workflow (synchronous)

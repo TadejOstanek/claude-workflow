@@ -5,8 +5,12 @@ argument-hint: [change slug or change id] — blank to pick the next change read
 
 # /workflow:archive
 
-Read `workflow:workflow-conventions` (the OpenSpec integration section). This is a **deliberate manual step** — run
-it when you're sure the change is done: it merges the change's spec deltas into the canonical
+Read `workflow:workflow-conventions`, plus its reference files:
+- `${CLAUDE_PLUGIN_ROOT}/skills/workflow-conventions/reference/openspec-integration.md`
+- `${CLAUDE_PLUGIN_ROOT}/skills/workflow-conventions/reference/state-and-layout.md`
+
+This is a **deliberate manual step** — run it when you're sure the change is done: it merges the change's spec
+deltas into the canonical
 `<specRoot>/openspec/specs/` and moves the change to `changes/archive/`. Requires the `openspec` CLI. Run it
 typically on the change's branch *before merging* (so the canonical spec ships in the PR) — or after; your call.
 Don't archive a change you might still revise (the merge is irreversible).
@@ -28,4 +32,4 @@ Don't archive a change you might still revise (the merge is irreversible).
    For a tooling- or doc-only change with no spec deltas, use `--skip-specs`. If you ran it on the branch, commit
    the result so it lands in the PR.
 3. Set this change's `stages.archive = "done"` in `state.json`, append a `transitions` entry (with `sessionId`, per
-   `workflow:workflow-conventions`), and report which capabilities the canonical library gained or changed.
+   the state-and-layout reference above), and report which capabilities the canonical library gained or changed.

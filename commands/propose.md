@@ -5,8 +5,13 @@ argument-hint: [change slug] — blank to use the next change needing a spec
 
 # /workflow:propose
 
-Apply the `workflow:specification` skill (the interactive method). Read `workflow:workflow-conventions` (OpenSpec
-integration + state schema). This authors a change's **whole spec in one session, two phases**: first the why/what
+Apply the `workflow:specification` skill (the interactive method). Read `workflow:workflow-conventions`, plus its
+reference files:
+- `${CLAUDE_PLUGIN_ROOT}/skills/workflow-conventions/reference/openspec-integration.md`
+- `${CLAUDE_PLUGIN_ROOT}/skills/workflow-conventions/reference/state-and-layout.md`
+- `${CLAUDE_PLUGIN_ROOT}/skills/workflow-conventions/reference/iterating.md`
+
+This authors a change's **whole spec in one session, two phases**: first the why/what
 and which capabilities change (Phase A → `proposal.md`), then the testable behavioral detail (Phase B →
 `specs/<capability>/spec.md`). Requires the `openspec` CLI (`@fission-ai/openspec`).
 
@@ -21,7 +26,8 @@ spec, they first flip the change's `spec` to `"openspec"` and reset `propose`/`a
 not read code**; you may read repo documentation.
 
 ## 2. Pick the change's OpenSpec root (`specRoot`)
-A change's spec lives wherever you run `openspec` (cwd-bound; see `workflow:workflow-conventions`). Choose it now —
+A change's spec lives wherever you run `openspec` (cwd-bound; see the openspec-integration reference above).
+Choose it now —
 generically, **never hardcoding app names**:
 1. Discover existing roots: list dirs containing an `openspec/` (excluding archives):
    ```bash
@@ -82,7 +88,7 @@ the reviewer later checks against. For a MODIFIED requirement, copy the full exi
 (cd "<specRoot>" && openspec validate "<change-id>")
 ```
 Fix any structural errors until it passes. Then set this change's `stages.propose = "done"` and append a transition
-(include this session's `sessionId`, per `workflow:workflow-conventions`).
+(include this session's `sessionId`, per the state-and-layout reference above).
 Route by this change's `stages.architecture`:
 - **`pending`** (the default for a spec-bearing change — data modeling comes next): set `currentStage="architecture"`
   and tell the user to `/clear`, then run `/workflow:arch` (the data-model & structural-fit pass) and then
@@ -92,6 +98,6 @@ Route by this change's `stages.architecture`:
 - **absent** (a change created before the architecture stage existed): treat as `na` — route to `/workflow:design`.
 
 **Iterating?** If you're amending the spec of a change whose later stages were already `done`, those outputs now
-describe the **old** spec — leave them as-is (the user chooses what to redo, per `workflow:workflow-conventions`).
+describe the **old** spec — leave them as-is (the user chooses what to redo, per the iterating reference above).
 Point them at `/workflow:design` then `/workflow:build <change> only build commit`, or straight to `/workflow:build`
 if the design still holds.

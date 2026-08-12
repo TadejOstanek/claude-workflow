@@ -5,7 +5,9 @@ argument-hint: [what you want to build] — blank to show status / resume
 
 # /workflow:start
 
-First read the `workflow:workflow-conventions` skill (layout, `state.json` schema, GATE format).
+First read the `workflow:workflow-conventions` skill (GATE format), plus its reference file
+`${CLAUDE_PLUGIN_ROOT}/skills/workflow-conventions/reference/state-and-layout.md` (layout, `state.json` schema,
+spec triage).
 
 Input: `$ARGUMENTS`
 
@@ -21,7 +23,7 @@ Do not read code or design anything — only scaffold:
 2. **Pick the mode.** If the work is one self-contained change (one PR), use `single`; if it clearly spans
    multiple PRs/areas, use `epic`. If it's not obvious, **ask the user** (single change vs. multi-change epic).
 3. **(single mode) Triage: does this change need a spec?** From the description alone, apply the "Does a change need
-   a spec?" heuristic in `workflow:workflow-conventions` → `spec:"openspec"` or `spec:"none"`. State your
+   a spec?" heuristic in the state-and-layout reference above → `spec:"openspec"` or `spec:"none"`. State your
    recommendation and **ask the user to confirm** (their call). For `epic` mode, skip this — `/workflow:arch`
    triages each change.
 4. Create `.workflow/<feature-slug>/` and write `state.json` per the conventions schema (field list + per-mode
@@ -33,7 +35,7 @@ Do not read code or design anything — only scaffold:
      `currentStage:"design"`. Offer `architecture:"pending"` if this refactor does need data modeling.
    - **epic:** `mode:"epic"`, `epic:{architecture:"pending"}`, `currentStage:"architecture"`, `changes:[]`.
    - all: one `transitions` entry `{from:"init", to:<currentStage>, reason:"workflow created (<mode>)"}` (include
-     this session's `sessionId`, per `workflow:workflow-conventions`).
+     this session's `sessionId`, per the state-and-layout reference above).
 5. **OpenSpec prerequisite** (skip for a `spec:"none"` single change — it uses no OpenSpec): if the repo has no
    `openspec/` directory anywhere, tell the user to run `openspec init --tools claude` (installing
    `@fission-ai/openspec` if needed) at the repo root before `/workflow:propose`. Per-app/domain sub-root
