@@ -31,16 +31,8 @@ code-level design (no function/class names here; that's `/workflow:design`). Run
   is **no** epic spec file).
 
 ## Change breakdown (epic only)
-Split the work into **changes** (each = one PR). A change is independent if it can run in a fresh session needing
-only this architecture doc (which carries the epic intent + breakdown) and prior sequential changes' outputs. Each
-change runs the full pipeline from its `/workflow:propose` and code-design on.
-- **Tidy-first**: refactors that make the work easier → initial sequential change(s).
-- **Feature** changes: the work itself, marked independent / parallel / sequential.
-- **Tidy-after**: cleanup enabled once the feature lands → final change(s).
-
-For each change, also triage whether it needs a behavioral spec (`spec: "openspec"` vs `"none"`) per the "Does a
-change need a spec?" heuristic in `workflow:workflow-conventions` — tidy-first/tidy-after (and many fix) changes are
-usually spec-less, feature changes usually spec-bearing. Recommend per change and confirm with the user.
+See `${CLAUDE_PLUGIN_ROOT}/skills/architectural-design/reference/epic-planning.md` for the change-breakdown
+approach and the full epic planning procedure.
 
 ## ADRs (if warranted)
 If a decision made here is heavy enough to outlive this conversation, write the ADR directly, now, while the
@@ -55,13 +47,11 @@ Write to the epic's `.workflow/<feature>/architecture.md` (epic) or the change's
 - Hard decisions taken and why.
 - Architectural patterns the code design + implementation must follow.
 - ADR path, if one was written (see above). Omit otherwise.
-- **Epic only:** the epic intent (why/what — there is no separate epic spec), and the **change breakdown** (with
-  type + order + dependencies + `spec` openspec/none per change).
+- **Epic only:** see `${CLAUDE_PLUGIN_ROOT}/skills/architectural-design/reference/epic-planning.md` for what to
+  additionally include (epic intent + change breakdown).
 Concise prose and plain bullets — no checkboxes here. End with the standard `## GATE`.
 
 ## Done when
 User agrees the approach. Then `/clear`, and:
 - **Single change:** run `/workflow:design` (the data model is now decided input).
-- **Epic:** per change, run `/workflow:propose` → `/workflow:design` for a spec-bearing change,
-  or `/workflow:design` directly for a `spec:"none"` change. A complex change within an epic can still opt into its
-  own per-change architecture step (mark its `architecture` stage `pending` and run `/workflow:arch <change>`).
+- **Epic:** see `${CLAUDE_PLUGIN_ROOT}/skills/architectural-design/reference/epic-planning.md`'s "Next steps".
