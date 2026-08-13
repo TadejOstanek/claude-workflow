@@ -23,7 +23,7 @@ the change to revisit a `done` one. If the resolved change is `spec:"none"` (a p
 is `na`), **stop**: it needs no OpenSpec change — point the user to `/workflow:design`. (If they truly want to add a
 spec, they first flip the change's `spec` to `"openspec"` and reset `propose`/`archive` to `pending`.) For an
 `epic`, read `architecture.md` for this change's scope; for a `single`, the feature description is the scope. **Do
-not read code**; you may read repo documentation.
+not read code**; you may read repo documentation and the existing canonical specs (see below).
 
 ## 2. Pick the change's OpenSpec root (`specRoot`)
 A change's spec lives wherever you run `openspec` (cwd-bound; see the openspec-integration reference above).
@@ -59,7 +59,9 @@ Pull the exact format and path (don't assume them) — run from `specRoot`:
 ```bash
 (cd "<specRoot>" && openspec instructions proposal --change "<change-id>" --json)
 ```
-Use its `template`, `instruction`, and `resolvedOutputPath` (paths are relative to `<specRoot>`). Following the
+Use its `template`, `instruction`, and `resolvedOutputPath` (paths are relative to `<specRoot>`). Check
+`<specRoot>/openspec/specs/` for capabilities that already exist — this decides whether each capability the change
+touches is genuinely new or a modification of an existing one. Following the
 specification skill — clarify, challenge assumptions, **never drop a requirement the user gave** — write
 `proposal.md`: `## Why`, `## What Changes`, `## Capabilities` (each new/modified capability in kebab-case → a
 `specs/<capability>/spec.md`), `## Impact`. Keep it scope-level: don't reason at field / data-model altitude (that's

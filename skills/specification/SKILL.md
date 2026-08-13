@@ -13,7 +13,11 @@ picks it). The **Method** and **Never drop a requirement** sections apply to *bo
 say what changes between them.
 
 ## Method (both phases)
-- Do **NOT** read code or implementation. You may read repo **documentation** (README, docs/) for business context.
+- Do **NOT** read code or implementation. You may read repo **documentation** (README, docs/) for business context,
+  and you **should** read the existing canonical specs at `<specRoot>/openspec/specs/<capability>/spec.md` — they're
+  domain-language behavioral documentation, not implementation. Use them to learn current capabilities and
+  vocabulary before proposing deltas, to judge whether a capability is new or being modified, and — for a MODIFIED
+  requirement in Phase B — to copy the exact existing block before editing it.
 - Ask the user clarifying questions until the goal and business context are genuinely clear. Challenge their
   assumptions — surface where their stated need and the real need may differ. Don't silently accept defaults.
 - If relevant information likely lives elsewhere (another repo, a ticket, a doc, a person), **prompt the user for a
