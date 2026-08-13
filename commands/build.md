@@ -1,5 +1,5 @@
 ---
-description: Run the autonomous loop for a change — implement+test always, then optional test/lint, review, draft PR. Launches a background Workflow; reports when it finishes.
+description: Run the autonomous loop for a change — creates the branch, then implement+test always, then optional test/lint, review, draft PR. Launches a background Workflow; reports when it finishes.
 argument-hint: [change slug] [full | light | only <stages> | skip <stages>] — stages: test-lint review pr commit
 ---
 
@@ -8,7 +8,7 @@ argument-hint: [change slug] [full | light | only <stages> | skip <stages>] — 
 This command **authorizes** running the Workflow tool. Read `workflow:workflow-conventions` for the GATE format,
 plus its reference files:
 - `${CLAUDE_PLUGIN_ROOT}/skills/workflow-conventions/reference/state-and-layout.md`
-- `${CLAUDE_PLUGIN_ROOT}/skills/workflow-conventions/reference/git-safety.md`
+- `${CLAUDE_PLUGIN_ROOT}/skills/workflow-conventions/reference/git-safety.md` — checkout safety + branch provisioning
 - `${CLAUDE_PLUGIN_ROOT}/skills/workflow-conventions/reference/test-runner-detection.md`
 - `${CLAUDE_PLUGIN_ROOT}/skills/workflow-conventions/reference/iterating.md` — only if this is a redo
 
@@ -57,11 +57,19 @@ plus its reference files:
    only if the change touches models (e.g. `peel makemigrations <app>`).
    `baseRef` = `main`; `appDir` = the change's primary directory **to test/migrate** if obvious, else `.` (this is
    independent of `specRoot`, which is only where `openspec` runs).
-4. Determine `workdir` — the **absolute** repo root path (there is no worktree). Before launching, check **checkout
-   safety** (the git-safety reference above): the working tree must be clean and currently on this change's
-   `branch` — the background loop can't pause to ask. If not, **stop and ask the user** to check out the right
-   branch (committing/stashing foreign work) instead of launching. Once safe, the loop's git/test/PR commands run
-   there; resolve `changeDir` (step 1) under this same `workdir`.
+4. Determine `workdir` — the **absolute** repo root path (there is no worktree). **Provision or verify this
+   change's branch** (the git-safety reference above) before launching — the background loop can't pause to ask:
+   - **`branch` already set** on this change (a rebuild, or a redo after review sent it back) — run **checkout
+     safety**: the tree must be clean and currently on that `branch`. If not, **stop and ask the user** to check
+     out the right branch (committing/stashing foreign work) instead of launching.
+   - **`branch` not set** (the normal first-build case) — run checkout safety for being on `main`: the tree must
+     be clean and currently on `main`. If not, **stop and ask the user** to resolve it — never switch over foreign
+     work. Once safe, prompt for the **ticket number**, derive `{username}/sc-{ticket}/{description}` (username
+     from `git config user.name` / `gh api user --jq .login`), create it with `git checkout -b <branch> main`, and
+     record `ticket`, `branch` on this change in `state.json`.
+
+   Once safe, the loop's git/test/PR commands run in `workdir`; resolve `changeDir` (step 1) under this same
+   `workdir`.
 
 ## 2. Launch the loop (async — then end your turn)
 Call the **Workflow** tool with `scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/autonomous-loop.js"` and `args`

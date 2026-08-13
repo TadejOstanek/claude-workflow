@@ -48,10 +48,6 @@ with no second look). It writes `design-critique.md`. Default-on; skip only for 
 not a gate — the `## GATE` reflects the user's approval, not the critic's verdict. If a finding is real, revise the
 design (re-running the critic if the revision was substantial) before approval.
 
-## Prepare for implementation
-Provision this change's branch per **Branch provisioning** in `workflow:workflow-conventions` (reuse an existing
-`branch`, else create `{username}/sc-{ticket}/{description}` off `main`).
-
 ## Output: `code-design.md`
 - **Why / Context** — **required for a `spec:"none"` change** (there is no `proposal.md`): one short paragraph on
   why the change is made and, for a refactor, the observable behavior that must stay unchanged. Omit for a
@@ -75,4 +71,5 @@ Use checkboxes only for the **Tests** list (each behavior to verify); the scenar
 are concise prose/plain lists. End with the standard `## GATE`.
 
 ## Done when
-The user approves the design. Then `/clear` and run `/workflow:build` to start the autonomous loop for this change.
+The user approves the design (nothing to provision here — `/workflow:build` creates or reuses the branch as its
+first step). Then `/clear` and run `/workflow:build` to start the autonomous loop for this change.

@@ -10,9 +10,10 @@ and move *backward*: amend the spec, refine the code-design, rebuild only what c
 stages you don't want. The workflow supports this, and stages are revisitable. The rules that keep it sane:
 
 - **Re-open an upstream stage by naming the change.** `/workflow:propose <change>` and `/workflow:design <change>`
-  re-author in place — `propose` re-edits the OpenSpec `proposal.md` + `spec.md` (then re-validates); `design` reuses the
-  change's existing `ticket`/`branch` (per `reference/git-safety.md`'s "Branch provisioning" — set by an earlier
-  `/workflow:design`; it does **not** re-create them). Auto-resolution normally finds only *pending* stages; in
+  re-author in place — `propose` re-edits the OpenSpec `proposal.md` + `spec.md` (then re-validates); `design`
+  re-edits `code-design.md` in place and has no git side effects of its own to redo. Branch reuse now happens inside
+  `/workflow:build` (per `reference/git-safety.md`'s "Branch provisioning") whenever you rerun it against an
+  already-branched change. Auto-resolution normally finds only *pending* stages; in
   `single` mode (one change) a blank invocation still defaults to that change so you needn't name it, but in
   `epic` mode you pass the change explicitly to revisit a `done` stage.
 - **Re-opening upstream does NOT auto-invalidate downstream.** Downstream stages stay `done` even though their

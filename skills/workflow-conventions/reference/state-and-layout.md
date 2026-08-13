@@ -117,7 +117,7 @@ spec as a per-change OpenSpec change plus the accumulating canonical library (se
   Set by `/workflow:propose`. Every `openspec` call for this change runs with `<specRoot>` as the working
   directory.
 - `ticket`, `branch` live **on each change** (not top-level — a workflow can have several changes, each with its
-  own branch/PR). `null` until provisioned; see `reference/git-safety.md`.
+  own branch/PR). `null` until `/workflow:build` provisions them; see `reference/git-safety.md`.
 - Per-change stages run: `propose` → `architecture` → `design` → `build` (the parallel implement + test-author pair,
   both green = `done`) → `test-lint` → `review` → `pr` → `archive`. The `propose` stage authors the whole spec
   (`proposal.md` + the `specs/` deltas) in one session. There is no separate docs/QA stage: an ADR (the

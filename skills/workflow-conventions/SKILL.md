@@ -45,7 +45,7 @@ file for your stage instead of guessing; each is self-contained on its topic:
   spec-triage heuristic, `.workflow/`+`openspec/` folder layout, the full `state.json` schema, and Resume/Status.
   Read by every command that touches `state.json`: `start`, `propose`, `arch`, `design`, `build`, `archive`.
 - `${CLAUDE_PLUGIN_ROOT}/skills/workflow-conventions/reference/git-safety.md` — the checkout-safety check and branch
-  provisioning. Read by `design` (both) and `build` (checkout safety only).
+  provisioning. Read by `build`
 - `${CLAUDE_PLUGIN_ROOT}/skills/workflow-conventions/reference/openspec-integration.md` — the OpenSpec thin-seam
   contract: `specRoot`, authoring, consumption, archive. Read by `propose` and `archive`.
 - `${CLAUDE_PLUGIN_ROOT}/skills/workflow-conventions/reference/test-runner-detection.md` — how to detect a repo's

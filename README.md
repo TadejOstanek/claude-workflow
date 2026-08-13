@@ -116,8 +116,8 @@ change name needed; in an epic, name the change on each command):
 
 ```
 /workflow:propose                           # add the missing requirement to the spec (re-validates)
-/workflow:design                            # refine code-design; reuses the existing branch
-/workflow:build only build commit           # re-implement + push to the existing draft PR — no review/body rewrite
+/workflow:design                            # refine code-design
+/workflow:build only build commit           # re-implement + push to the existing draft PR — reuses the existing branch, no review/body rewrite
 ```
 
 Re-opening an upstream stage never auto-invalidates the downstream ones — they stay `done` and you choose what to
