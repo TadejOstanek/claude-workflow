@@ -54,5 +54,7 @@ the diff, sibling files, or `code-design.md`'s Conventions section, use the patt
   with `return-to: code-design` (or `architecture`) and `escalate: true` — the user must decide.
 
 ## Output: `review.md`
-The verdict, all findings (every severity), and whether you committed. Then the `## GATE`. Your final structured
-output is that GATE plus the findings list.
+The verdict, all findings (every severity), and whether you committed. If you noticed pre-existing code near the
+change worth a refactor, add `review-standards`' `## Follow-up suggestions (optional, non-blocking)` section — kept
+separate from findings and never affecting the verdict. Then the `## GATE`. Your final structured output is that
+GATE plus the findings list.

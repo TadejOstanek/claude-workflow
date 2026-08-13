@@ -40,5 +40,7 @@ pattern-discovery tools (`orchestration:lookup`/`investigate` via `Skill`, or `c
 
 ## Output: `design-critique.md`
 Write `.workflow/<feature>/<change>/design-critique.md`: your findings (every severity, per `workflow:
-review-standards`), or a one-line "no findings" if clean. No `## GATE` — this is advisory input to the user's own
+review-standards`), or a one-line "no findings" if clean. If real sibling code you compared against would benefit
+from a refactor before this change lands, add `review-standards`' `## Follow-up suggestions (optional,
+non-blocking)` section — kept separate from findings. No `## GATE` — this is advisory input to the user's own
 approval of `code-design.md`, not a pass/fail stage gate. Your final structured output is the findings list.

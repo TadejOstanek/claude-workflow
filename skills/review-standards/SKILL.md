@@ -64,7 +64,7 @@ built. Keep this concrete — an open-ended "is this well-architected?" pass jus
 false-positive discipline above exists to suppress. Check specifically:
 
 - **Layering.** Is logic placed in the layer this repo actually uses for it — e.g. business logic living in a
-  view/controller when this repo's own convention (visible in sibling files) puts it in the model/service layer.
+  view/controller when this repo's own convention (visible in sibling files) puts it in the model layer.
   Name the sibling file(s) you compared against.
 - **Naming/structure.** Matches the canonical files named in `code-design.md`'s Conventions section (or, for a
   change with no `code-design.md`, the nearest sibling files).
@@ -74,3 +74,17 @@ false-positive discipline above exists to suppress. Check specifically:
 Severity follows the existing vocabulary, not a new tier: a real layering violation or hard-rule break is
 `critical`/`major` (per the "hard convention break the team would reject" clause above); a style preference stays
 `minor`/`nit` — or gets dropped per false-positive discipline if it's territory a senior wouldn't block on.
+
+## Follow-up suggestions (non-blocking)
+
+Distinct from findings — never a severity, never a reason to gate `fail` or withhold a commit. While judging fit
+you'll sometimes notice **pre-existing** code near the change that would benefit from a refactor — exactly the kind
+of thing "Pre-existing issues" above tells you not to raise as a finding. Don't just drop it: surface it separately
+so the user can decide whether to act, and when.
+
+- Scope it to code you actually read while doing this review — not a general codebase sweep for tech debt.
+- Name it concretely: the file and the specific reason it'd help (duplicated logic, fighting a convention visible
+  elsewhere, hard to test as structured) — the same bar findings meet, just not tied to this change's correctness.
+- List these under their own `## Follow-up suggestions (optional, non-blocking)` section, separate from the
+  findings list. Never mix one into the other, never assign a severity, never let it affect the verdict.
+- Surface only — never act on it yourself (no refactor, no new OpenSpec change). That's the user's call.
