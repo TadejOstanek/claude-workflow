@@ -31,5 +31,16 @@ Don't archive a change you might still revise (the merge is irreversible).
    `<specRoot>/openspec/changes/archive/YYYY-MM-DD-<change-id>/`.
    For a tooling- or doc-only change with no spec deltas, use `--skip-specs`. If you ran it on the branch, commit
    the result so it lands in the PR.
-3. Set this change's `stages.archive = "done"` in `state.json`, append a `transitions` entry (with `sessionId`, per
+3. **Backfill Purpose for any brand-new capability.** When a change ADDs a capability that didn't exist before,
+   `openspec archive` creates its `spec.md` with a placeholder: `## Purpose\nTBD - created by archiving change
+   <id>. Update Purpose after archive.` It never gets revisited on its own. Grep the specs this archive just
+   touched for that literal placeholder:
+   ```bash
+   grep -rl "TBD - created by archiving change" "<specRoot>/openspec/specs"
+   ```
+   For each match, replace the `## Purpose` line with a real 1-3 sentence purpose for that capability, grounded in
+   the change's `proposal.md` (`Why` / `What Changes`) and the requirements now merged into that spec — the same
+   way you'd write a Purpose from scratch. Leave every other spec's Purpose untouched (modified, pre-existing
+   capabilities keep their own).
+4. Set this change's `stages.archive = "done"` in `state.json`, append a `transitions` entry (with `sessionId`, per
    the state-and-layout reference above), and report which capabilities the canonical library gained or changed.
