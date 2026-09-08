@@ -82,6 +82,7 @@ Or add to `~/.claude/settings.json`:
 
 ## Use
 
+```
 /workflow:start <what you want to build>   # scaffolds .workflow/<feature>/ ; picks single-change vs epic
 
 # single change (spec-bearing):
