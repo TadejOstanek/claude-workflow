@@ -16,6 +16,9 @@ Input: `$ARGUMENTS`
 - The PR: a number (`123`), or a URL (`https://github.com/<owner>/<repo>/pull/123` → parse owner/repo/number). If a
   URL names a different repo than the current one, pass it to `gh` with `--repo <owner>/<repo>`.
 - `--comment` (boolean): when present, post the findings back to the PR. **Without it, never post anything.**
+- `--complexity <light|standard|deep>` (optional, default `standard`): this review has no `state.json` change to
+  read a stored complexity from, so it's the only way to raise/lower the model+effort tier — see the model-tiers
+  reference (`${CLAUDE_PLUGIN_ROOT}/skills/workflow-conventions/reference/model-tiers.md`).
 - Anything else → print usage and stop.
 
 ## 2. Resolve the PR (read-only `gh`)
@@ -69,9 +72,12 @@ Call the **Workflow** tool with `scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/pr
   "workdir": "<abs worktree path>", "baseRef": "<PR base branch>",
   "headSha": "<headRefOid>", "repo": "<owner/repo>",
   "specTargets": [ { "changeId": "...", "specRoot": "<abs>", "specDir": "<abs>" } ],
-  "testCmd": "<detected or null>"
+  "testCmd": "<detected or null>",
+  "models": { "spec": {"model": "...", "effort": "..."}, "find": {...}, "verify": {...}, "synth": {...} }
 }
 ```
+`models` is resolved per the model-tiers reference above: read `${CLAUDE_PLUGIN_ROOT}/config/model-tiers.json` and
+take the `--complexity` tier's `spec`/`find`/`verify`/`synth` entries.
 The script fans out finders → adversarial verify → dedup, and returns the review result (see its `return`).
 
 ## 6. Print the terminal report (always)

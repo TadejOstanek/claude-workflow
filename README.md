@@ -15,11 +15,13 @@ technical change** (refactor, code org, infra/CI, deps) can opt out of OpenSpec 
 | Propose | interactive *(spec-bearing only)* | `/workflow:propose` | OpenSpec change: `proposal.md` (why/what + capabilities) **and** `specs/<cap>/spec.md` (requirement/scenario deltas) — one session, two phases |
 | Architectural design | interactive *(data model & fit; default-on for spec-bearing, skippable)* | `/workflow:arch` | `architecture.md` (data-model & structural-fit decisions; an ADR too, if warranted) |
 | Code design | interactive (+ adversarial `design-critic` pass; default-on, skippable) | `/workflow:design` | `code-design.md` (interfaces + test behaviors; an ADR too, if warranted), `design-critique.md` |
-| Implement ‖ Test | auto (sonnet) | `implementer` ‖ `test-author` | code, tests |
-| Test & lint | auto (haiku) | `test-runner` | `test-lint.md` |
-| Review | auto (opus) | `reviewer` | `review.md` (+ commit) |
-| Pull request | auto (sonnet) | `pr-author` | draft PR incl. its own manual-QA section (link reported by `/workflow:build`) |
+| Implement ‖ Test | auto (sonnet\*) | `implementer` ‖ `test-author` | code, tests |
+| Test & lint | auto (haiku\*) | `test-runner` | `test-lint.md` |
+| Review | auto (opus\*) | `reviewer` | `review.md` (+ commit) |
+| Pull request | auto (sonnet\*) | `pr-author` | draft PR incl. its own manual-QA section (link reported by `/workflow:build`) |
 | Archive | **manual** *(spec-bearing only)* | `/workflow:archive` | canonical `openspec/specs/` updated (`openspec archive`) |
+
+\* the `standard`-complexity default — see "Model tiers" below for how model+effort vary by change complexity.
 
 Implement → PR runs as one background **Workflow** (launched by `/workflow:build`): isolated subagents, per-stage
 models, file-based handoff, failure loops, and escalation back to you only when a decision is genuinely needed.
@@ -34,6 +36,18 @@ into changes:
 
 The epic has no spec of its own — its intent lives in the epic `architecture.md`; each change it spawns is specced
 via `/workflow:propose` (and gets its own per-change data-model pass only if it needs one).
+
+## Model tiers (cost vs. rigor per change)
+
+Every subagent role (`implementer`, `test-author`, `test-runner`, `reviewer`, `pr-author`, `design-critic`, plus
+`review-pr`'s and `insights`' roles) runs on a model+effort pulled from `config/model-tiers.json`, keyed by the
+change's `complexity: "light" | "standard" | "deep"`. Like the spec triage, `complexity` is recommended by the
+workflow and confirmed by you when a change is first scoped (`/workflow:start` for a single change, `/workflow:arch`
+per change for an epic) — `light` for a one-liner, `deep` for a gnarly migration, `standard` otherwise. `deep` also
+forces `design-critic` (normally `model: inherit`, riding your interactive session) onto `opus` regardless of what
+model you're in. Edit `config/model-tiers.json` directly to retune any role/tier — it's a single plugin-level file,
+not per-repo config. `/workflow:review-pr` and `/workflow:insights` (standalone, no `state.json`) take an explicit
+`--complexity <tier>` flag instead, defaulting to `standard`.
 
 ## Spec layer: OpenSpec (thin seam)
 

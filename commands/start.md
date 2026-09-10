@@ -22,17 +22,20 @@ Do not read code or design anything — only scaffold:
 1. Derive a short kebab-case `<feature-slug>` from the description. Get the date with `date +%Y-%m-%d`.
 2. **Pick the mode.** If the work is one self-contained change (one PR), use `single`; if it clearly spans
    multiple PRs/areas, use `epic`. If it's not obvious, **ask the user** (single change vs. multi-change epic).
-3. **(single mode) Triage: does this change need a spec?** From the description alone, apply the "Does a change need
-   a spec?" heuristic in the state-and-layout reference above → `spec:"openspec"` or `spec:"none"`. State your
-   recommendation and **ask the user to confirm** (their call). For `epic` mode, skip this — `/workflow:arch`
-   triages each change.
+3. **(single mode) Triage: does this change need a spec, and how much rigor?** From the description alone, apply
+   the "Does a change need a spec?" heuristic in the state-and-layout reference above → `spec:"openspec"` or
+   `spec:"none"`; and the "How much rigor does a change need?" heuristic there → `complexity:"light"`,
+   `"standard"`, or `"deep"`. State both recommendations and **ask the user to confirm** (their call). For `epic`
+   mode, skip this — `/workflow:arch` triages each change.
 4. Create `.workflow/<feature-slug>/` and write `state.json` per the conventions schema (field list + per-mode
    stage defaults live there). Mode-specific specifics:
-   - **single, `spec:"openspec"`:** `currentStage:"propose"`; one change entry `slug:"01-<feature-slug>"`, all
-     stages `pending`. `architecture` stays `pending` (data modeling runs by default); if the user already knows
-     this change touches no data model, offer to **pre-skip** it (`architecture:"na"`).
-   - **single, `spec:"none"`:** same entry with `spec:"none"`, `propose`/`architecture`/`archive` = `na`,
-     `currentStage:"design"`. Offer `architecture:"pending"` if this refactor does need data modeling.
+   - **single, `spec:"openspec"`:** `currentStage:"propose"`; one change entry `slug:"01-<feature-slug>"`,
+     `complexity` from step 3, all stages `pending`. `architecture` stays `pending` (data modeling runs by
+     default); if the user already knows this change touches no data model, offer to **pre-skip** it
+     (`architecture:"na"`).
+   - **single, `spec:"none"`:** same entry with `spec:"none"`, `complexity` from step 3,
+     `propose`/`architecture`/`archive` = `na`, `currentStage:"design"`. Offer `architecture:"pending"` if this
+     refactor does need data modeling.
    - **epic:** `mode:"epic"`, `epic:{architecture:"pending"}`, `currentStage:"architecture"`, `changes:[]`.
    - all: one `transitions` entry `{from:"init", to:<currentStage>, reason:"workflow created (<mode>)"}` (include
      this session's `sessionId`, per the state-and-layout reference above).

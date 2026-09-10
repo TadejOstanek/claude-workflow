@@ -39,9 +39,13 @@ const IS_PEEL = A.isPeel === true || (TEST_CMD || '').startsWith('peel')
 const PENDING = Array.isArray(A.pendingStages) ? A.pendingStages : null
 const todo = (name) => !PENDING || PENDING.includes(name)
 
-// Models are set BOTH inline here and in each agent's frontmatter, so the per-stage model holds even if plugin
-// agentType namespace resolution degrades to the default workflow agent.
-const M = { code: 'sonnet', test: 'sonnet', run: 'haiku', review: 'opus', pr: 'sonnet' }
+// Model + effort per role, resolved by /workflow:build from config/model-tiers.json (see reference/model-tiers.md)
+// and passed in as args.models.
+const M = A.models || {}
+const opt = (role) => {
+  const cfg = M[role] || {}
+  return { ...(cfg.model ? { model: cfg.model } : {}), ...(cfg.effort ? { effort: cfg.effort } : {}) }
+}
 
 // ---------- schemas ----------
 const GATE_SCHEMA = {
@@ -145,9 +149,9 @@ if (todo('build') && !result.escalation) {
   log(`${TITLE}: implementing code + tests in parallel`)
   const [impl, tst] = await parallel([
     () => agent(`${CTX}\nImplement the application CODE for this phase from ${PHASE_DIR}/code-design.md.`,
-      { agentType: 'workflow:implementer', model: M.code, phase: 'Build', label: `code:${SCOPE}`, schema: GATE_SCHEMA }),
+      { agentType: 'workflow:implementer', ...opt('code'), phase: 'Build', label: `code:${SCOPE}`, schema: GATE_SCHEMA }),
     () => agent(`${CTX}\nWrite the TESTS for this phase from ${PHASE_DIR}/code-design.md (its Tests section).`,
-      { agentType: 'workflow:test-author', model: M.test, phase: 'Build', label: `tests:${SCOPE}`, schema: GATE_SCHEMA }),
+      { agentType: 'workflow:test-author', ...opt('test'), phase: 'Build', label: `tests:${SCOPE}`, schema: GATE_SCHEMA }),
   ])
   result.stageGates.build = { impl, tst }
   const failed = [impl, tst].find((g) => g && g.gate === 'fail')
@@ -158,7 +162,7 @@ if (todo('build') && !result.escalation) {
 if (MIGRATE_CMD && todo('test-lint') && !result.escalation) {
   phase('Migrate')
   await agent(`${CTX}\nRun \`${MIGRATE_CMD}\` and report.${PEEL_NOTE}\nSet ran=false if the runner is unavailable. Do not hand-edit generated files.`,
-    { agentType: 'workflow:test-runner', model: M.run, phase: 'Migrate', label: `migrate:${SCOPE}`, schema: TEST_SCHEMA })
+    { agentType: 'workflow:test-runner', ...opt('run'), phase: 'Migrate', label: `migrate:${SCOPE}`, schema: TEST_SCHEMA })
 }
 
 // ============ TEST + LINT (haiku; bounded reconcile) ============
@@ -175,7 +179,7 @@ if (todo('test-lint') && !result.escalation) {
     const RUN = `${CTX}\n${RUN_INSTR} for this change and write ${PHASE_DIR}/test-lint.md.${PEEL_NOTE}\nReport every real failure precisely (target + test + error).`
     const MAX = 2
     for (let i = 1; i <= MAX; i++) {
-      test = await agent(RUN, { agentType: 'workflow:test-runner', model: M.run, phase: 'Test', label: `test #${i}:${SCOPE}`, schema: TEST_SCHEMA })
+      test = await agent(RUN, { agentType: 'workflow:test-runner', ...opt('run'), phase: 'Test', label: `test #${i}:${SCOPE}`, schema: TEST_SCHEMA })
       if (!test || !test.ran) {
         const reason = (test && test.summary) || 'test runner could not execute (environment/infra issue)'
         log(`Tests could not run — escalating instead of continuing unverified: ${reason}`)
@@ -195,8 +199,8 @@ if (todo('test-lint') && !result.escalation) {
       const fx = `${CTX}\nThe tests failed. Fix ONLY what's needed, faithful to ${PHASE_DIR}/code-design.md, within your domain. Then stop; the harness re-runs tests.\nFailures:\n${JSON.stringify(test.failures, null, 2)}`
       const domains = fixDomains(test.failures)
       const fixers = []
-      if (domains.includes('code')) fixers.push(() => agent(`${fx}\n(You are CODE — fix implementation bugs only.)`, { agentType: 'workflow:implementer', model: M.code, phase: 'Test', label: `fix-code #${i}:${SCOPE}`, schema: GATE_SCHEMA }))
-      if (domains.includes('test')) fixers.push(() => agent(`${fx}\n(You are TESTS — fix test bugs only.)`, { agentType: 'workflow:test-author', model: M.test, phase: 'Test', label: `fix-tests #${i}:${SCOPE}`, schema: GATE_SCHEMA }))
+      if (domains.includes('code')) fixers.push(() => agent(`${fx}\n(You are CODE — fix implementation bugs only.)`, { agentType: 'workflow:implementer', ...opt('code'), phase: 'Test', label: `fix-code #${i}:${SCOPE}`, schema: GATE_SCHEMA }))
+      if (domains.includes('test')) fixers.push(() => agent(`${fx}\n(You are TESTS — fix test bugs only.)`, { agentType: 'workflow:test-author', ...opt('test'), phase: 'Test', label: `fix-tests #${i}:${SCOPE}`, schema: GATE_SCHEMA }))
       await parallel(fixers)
     }
     result.testsVerified = !!(test && test.ran && test.passed)
@@ -216,7 +220,7 @@ if (todo('review') && !result.escalation) {
   let prevCriticals = null
   for (let i = 1; i <= MAX; i++) {
     const prompt = prevCriticals ? verifyRun(prevCriticals) : RUN
-    review = await agent(prompt, { agentType: 'workflow:reviewer', model: M.review, phase: 'Review', label: `review #${i}:${SCOPE}`, schema: REVIEW_SCHEMA })
+    review = await agent(prompt, { agentType: 'workflow:reviewer', ...opt('review'), phase: 'Review', label: `review #${i}:${SCOPE}`, schema: REVIEW_SCHEMA })
     result.openFindings = (review && review.findings) || []
     if (review && review.committed) result.committed = true
     const criticals = ((review && review.findings) || []).filter((f) => f.severity === 'critical')
@@ -225,18 +229,18 @@ if (todo('review') && !result.escalation) {
     if (i === MAX) { log(`Review #${i}: ${criticals.length} critical finding(s) remain after max attempts.`); escalate('build', `unresolved critical findings: ${criticals.map((c) => c.title).join('; ')}`); break }
     log(`Review #${i}: ${criticals.length} critical — applying fixes.`)
     await agent(`${CTX}\nApply fixes for these CRITICAL findings, minimal and faithful to ${PHASE_DIR}/code-design.md. Then stop.\n${JSON.stringify(criticals, null, 2)}`,
-      { agentType: 'workflow:implementer', model: M.code, phase: 'Review', label: `review-fix #${i}:${SCOPE}`, schema: GATE_SCHEMA })
+      { agentType: 'workflow:implementer', ...opt('code'), phase: 'Review', label: `review-fix #${i}:${SCOPE}`, schema: GATE_SCHEMA })
     if (TEST_CMD && result.testsVerified) {
       const RERUN_INSTR = IS_PEEL
         ? 'This repo uses peel. Re-determine which peel targets apply (same scoping as before) and re-run them together in ONE `peel test -t ...` invocation'
         : `Re-run \`${TEST_CMD}\``
       const t = await agent(`${CTX}\n${RERUN_INSTR} after the fix; write ${PHASE_DIR}/test-lint.md.${PEEL_NOTE}`,
-        { agentType: 'workflow:test-runner', model: M.run, phase: 'Review', label: `re-test #${i}:${SCOPE}`, schema: TEST_SCHEMA })
+        { agentType: 'workflow:test-runner', ...opt('run'), phase: 'Review', label: `re-test #${i}:${SCOPE}`, schema: TEST_SCHEMA })
       if (t && t.ran && !t.passed) {
         const tDomains = fixDomains(t.failures)
         const reFixers = []
-        if (tDomains.includes('code')) reFixers.push(() => agent(`${CTX}\nFix failing tests within your (CODE) domain.\n${JSON.stringify(t.failures, null, 2)}`, { agentType: 'workflow:implementer', model: M.code, phase: 'Review', label: `re-fix-code #${i}`, schema: GATE_SCHEMA }))
-        if (tDomains.includes('test')) reFixers.push(() => agent(`${CTX}\nFix failing tests within your (TESTS) domain.\n${JSON.stringify(t.failures, null, 2)}`, { agentType: 'workflow:test-author', model: M.test, phase: 'Review', label: `re-fix-tests #${i}`, schema: GATE_SCHEMA }))
+        if (tDomains.includes('code')) reFixers.push(() => agent(`${CTX}\nFix failing tests within your (CODE) domain.\n${JSON.stringify(t.failures, null, 2)}`, { agentType: 'workflow:implementer', ...opt('code'), phase: 'Review', label: `re-fix-code #${i}`, schema: GATE_SCHEMA }))
+        if (tDomains.includes('test')) reFixers.push(() => agent(`${CTX}\nFix failing tests within your (TESTS) domain.\n${JSON.stringify(t.failures, null, 2)}`, { agentType: 'workflow:test-author', ...opt('test'), phase: 'Review', label: `re-fix-tests #${i}`, schema: GATE_SCHEMA }))
         await parallel(reFixers)
       } else if (t && !t.ran) {
         const reason = t.summary || 'test runner could not execute during the post-review re-test (environment/infra issue)'
@@ -266,7 +270,7 @@ if (todo('pr') && reviewPassed) {
     ? `First ensure every file of this change is committed — if any change files are still uncommitted, commit them now (scoped to this change's code/test/doc files${SPEC_CLAUSE}; never \`.workflow/\`${CANON_CLAUSE}, never unrelated edits). Then `
     : `Nothing has been committed yet (the review stage was skipped). FIRST commit this change yourself — stage only this change's code/test/doc files${SPEC_CLAUSE} (never \`.workflow/\`${CANON_CLAUSE}, never \`git add -A\`, never unrelated edits) and commit with a concise why-focused message (no Claude attribution). Then `
   const pr = await agent(`${CTX}\n(Override: the PR stage writes NO file — return opened+committed+url as your structured output.)\n${COMMIT_NOTE}push the branch and open a DRAFT PR against main using the repo's pull_request_template.md. Why-first description; changes in plain English (no file paths); decide and write your own manual-QA section per your instructions.`,
-    { agentType: 'workflow:pr-author', model: M.pr, phase: 'PR', label: `pr:${SCOPE}`, schema: PR_SCHEMA })
+    { agentType: 'workflow:pr-author', ...opt('pr'), phase: 'PR', label: `pr:${SCOPE}`, schema: PR_SCHEMA })
   if (pr && pr.committed) result.committed = true
   if (pr && pr.opened) { result.prUrl = pr.url || null; log(`Draft PR: ${pr.url || '(opened)'}`) }
   result.stageGates.pr = pr
@@ -278,7 +282,7 @@ if (todo('pr') && reviewPassed) {
 if (todo('commit') && !todo('pr') && reviewPassed && !result.committed) {
   phase('Commit')
   const c = await agent(`${CTX}\n(Override: write NO file — return your \`## GATE\` as structured output.)\nCommit and push ONLY this change's code/test/doc files${SPEC_CLAUSE} (never \`.workflow/\`${CANON_CLAUSE}, never \`git add -A\`, never unrelated edits). Use a concise why-focused message (no Claude attribution), then push the branch. Do NOT open, edit, or touch any pull request — an existing draft PR picks up the push on its own.`,
-    { agentType: 'workflow:pr-author', model: M.pr, phase: 'Commit', label: `commit:${SCOPE}`, schema: GATE_SCHEMA })
+    { agentType: 'workflow:pr-author', ...opt('pr'), phase: 'Commit', label: `commit:${SCOPE}`, schema: GATE_SCHEMA })
   if (c && c.gate === 'pass') { result.committed = true; log('Committed + pushed (no PR rewrite).') }
   result.stageGates.commit = c
 }

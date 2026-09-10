@@ -15,6 +15,10 @@ For each change, also triage whether it needs a behavioral spec (`spec: "openspe
 change need a spec?" heuristic in `workflow:workflow-conventions` — tidy-first/tidy-after (and many fix) changes are
 usually spec-less, feature changes usually spec-bearing. Recommend per change and confirm with the user.
 
+Also triage each change's `complexity` (`"light" | "standard" | "deep"`) per the "How much rigor does a change
+need?" heuristic in the same reference — `type` is a soft signal (tidy-first/tidy-after skew `light`; a
+stated-large feature skews `deep`), never a hard mapping. Recommend per change and confirm with the user.
+
 ## Epic planning procedure
 1. Resolve the active workflow from `state.json` (expects `mode:"epic"`). The epic intent is the feature
    `title`/description — there is no epic spec file.
@@ -29,8 +33,9 @@ usually spec-less, feature changes usually spec-bearing. Recommend per change an
      reference), and set `currentStage` to the first change's next stage — `"propose"` if the lowest-`order` change
      is `spec:"openspec"`, `"design"` if it's `spec:"none"`;
    - populate `changes[]` from the agreed breakdown per the conventions schema (field defaults there) — each with
-     the breakdown-specific `slug` (`<NN>-<name>`), `type`, `order`, `depends_on`, and a `spec` you triaged per the
-     heuristic (recommend per change, **confirm with the user**). Set all stages `pending` **except**
+     the breakdown-specific `slug` (`<NN>-<name>`), `type`, `order`, `depends_on`, and a `spec` and `complexity`
+     you triaged per their heuristics (recommend per change, **confirm with the user**). Set all stages `pending`
+     **except**
      `architecture:"na"` (the epic-level data model is decided here; a complex change can opt back in by flipping it
      to `pending` and running `/workflow:arch <change>`), and for a `spec:"none"` change also `propose`/
      `archive` = `na`;

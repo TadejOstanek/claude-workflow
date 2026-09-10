@@ -52,3 +52,5 @@ file for your stage instead of guessing; each is self-contained on its topic:
   test/lint command. Read by `build` and `review-pr`.
 - `${CLAUDE_PLUGIN_ROOT}/skills/workflow-conventions/reference/iterating.md` — going back a step without a
   waterfall cascade (resume vs. redo). Read by `propose`, `design`, `build` when re-entering a stage.
+- `${CLAUDE_PLUGIN_ROOT}/skills/workflow-conventions/reference/model-tiers.md` — the per-role model+effort tier
+  config, keyed by a change's `complexity`. Read by `build`, `review-pr`, `insights`, `design`.

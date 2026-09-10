@@ -29,12 +29,19 @@ first scoped — `/workflow:start` for a single change, `/workflow:arch` per cha
   contracts, data semantics, business rules — anything you'd phrase as a WHEN/THEN acceptance criterion. This is
   the default.
 - **Spec-less (`"none"`)** — the change is **purely internal**, with no observable behavior change: refactors, code
-  organization/renames, build/CI/infra, dependency bumps, performance-neutral cleanup, tooling. For epics, this
-  usually matches `tidy-first` / `tidy-after` (and many `fix`) changes; `feature` changes are usually spec-bearing.
+  organization/renames, etc. `feature` changes are usually spec-bearing.
 
-When in doubt, prefer `"openspec"` — a spec is cheap insurance against an unnoticed behavior change. A spec-less
-change still goes through `/workflow:design` (its `code-design.md` becomes the sole behavioral contract) and the
-full autonomous loop — only the two OpenSpec authoring steps and the archive merge are skipped.
+When in doubt, prefer `"openspec"`.
+
+## How much rigor does a change need? (the complexity triage)
+
+Same shape as the spec triage above: classified `complexity: "light" | "standard" | "deep"` when the change is
+first scoped (`/workflow:start` for a single change, per change in `/workflow:arch` for an epic) — the workflow
+**recommends** from breadth/blast-radius language in the change's own description ("one function"/"quick fix" →
+`light`; "migration"/"new subsystem"/"cross-cutting" → `deep`; anything else → `standard`), the **user always
+confirms**. `type` is a soft signal only in epic mode (`tidy-first`/`tidy-after` skew `light`; a stated-large
+`feature` skews `deep`) — never a hard mapping. This tier selects the model+effort each build/review-pr/insights/design-critic subagent runs at —
+see `reference/model-tiers.md`; it has no other effect (a `light` change still gets the full stage sequence).
 
 ## Folder layout
 
@@ -82,7 +89,7 @@ spec as a per-change OpenSpec change plus the accumulating canonical library (se
   "changes": [
     {
       "slug": "01-data-model", "type": "feature", "order": 1, "depends_on": [],
-      "spec": "openspec", "change": null, "specRoot": ".",
+      "spec": "openspec", "complexity": "standard", "change": null, "specRoot": ".",
       "ticket": null, "branch": null,
       "stages": {
         "propose": "pending", "architecture": "pending", "design": "pending",
@@ -111,6 +118,8 @@ spec as a per-change OpenSpec change plus the accumulating canonical library (se
   `"pending"` (data modeling runs by default; the user may pre-skip to `"na"`); **single `spec:"none"`** → `"na"`
   (opt in by setting `"pending"`); **epic** change → `"na"` (the epic-level `/workflow:arch` already decided the
   data model; a complex change may opt in).
+- `complexity` is `"light" | "standard" | "deep"` — see "How much rigor does a change need?" above. Set when the
+  change is first scoped; required from then on.
 - `change` is the OpenSpec change id (kebab-case), set by `/workflow:propose`. Null until then — and stays null for
   a `spec: "none"` change.
 - `specRoot` is this change's OpenSpec root — the repo-relative dir whose `openspec/` holds it (default `"."`).
@@ -137,10 +146,6 @@ spec as a per-change OpenSpec change plus the accumulating canonical library (se
   entry you append that session). It identifies which session transcript
   (`~/.claude/projects/<project-slug>/<sessionId>.jsonl`) performed the transition.
 
-## Status (human-readable)
-
-There is no separate human-readable file — `/workflow:start` with no argument reads `state.json` and reports each
-active workflow's mode, current stage, and exact next command.
 
 ## Resume
 

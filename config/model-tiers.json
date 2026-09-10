@@ -1,0 +1,45 @@
+{
+  "light": {
+    "code": { "model": "sonnet", "effort": "low" },
+    "test": { "model": "sonnet", "effort": "low" },
+    "run": { "model": "haiku" },
+    "review": { "model": "sonnet", "effort": "medium" },
+    "pr": { "model": "sonnet", "effort": "low" },
+    "spec": { "model": "sonnet", "effort": "low" },
+    "find": { "model": "sonnet", "effort": "low" },
+    "verify": { "model": "sonnet", "effort": "low" },
+    "synth": { "model": "sonnet", "effort": "low" },
+    "cost": { "model": "sonnet" },
+    "quality": { "model": "sonnet", "effort": "low" },
+    "learnings": { "model": "sonnet" }
+  },
+  "standard": {
+    "code": { "model": "sonnet" },
+    "test": { "model": "sonnet" },
+    "run": { "model": "haiku" },
+    "review": { "model": "opus" },
+    "pr": { "model": "sonnet" },
+    "spec": { "model": "opus" },
+    "find": { "model": "sonnet" },
+    "verify": { "model": "sonnet" },
+    "synth": { "model": "opus" },
+    "cost": { "model": "sonnet" },
+    "quality": { "model": "opus" },
+    "learnings": { "model": "sonnet" }
+  },
+  "deep": {
+    "code": { "model": "sonnet", "effort": "high" },
+    "test": { "model": "sonnet", "effort": "high" },
+    "run": { "model": "haiku" },
+    "review": { "model": "opus", "effort": "xhigh" },
+    "pr": { "model": "sonnet", "effort": "high" },
+    "spec": { "model": "sonnet", "effort": "high" },
+    "find": { "model": "sonnet", "effort": "high" },
+    "verify": { "model": "sonnet", "effort": "high" },
+    "synth": { "model": "opus", "effort": "high" },
+    "cost": { "model": "sonnet" },
+    "quality": { "model": "sonnet", "effort": "high" },
+    "learnings": { "model": "sonnet", "effort": "high" },
+    "design-critic": { "model": "opus" }
+  }
+}

@@ -11,6 +11,7 @@ plus its reference files:
 - `${CLAUDE_PLUGIN_ROOT}/skills/workflow-conventions/reference/git-safety.md` — checkout safety + branch provisioning
 - `${CLAUDE_PLUGIN_ROOT}/skills/workflow-conventions/reference/test-runner-detection.md`
 - `${CLAUDE_PLUGIN_ROOT}/skills/workflow-conventions/reference/iterating.md` — only if this is a redo
+- `${CLAUDE_PLUGIN_ROOT}/skills/workflow-conventions/reference/model-tiers.md` — the per-role model+effort config
 
 ## 1. Resolve the change + compute what's left (you have filesystem access — the loop does not)
 1. Find the active workflow under `.workflow/` from `state.json`. Pick the change from `$ARGUMENTS`, else the
@@ -70,6 +71,9 @@ plus its reference files:
 
    Once safe, the loop's git/test/PR commands run in `workdir`; resolve `changeDir` (step 1) under this same
    `workdir`.
+5. **Resolve the model-tiers config** per the model-tiers reference above: tier = `change.complexity`; read
+   `${CLAUDE_PLUGIN_ROOT}/config/model-tiers.json` and take that tier's `code`/`test`/`run`/`review`/`pr` entries
+   as `models` for step 2.
 
 ## 2. Launch the loop (async — then end your turn)
 Call the **Workflow** tool with `scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/autonomous-loop.js"` and `args`
@@ -83,7 +87,8 @@ Call the **Workflow** tool with `scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/au
   "workdir": "<abs repo root>",
   "baseRef": "main", "appDir": "<dir or .>",
   "testCmd": "<detected or null>", "migrateCmd": "<or null>", "isPeel": <bool>,
-  "pendingStages": ["..."]
+  "pendingStages": ["..."],
+  "models": { "code": {"model": "...", "effort": "..."}, "test": {...}, "run": {...}, "review": {...}, "pr": {...} }
 }
 ```
 Set `state.json` stage `build` (and the rest of this change's pipeline) to `in_progress`, append a transition —

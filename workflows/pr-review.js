@@ -24,9 +24,13 @@ const SPEC_TARGETS = Array.isArray(A.specTargets) ? A.specTargets : []
 const HAS_SPEC = SPEC_TARGETS.length > 0
 const TEST_CMD = A.testCmd || null        // best-effort; the finders may run it, never required
 
-// Models are set BOTH inline here and in each agent's frontmatter, so the per-stage model holds even if plugin
-// agentType namespace resolution degrades to the default workflow agent.
-const M = { spec: 'opus', find: 'sonnet', verify: 'sonnet', synth: 'opus' }
+// Model + effort per role, resolved by /workflow:review-pr from config/model-tiers.json (see
+// reference/model-tiers.md) and passed in as args.models.
+const M = A.models || {}
+const opt = (role) => {
+  const cfg = M[role] || {}
+  return { ...(cfg.model ? { model: cfg.model } : {}), ...(cfg.effort ? { effort: cfg.effort } : {}) }
+}
 
 const SEV_RANK = { critical: 0, major: 1, minor: 2, nit: 3 }
 
@@ -94,13 +98,13 @@ if (HAS_SPEC) {
     const label = t.changeId || t.capability || 'spec'
     finderThunks.push(() => agent(
       `${CTX}\nAudit SPEC-SATISFACTION for the OpenSpec spec target at ${t.specDir} (specRoot: ${t.specRoot}${t.changeId ? `, change id: ${t.changeId}` : ''}). Read its spec files, parse the scenarios, and verify this PR's code+tests satisfy every one (variant b — there is no code-design.md). Tag each finding's \`scenario\`.`,
-      { agentType: 'workflow:spec-auditor', model: M.spec, phase: 'Finders', label: `spec:${label}`, schema: FINDER_SCHEMA }))
+      { agentType: 'workflow:spec-auditor', ...opt('spec'), phase: 'Finders', label: `spec:${label}`, schema: FINDER_SCHEMA }))
   }
 }
 for (const d of DIMENSIONS) {
   finderThunks.push(() => agent(
     `${CTX}\nYou are the ${d.key.toUpperCase()} finder. ${d.focus}\nReturn structured findings for the "${d.key}" dimension only.`,
-    { agentType: 'workflow:pr-reviewer', model: M.find, phase: 'Finders', label: `find:${d.key}`, schema: FINDER_SCHEMA }))
+    { agentType: 'workflow:pr-reviewer', ...opt('find'), phase: 'Finders', label: `find:${d.key}`, schema: FINDER_SCHEMA }))
 }
 
 const finderResults = (await parallel(finderThunks)).filter(Boolean)
@@ -121,7 +125,7 @@ if (findings.length) {
   phase('Verify')
   const verdicts = await parallel(findings.map((f) => () => agent(
     `${CTX}\nAdversarially VERIFY this finding — try to refute it; default to skepticism. Return CONFIRMED / PLAUSIBLE / REFUTED.\nFinding (${f.dimension}, severity ${f.severity}):\n${JSON.stringify({ file: f.file, line: f.line, title: f.title, detail: f.detail, scenario: f.scenario }, null, 2)}`,
-    { agentType: 'workflow:pr-reviewer', model: M.verify, phase: 'Verify', label: `verify:${f.id}`, schema: VERDICT_SCHEMA })))
+    { agentType: 'workflow:pr-reviewer', ...opt('verify'), phase: 'Verify', label: `verify:${f.id}`, schema: VERDICT_SCHEMA })))
 
   // parallel() preserves order → zip verdicts back onto findings.
   findings.forEach((f, i) => {
@@ -143,7 +147,7 @@ if (survivors.length > 1) {
   phase('Synthesis')
   const synth = await agent(
     `${CTX}\nSynthesize this PR review. Below are the verified findings (CONFIRMED + PLAUSIBLE). Drop only NEAR-DUPLICATES (same underlying issue surfaced by more than one dimension) by omitting their ids from keepIds; keep everything else. Also write a 2-3 sentence overall \`summary\`.\nFindings:\n${JSON.stringify(survivors.map((f) => ({ id: f.id, dimension: f.dimension, severity: f.severity, file: f.file, title: f.title })), null, 2)}`,
-    { agentType: 'workflow:pr-reviewer', model: M.synth, phase: 'Synthesis', label: `synth:pr-${PR}`, schema: SYNTH_SCHEMA })
+    { agentType: 'workflow:pr-reviewer', ...opt('synth'), phase: 'Synthesis', label: `synth:pr-${PR}`, schema: SYNTH_SCHEMA })
   if (synth) {
     summary = synth.summary || summary
     const keep = new Set(synth.keepIds || survivors.map((f) => f.id))

@@ -23,7 +23,13 @@ const WINDOW_START = A.windowStart || null
 const WINDOW_END = A.windowEnd || null
 const WRITE_MEMORY = !!A.writeMemory
 
-const M = { cost: 'sonnet', quality: 'opus', learnings: 'sonnet' }
+// Model + effort per role, resolved by /workflow:insights from config/model-tiers.json (see
+// reference/model-tiers.md) and passed in as args.models.
+const M = A.models || {}
+const opt = (role) => {
+  const cfg = M[role] || {}
+  return { ...(cfg.model ? { model: cfg.model } : {}), ...(cfg.effort ? { effort: cfg.effort } : {}) }
+}
 
 // ---------- schemas ----------
 const COST_SCHEMA = {
@@ -150,8 +156,8 @@ suggestions when there's more than one change in scope. Ground every finding's e
 or transcript excerpt — never speculate.`
 
 const [cost, quality] = await parallel([
-  () => agent(COST_PROMPT, { agentType: 'insights', model: M.cost, phase: 'Cost + Quality', label: `cost:${FEATURE}`, schema: COST_SCHEMA }),
-  () => agent(QUALITY_PROMPT, { agentType: 'insights', model: M.quality, phase: 'Cost + Quality', label: `quality:${FEATURE}`, schema: QUALITY_SCHEMA }),
+  () => agent(COST_PROMPT, { agentType: 'insights', ...opt('cost'), phase: 'Cost + Quality', label: `cost:${FEATURE}`, schema: COST_SCHEMA }),
+  () => agent(QUALITY_PROMPT, { agentType: 'insights', ...opt('quality'), phase: 'Cost + Quality', label: `quality:${FEATURE}`, schema: QUALITY_SCHEMA }),
 ])
 
 // ============ LEARNINGS ============
@@ -170,6 +176,6 @@ ${WRITE_MEMORY
     : 'writeMemory is FALSE: DO NOT write anything. Only draft and return the proposed memories/amendments — the command will show them to the user, who can re-run with --write-memory to persist.'}
 Return LEARNINGS_SCHEMA. If there's nothing durable/non-obvious to capture, return empty memories/amended and set skippedReason.`
 
-const learnings = await agent(LEARNINGS_PROMPT, { agentType: 'insights', model: M.learnings, phase: 'Learnings', label: `learnings:${FEATURE}`, schema: LEARNINGS_SCHEMA })
+const learnings = await agent(LEARNINGS_PROMPT, { agentType: 'insights', ...opt('learnings'), phase: 'Learnings', label: `learnings:${FEATURE}`, schema: LEARNINGS_SCHEMA })
 
 return { feature: FEATURE, scope: SCOPE, mode: MODE, writeMemory: WRITE_MEMORY, cost, quality, learnings }
