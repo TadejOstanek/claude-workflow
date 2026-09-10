@@ -1,6 +1,6 @@
 ---
 name: workflow-conventions
-description: Shared handoff contract for the multi-agent dev workflow — GATE format, checkboxes-vs-prose, and the OpenSpec delta-format shorthand every stage and agent needs. Read by every workflow command and agent. Points to reference/ files (state.json schema, folder layout, git safety, OpenSpec integration, test-runner detection, iterating) for detail only the stages that need it should load.
+description: Shared handoff contract for the multi-agent dev workflow — GATE format, checkboxes-vs-prose, and the OpenSpec delta-format shorthand every stage and agent needs. Read by every workflow command and agent. Points to reference/ files (state.json schema, folder layout, git safety, OpenSpec integration, test-runner detection) for detail only the stages that need it should load.
 ---
 
 # Workflow Conventions (shared handoff contract)
@@ -52,7 +52,5 @@ file for your stage instead of guessing; each is self-contained on its topic:
   (`agents/archiver.md`).
 - `${CLAUDE_PLUGIN_ROOT}/skills/workflow-conventions/reference/test-runner-detection.md` — how to detect a repo's
   test/lint command. Read by `build` and `review-pr`.
-- `${CLAUDE_PLUGIN_ROOT}/skills/workflow-conventions/reference/iterating.md` — going back a step without a
-  waterfall cascade (resume vs. redo). Read by `propose`, `design`, `build` when re-entering a stage.
 - `${CLAUDE_PLUGIN_ROOT}/skills/workflow-conventions/reference/model-tiers.md` — the per-role model+effort tier
   config, keyed by a change's `complexity`. Read by `build`, `review-pr`, `insights`, `design`.

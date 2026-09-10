@@ -9,7 +9,6 @@ Apply the `workflow:specification` skill (the interactive method). Read `workflo
 reference files:
 - `${CLAUDE_PLUGIN_ROOT}/skills/workflow-conventions/reference/openspec-integration.md`
 - `${CLAUDE_PLUGIN_ROOT}/skills/workflow-conventions/reference/state-and-layout.md`
-- `${CLAUDE_PLUGIN_ROOT}/skills/workflow-conventions/reference/iterating.md`
 
 This authors a change's **whole spec in one session, two phases**: first the why/what
 and which capabilities change (Phase A → `proposal.md`), then the testable behavioral detail (Phase B →
@@ -17,13 +16,14 @@ and which capabilities change (Phase A → `proposal.md`), then the testable beh
 
 ## 1. Resolve the change
 Find the active workflow under `.workflow/` from `state.json`. Use the change in `$ARGUMENTS`, else the
-lowest-`order` change whose `stages.propose` is `pending` (respect `depends_on`). In `single` mode, if no change is
-`pending` (you're **amending** an already-specced change), default to the sole change anyway; in `epic` mode, name
-the change to revisit a `done` one. If the resolved change is `spec:"none"` (a purely technical change — `propose`
-is `na`), **stop**: it needs no OpenSpec change — point the user to `/workflow:design`. (If they truly want to add a
-spec, they first flip the change's `spec` to `"openspec"` and reset `propose`/`archive` to `pending`.) For an
-`epic`, read `architecture.md` for this change's scope; for a `single`, the feature description is the scope. **Do
-not read code**; you may read repo documentation and the existing canonical specs (see below).
+lowest-`order` change whose `stages.propose` is `pending` (respect `depends_on`). If the resolved change's
+`stages.propose` is already `"done"`, **stop**: this stage is complete and this command does not re-open it —
+tell the user any change to the spec now happens outside the workflow. If the resolved change is `spec:"none"` (a
+purely technical change — `propose` is `na`), **stop**: it needs no OpenSpec change — point the user to
+`/workflow:design`. (If they truly want to add a spec, they first flip the change's `spec` to `"openspec"` and reset
+`propose`/`archive` to `pending`.) For an `epic`, read `architecture.md` for this change's scope; for a `single`,
+the feature description is the scope. **Do not read code**; you may read repo documentation and the existing
+canonical specs (see below).
 
 ## 2. Pick the change's OpenSpec root (`specRoot`)
 A change's spec lives wherever you run `openspec` (cwd-bound; see the openspec-integration reference above).
@@ -45,14 +45,12 @@ generically, **never hardcoding app names**:
    before anything is committed.
 4. Record `specRoot` on this change in `state.json`.
 
-*(Re-authoring an existing change? Its `specRoot` and `change` id are already set — skip steps 2–3, reuse them.)*
-
 ## 3. Create the OpenSpec change
 Derive a kebab-case `<change-id>` from the feature + change slug (e.g. `add-foo-data-model`). Run from `specRoot`:
 ```bash
 (cd "<specRoot>" && openspec new change "<change-id>")
 ```
-Set this change's `change` to `<change-id>` in `state.json`. *(If it's already set — re-authoring — skip this.)*
+Set this change's `change` to `<change-id>` in `state.json`.
 
 ## 4. Phase A — the why/what (record everything the user gives)
 Pull the exact format and path (don't assume them) — run from `specRoot`:
@@ -97,8 +95,3 @@ Route by this change's `stages.architecture`:
   `/workflow:design`.
 - **`na`** (the user pre-skipped the architecture step): set `currentStage="design"` and tell the user to `/clear`,
   then run `/workflow:design`.
-
-**Iterating?** If you're amending the spec of a change whose later stages were already `done`, those outputs now
-describe the **old** spec — leave them as-is (the user chooses what to redo, per the iterating reference above).
-Point them at `/workflow:design` then `/workflow:build <change> only build commit`, or straight to `/workflow:build`
-if the design still holds.

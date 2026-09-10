@@ -1,6 +1,6 @@
 ---
 description: Run the autonomous loop for a change — creates the branch, then implement+test always, then optional test/lint, review, archive, draft PR. Launches a background Workflow; reports when it finishes.
-argument-hint: [change slug] [full | light | only <stages> | skip <stages>] — stages: test-lint review archive pr commit
+argument-hint: [change slug] [full | light | only <stages> | skip <stages>] — stages: test-lint review archive pr
 ---
 
 # /workflow:build
@@ -10,7 +10,6 @@ plus its reference files:
 - `${CLAUDE_PLUGIN_ROOT}/skills/workflow-conventions/reference/state-and-layout.md`
 - `${CLAUDE_PLUGIN_ROOT}/skills/workflow-conventions/reference/git-safety.md` — checkout safety + branch provisioning
 - `${CLAUDE_PLUGIN_ROOT}/skills/workflow-conventions/reference/test-runner-detection.md`
-- `${CLAUDE_PLUGIN_ROOT}/skills/workflow-conventions/reference/iterating.md` — only if this is a redo
 - `${CLAUDE_PLUGIN_ROOT}/skills/workflow-conventions/reference/model-tiers.md` — the per-role model+effort config
 
 ## 1. Resolve the change + compute what's left (you have filesystem access — the loop does not)
@@ -28,33 +27,29 @@ plus its reference files:
    (the loop then uses `code-design.md` as the whole contract). (`$ARGUMENTS` may also carry a stage selection — see
    step 2.)
    **Resolving the change when blank:** in `single` mode default to the sole change **even when it's fully built**
-   (you're iterating), so `/workflow:build only build commit` resolves with no change name. In `epic` mode a
-   fully-built change won't be auto-picked (no pending later stages) — name it to rebuild.
-2. **Choose which stages to run — and whether to *resume* or *redo*.** The stages, in order, are `build` (the
-   parallel implementer + test-author — they always run **together**), then `test-lint`, `review`, `archive`
-   (spec-bearing only — merges the change's OpenSpec deltas into the canonical library and commits that merge,
-   so it ships in the same PR), `pr` (the PR stage authors its own manual-QA section — there is no separate QA
-   stage). Two modes, picked from `$ARGUMENTS`:
-   - **Resume** (`full` or blank) — *finish an interrupted forward run.* Selected = all stages, then **subtract any
-     already `done`** (a stage is done if `state.json` says `done` **or** its output file has a `## GATE` of
-     `status: pass`; `pr` is done if a draft PR exists via `gh pr view`). `archive` is auto-included only for a
-     spec-bearing change (`change` id present); a spec-less change has `archive:"na"` and it's never selected.
-   - **Redo** (`light` / `only <stages>` / `skip <stages>`) — *re-run an explicit subset against amended inputs*
-     (the non-waterfall path). Run **exactly** the selection, **without** subtracting `done`. `light` = just
-     `build`; `only <stages>` = exactly those (e.g. `only build` to re-implement, `only build commit` to
-     re-implement and land it); `skip <stages>` = every stage except those. Redo trusts your selection — it runs
-     what you name even if an upstream stage isn't built.
+   (manual control on an already-built change), so `/workflow:build only build` resolves with no change name. In
+   `epic` mode a fully-built change won't be auto-picked (no pending later stages) — name it to rebuild.
+2. **Choose which stages to run.** The stages, in order, are `build` (the parallel implementer + test-author — they
+   always run **together**), then `test-lint`, `review`, `archive` (spec-bearing only — merges the change's
+   OpenSpec deltas into the canonical library and commits that merge, so it ships in the same PR), `pr` (the PR
+   stage authors its own manual-QA section — there is no separate QA stage). Two modes, picked from `$ARGUMENTS`:
+   - **Resume** (`full` or blank) — the normal case. Selected = all stages, then **subtract any already `done`** (a
+     stage is done if `state.json` says `done` **or** its output file has a `## GATE` of `status: pass`; `pr` is
+     done if a draft PR exists via `gh pr view`). `archive` is auto-included only for a spec-bearing change
+     (`change` id present); a spec-less change has `archive:"na"` and it's never selected.
+   - **Manual control** (`light` / `only <stages>` / `skip <stages>`) — an ad hoc run of an explicit subset, e.g.
+     forcing a lone re-run of `test-lint`. Run **exactly** the selection, **without** subtracting `done`. `light` =
+     just `build`; `only <stages>` = exactly those; `skip <stages>` = every stage except those. This mode trusts
+     your selection — it runs what you name even if an upstream stage isn't built.
 
    Build `pendingStages` from the mode above and pass it to the loop; unselected stages are omitted (the loop skips
    them).
    - **Landing the code — who commits:** `review` commits when it runs; with `review` skipped, `pr` commits (and
      opens/updates the draft PR, **rewriting its body**). `archive` (when it runs) adds its own commit on top of
-     review's, merging the canonical spec — it never opens or touches the PR. To land re-built code **without**
-     touching the PR description, add the **`commit`** token (redo only): it commits + pushes this change's files
-     and nothing else — an existing draft PR picks up the push automatically, body untouched. `commit` is inert if
-     `pr` is also selected (pr does the commit). Select **none** of `review`/`pr`/`commit` (e.g. plain `light`) and
-     the loop leaves your changes uncommitted for you to handle (and `archive` has nothing committed to build on,
-     so it won't run either).
+     review's, merging the canonical spec — it never opens or touches the PR. Select **neither** `review` nor `pr`
+     (e.g. plain `light`) and the loop leaves your changes uncommitted for you to handle (and `archive` has nothing
+     committed to build on, so it won't run either). Once `review` has passed, treat the change as one-way: redo
+     work outside this workflow rather than re-landing code through it.
 3. Detect the test runner per the test-runner-detection reference above — this
    must resolve to a concrete `testCmd` string (e.g. `pytest`, `npm test`, or `peel test` as a runner placeholder
    for peel — see the heuristic), never a bare flag; additionally set `isPeel:true` when the runner is peel. If no
@@ -110,10 +105,9 @@ Read the loop's returned result, then **confirm against disk**: for each stage t
 `state.json` accordingly with transitions (reuse the `sessionId` captured when launching in step 2 above).
 Report to the user: tests green / skipped, review committed?, which capabilities the canonical spec library gained
 or changed (from `archive.md`'s summary — this is what they should read over before merging the PR), draft PR url,
-open non-critical findings. If the change was **committed** (by `review`, `pr`, or the `commit` token), say so and
-report the result. If **none** of those ran (a pure light build), the loop leaves the change uncommitted — report
-that and remind them to review and commit it themselves. When a redo used `only build commit`, note that the
-existing draft PR picked up the push (its description was left as-is).
+open non-critical findings. If the change was **committed** (by `review` or `pr`), say so and report the result.
+If **neither** ran (a pure light build), the loop leaves the change uncommitted — report that and remind them to
+review and commit it themselves.
 - If the result has an **escalation** (`returnTo`), set that stage back to `pending`. If `returnTo` is `test-lint`,
   tests could not run at all — an environment/infra problem (missing/expired credentials, Docker down, image build
   failure), not a design issue. Just describe the concrete problem from `reason` and tell the user to fix their

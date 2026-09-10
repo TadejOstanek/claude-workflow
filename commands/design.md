@@ -8,7 +8,6 @@ argument-hint: [change slug] — blank to use the next change needing design
 Apply the `workflow:code-design` skill. Read `workflow:workflow-conventions` for the GATE format, plus its
 reference files:
 - `${CLAUDE_PLUGIN_ROOT}/skills/workflow-conventions/reference/state-and-layout.md` — file layout + `state.json` schema
-- `${CLAUDE_PLUGIN_ROOT}/skills/workflow-conventions/reference/iterating.md` — only when re-designing a `done` change
 - `${CLAUDE_PLUGIN_ROOT}/skills/workflow-conventions/reference/model-tiers.md` — `design-critic`'s per-tier model
 
 1. Resolve the active workflow from `state.json`. Read `state.json` and the epic `architecture.md` if present.
@@ -17,25 +16,25 @@ reference files:
    `specRoot` (default `"."`) are in `state.json`). For a **spec-less** change (`spec:"none"`) there is no OpenSpec
    change — its intent comes from the feature description / epic `architecture.md`. Use the change in
    `$ARGUMENTS`, else the lowest-`order`
-   change whose `code-design` stage is `pending` (respect `depends_on`); in `single` mode, if none is `pending`
-   (you're **refining** an already-designed change), default to the sole change — `epic` mode requires naming it.
-   For a spec-bearing change, its `stages.propose` must be `done` (the OpenSpec change must exist) — if not, stop
-   and tell the user to run `/workflow:propose` first. A `spec:"none"` change has no spec
-   prerequisite (`propose` is `na`) — proceed. Also read the change's own `architecture.md` if present.
+   change whose `code-design` stage is `pending` (respect `depends_on`). If the resolved change's `code-design`
+   stage is already `"done"`, **stop**: this stage is complete and this command does not re-open it — tell the
+   user any further design change now happens outside the workflow. For a spec-bearing change, its
+   `stages.propose` must be `done` (the OpenSpec change must exist) — if not, stop and tell the user to run
+   `/workflow:propose` first. A `spec:"none"` change has no spec prerequisite (`propose` is `na`) — proceed. Also
+   read the change's own `architecture.md` if present.
 2. **Data model must be decided first.** Check this change's `stages.architecture`:
    - **`pending`** — the data-model & structural-fit pass hasn't run. **Stop** and tell the user to run
      `/workflow:arch` first; that stage owns the data model, and `code-design` treats it as decided input.
-   - **`done`** — you already read the change's `architecture.md` in step 1; use it as the decided data model.
+   - **`done`** — you already read the change's `architecture.md` in step 1; use it as the decided data model. If
+     mid-design it turns out to be wrong, don't send the user to `/workflow:arch` (it's done and won't re-run) —
+     confirm the correction with the user, then edit `architecture.md` in place yourself.
    - **`na`** — skipped (no data-model dimension for this change). Proceed — but if you discover mid-design that a
-     data-model or structural question actually needs deciding, **stop and send
-     the user to `/workflow:arch <change>`** rather than modeling it inline.
-3. If `<change>/code-design.md` already exists (returning), read it + later files to learn why, then refine.
-4. Run the stage interactively per the skill — exact interfaces, components, test behaviors, discovered conventions
+     data-model or structural question actually needs deciding, **stop and send the user to `/workflow:arch
+     <change>`** (its first pass, not a re-run).
+3. Run the stage interactively per the skill — exact interfaces, components, test behaviors, discovered conventions
    (use `orchestration:lookup`/`orchestration:investigate` for the conventions discovery).
-   If the architecture proves infeasible, stop and send the user back to `/workflow:arch` (with what you learned) —
-   for an epic that's the epic arch; for a single change, `/workflow:arch <change>`.
-5. Write `.workflow/<feature>/<change>/code-design.md` (interfaces, components, tests, conventions; checkboxes + `## GATE`).
-6. **Adversarial critique — default-on, skippable.** Ask the user whether to run the `workflow:design-critic` agent
+4. Write `.workflow/<feature>/<change>/code-design.md` (interfaces, components, tests, conventions; checkboxes + `## GATE`).
+5. **Adversarial critique — default-on, skippable.** Ask the user whether to run the `workflow:design-critic` agent
    against the drafted `code-design.md` (default: yes; skip only for a trivial/low-risk change). If run, resolve
    this change's model tier (`change.complexity`) per the model-tiers reference above: for tier
    `deep`, spawn the agent with an explicit `model: "opus"` override (guaranteeing full rigor regardless of your
@@ -45,9 +44,6 @@ reference files:
    Present any findings to the user next to the design. This is advisory, not a gate: if a finding reveals a real
    problem, revise `code-design.md` (re-running the critic afterward if the revision was substantial); proceeding
    without addressing a finding is the user's call, not yours.
-7. Update `state.json` (change `stages["code-design"]="done"`, `currentStage="build"`, append a transition with
+6. Update `state.json` (change `stages["code-design"]="done"`, `currentStage="build"`, append a transition with
    `sessionId`, per the state-and-layout reference above).
-8. Get the user's explicit approval. Then tell them to `/clear` and run `/workflow:build` for this change.
-9. **Iterating?** If any later stage was already `done` before this re-design, its output now describes **older**
-   code — leave stages as-is (the user decides what to redo, per the iterating reference above) and give the exact
-   redo command, e.g. `/workflow:build <change> only build commit` (re-implement + land, no review/PR rewrite).
+7. Get the user's explicit approval. Then tell them to `/clear` and run `/workflow:build` for this change.

@@ -8,7 +8,6 @@ export const meta = {
     { title: 'Review', detail: 'opus review of the diff; commits on pass; fix loop, bounded' },
     { title: 'Archive', detail: 'spec-bearing only: merge the change spec into the canonical library, commit' },
     { title: 'PR', detail: 'draft pull request, including its own manual QA section' },
-    { title: 'Commit', detail: 'redo-only: land code on the branch without opening/rewriting a PR' },
   ],
 }
 
@@ -300,19 +299,8 @@ if (todo('pr') && reviewPassed && !result.escalation) {
   result.stageGates.pr = pr
 }
 
-// ============ COMMIT (redo-only: land re-built code without a PR rewrite) ============
-// For iteration: re-implement against an amended spec, then push to the existing draft PR without re-running
-// review or rewriting the PR body. Inert when `pr` ran (it already committed) or when nothing was selected.
-if (todo('commit') && !todo('pr') && reviewPassed && !result.committed && !result.escalation) {
-  phase('Commit')
-  const c = await agent(`${CTX}\n(Override: write NO file — return your \`## GATE\` as structured output.)\nCommit and push ONLY this change's code/test/doc files${SPEC_CLAUSE} (never \`.workflow/\`${CANON_CLAUSE}, never \`git add -A\`, never unrelated edits). Use a concise why-focused message (no Claude attribution), then push the branch. Do NOT open, edit, or touch any pull request — an existing draft PR picks up the push on its own.`,
-    { agentType: 'workflow:pr-author', ...opt('pr'), phase: 'Commit', label: `commit:${SCOPE}`, schema: GATE_SCHEMA })
-  if (c && c.gate === 'pass') { result.committed = true; log('Committed + pushed (no PR rewrite).') }
-  result.stageGates.commit = c
-}
-
 if (!result.escalation && !result.committed && !result.prUrl) {
-  log('Light build complete — changes are in the working tree, uncommitted (no review, PR, or commit ran). Review and commit when ready.')
+  log('Light build complete — changes are in the working tree, uncommitted (no review or PR ran). Review and commit when ready.')
 }
 if (result.escalation) log(`ESCALATION → ${result.escalation.returnTo}: ${result.escalation.reason}`)
 return result

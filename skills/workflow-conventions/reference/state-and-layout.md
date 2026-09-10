@@ -136,13 +136,18 @@ spec as a per-change OpenSpec change plus the accumulating canonical library (se
   **`archive`** merges this change's OpenSpec deltas into the canonical library and commits that merge — it runs
   automatically once `review` has cleanly committed the code, is `na` for a spec-less change, and is `done` only
   once its `archive.md` GATE is `pass`.
-- `/workflow:build` has two modes (see `reference/iterating.md`). **Resume** (`full`/blank) runs all stages minus
-  those already `done`. **Redo** (`light` / `only <stages>` / `skip <stages>`) runs exactly the named subset
-  *without* subtracting `done` — for re-building against an amended spec. The implement + test-author pair
-  (`build`) always runs **together** when selected. The change is committed by `review` if it runs, else by `pr`,
-  else by the redo-only **`commit`** token (commit + push, no PR rewrite); pick none of the three and the loop
-  leaves it uncommitted. Unselected stages keep their prior status (run them in a later build, or mark `na` if
-  never wanted).
+- **Once a stage is `done`, its own command won't re-run it** — `/workflow:propose`, `/workflow:arch`, and
+  `/workflow:design` each stop if asked to redo an already-`done` stage. An earlier doc can still change after
+  that, but only in place, by whichever later stage is actively running (e.g. `/workflow:design` editing an
+  already-`done` `architecture.md`), and only after confirming with the user first. This never touches other
+  stages' status in `state.json`.
+- `/workflow:build` has two modes. **Resume** (`full`/blank) runs all stages minus those already `done` — the
+  normal case. **Manual control** (`light` / `only <stages>` / `skip <stages>`) runs exactly the named subset
+  *without* subtracting `done` — for ad hoc runs like forcing a lone re-run of `test-lint`. The implement +
+  test-author pair (`build`) always runs **together** when selected. The change is committed by `review` if it
+  runs, else by `pr`; pick neither and the loop leaves it uncommitted. Once `review` has cleanly committed a change
+  it's treated as landed — this workflow doesn't re-land already-committed code; redo it outside this workflow.
+  Unselected stages keep their prior status (run them in a later build, or mark `na` if never wanted).
 - A stage is marked `done` only when its output file exists and its GATE is `pass` (where it has one). Append a
   `transitions` entry on every status change with a one-line reason **and this session's `sessionId`** — the
   value of the `CLAUDE_CODE_SESSION_ID` env var (fetch it once per session and reuse the same value for every

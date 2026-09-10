@@ -25,11 +25,12 @@ epic whose planning is `done` and you named a change with `architecture:"pending
 ## Per-change data-model & fit pass
 Runs for a **single**-mode change, or a **named epic change** (`$ARGUMENTS`) whose `stages.architecture` is
 `"pending"`. Argument: `$ARGUMENTS` (a change slug; blank in single mode = the sole change; **required** in an epic).
-1. Resolve the change. For a `spec:"openspec"` change its `stages.propose` must be `"done"` — if not, stop and tell
-   the user to run `/workflow:propose` first. Read its why/what: the OpenSpec change at
-   `<specRoot>/openspec/changes/<change>/` (`proposal.md` + `specs/**`), or the feature description for a
-   `spec:"none"` change. If `<NN>-<slug>/architecture.md` already exists (returning), read it and any later-stage
-   files first to learn why, then refine.
+1. Resolve the change. If its `stages.architecture` is already `"done"`, **stop**: this stage is complete and this
+   command does not re-open it — any further architecture change now happens in place, during a later stage (e.g.
+   `/workflow:design` editing `architecture.md` directly after confirming with you), not by re-running this
+   command. For a `spec:"openspec"` change its `stages.propose` must be `"done"` — if not, stop and tell the user to
+   run `/workflow:propose` first. Read its why/what: the OpenSpec change at `<specRoot>/openspec/changes/<change>/`
+   (`proposal.md` + `specs/**`), or the feature description for a `spec:"none"` change.
 2. **Skip check.** If the change plainly has **no data-model or structural dimension** (a pure content/copy tweak, a
    config flip), say so and offer to skip: set `stages.architecture="na"`, `currentStage="design"`, append a
    transition (with `sessionId`, per the state-and-layout reference above), and point the user at

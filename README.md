@@ -108,8 +108,7 @@ Or add to `~/.claude/settings.json`:
 # /workflow:design  →  /workflow:build      # code-design.md is the whole contract; archive stage is na
 /workflow:build                             # full autonomous loop → review → archive → draft PR (blank/full = resume: skip done stages)
 /workflow:build light                       #   …or light: just implement + tests (skip test-run/review/archive/PR)
-/workflow:build only build commit           #   …iterate: re-implement + push to the existing PR, no review/body
-/workflow:build skip review                 #   …or full minus named stages (only/skip/light = redo, ignores done)
+/workflow:build skip review                 #   …or full minus named stages (only/skip/light = manual control, ignores done)
 
 # epic (multi-change): run /workflow:arch right after start to break it into changes,
 # then propose → design → build (review → archive → PR) per change.
@@ -120,26 +119,21 @@ Or add to `~/.claude/settings.json`:
 
 `/workflow:build` runs implement‖test together (when `build` is selected); `test-lint`, `review`, `archive`, and
 `pr` are optional. **Resume** (`full`/blank) runs everything not yet `done` (`archive` is auto-included for a
-spec-bearing change); **redo** (`light`/`only`/`skip`) re-runs exactly what you name even if it's already done —
-that's the knob for non-waterfall iteration. Skip `review` and the change is left uncommitted (or `pr` commits it,
-rewriting the PR body, in which case `archive` still runs first if selected); the redo-only **`commit`** token
-commits + pushes without touching the PR body.
+spec-bearing change). `light`/`only`/`skip` are separate manual controls — they re-run exactly what you name even
+if it's already done, for ad hoc things like forcing a lone re-run of `test-lint`. Skip `review` and the change is
+left uncommitted (or `pr` commits it, rewriting the PR body, in which case `archive` still runs first if selected).
 
 ### Iterating (going back a step)
 
-This is not a waterfall — you'll loop back. Typical flow after manual QA finds a gap (single change shown — no
-change name needed; in an epic, name the change on each command):
+Once a stage is `done`, its own command won't repeat it — `/workflow:propose`, `/workflow:arch`, and
+`/workflow:design` each stop if asked to redo an already-`done` stage. An earlier doc can still change after that,
+but only in place, by whichever later stage is actively running — e.g. a `/workflow:design` conversation that
+surfaces a data-model problem edits `architecture.md` directly, but only after telling you and getting your
+confirmation. There's no separate redo command and nothing else gets invalidated.
 
-```
-/workflow:propose                           # add the missing requirement to the spec (re-validates)
-/workflow:design                            # refine code-design
-/workflow:build only build commit           # re-implement + push to the existing draft PR — reuses the existing branch, no review/body rewrite
-```
-
-Re-opening an upstream stage never auto-invalidates the downstream ones — they stay `done` and you choose what to
-redo (add `review`/`archive`/`pr` to the `only` list the rounds you want them). `archive`'s merge is irreversible,
-so it only fires once `review` has cleanly committed — don't `only archive` (or a full `/workflow:build`) against a
-change you might still revise.
+Once `review` has cleanly committed the code, treat the change as landed — a one-way street; any further fix
+belongs outside this workflow. `archive`'s merge is irreversible for the same reason, so it only fires once
+`review` has cleanly committed.
 
 ## Reviewing a PR (standalone)
 
