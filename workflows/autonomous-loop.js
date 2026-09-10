@@ -6,6 +6,7 @@ export const meta = {
     { title: 'Migrate', detail: 'optional pre-test command; skipped when migrateCmd absent' },
     { title: 'Test', detail: 'scoped test+lint (haiku); reconcile → re-run, bounded' },
     { title: 'Review', detail: 'opus review of the diff; commits on pass; fix loop, bounded' },
+    { title: 'Archive', detail: 'spec-bearing only: merge the change spec into the canonical library, commit' },
     { title: 'PR', detail: 'draft pull request, including its own manual QA section' },
     { title: 'Commit', detail: 'redo-only: land code on the branch without opening/rewriting a PR' },
   ],
@@ -24,6 +25,9 @@ const CHANGE_DIR = A.changeDir || null  // <specRoot>/openspec/changes/<change-i
 // Canonical spec library for this change's OpenSpec root (sibling of changes/). Derived from CHANGE_DIR so it is
 // correct whether specRoot is the repo root or an app/domain sub-dir — never staged during the loop (merges only at archive).
 const CANON_SPECS = CHANGE_DIR ? CHANGE_DIR.replace(/\/changes\/[^/]+\/?$/, '/specs') : 'openspec/specs'
+// Archive stage inputs, derived from CHANGE_DIR — the abs specRoot dir (openspec's cwd) and the change id.
+const SPEC_ROOT_DIR = CHANGE_DIR ? CHANGE_DIR.replace(/\/openspec\/changes\/[^/]+\/?$/, '') : null
+const CHANGE_ID = CHANGE_DIR ? CHANGE_DIR.replace(/\/$/, '').split('/').pop() : null
 // OpenSpec-change clauses spliced into the review/commit/PR instructions. Empty for a spec-less change (no
 // CHANGE_DIR) so we never tell an agent to stage an `openspec/changes/<change>` path that doesn't exist.
 const SPEC_CLAUSE = CHANGE_DIR ? ` plus the phase's OpenSpec change at ${CHANGE_DIR}` : ''
@@ -263,8 +267,28 @@ if (todo('review') && review && review.clean && !review.committed) {
   log('Review clean but commit did NOT happen — holding the PR. Investigate before shipping.')
 }
 
+// ============ ARCHIVE (spec-bearing only: merge into the canonical library, commit) ============
+// Runs on the branch, after review's commit and before the PR is opened, so the canonical spec merge ships in
+// the same PR. Inert for a spec-less change (no CHANGE_DIR) — nothing to archive.
+let archiveResult = null
+if (todo('archive') && CHANGE_DIR && reviewPassed) {
+  phase('Archive')
+  const ARCHIVE_RUN = `${CTX}\nMerge this change's OpenSpec deltas into the canonical library.
+Spec root: ${SPEC_ROOT_DIR}  (run \`openspec\` with this as cwd)
+Change id: ${CHANGE_ID}
+Write ${PHASE_DIR}/archive.md.`
+  archiveResult = await agent(ARCHIVE_RUN, { agentType: 'workflow:archiver', ...opt('archive'), phase: 'Archive', label: `archive:${SCOPE}`, schema: GATE_SCHEMA })
+  result.stageGates.archive = archiveResult
+  if (archiveResult && archiveResult.gate === 'fail') {
+    escalate(archiveResult.returnTo || 'propose', archiveResult.reason || 'archive agent could not merge the spec deltas cleanly')
+  } else if (archiveResult) {
+    log(`Archive: ${archiveResult.summary}`)
+  }
+}
+result.archived = !!(archiveResult && archiveResult.gate === 'pass')
+
 // ============ PR (draft, authors its own QA section) ============
-if (todo('pr') && reviewPassed) {
+if (todo('pr') && reviewPassed && !result.escalation) {
   phase('PR')
   const COMMIT_NOTE = result.committed
     ? `First ensure every file of this change is committed — if any change files are still uncommitted, commit them now (scoped to this change's code/test/doc files${SPEC_CLAUSE}; never \`.workflow/\`${CANON_CLAUSE}, never unrelated edits). Then `
@@ -279,7 +303,7 @@ if (todo('pr') && reviewPassed) {
 // ============ COMMIT (redo-only: land re-built code without a PR rewrite) ============
 // For iteration: re-implement against an amended spec, then push to the existing draft PR without re-running
 // review or rewriting the PR body. Inert when `pr` ran (it already committed) or when nothing was selected.
-if (todo('commit') && !todo('pr') && reviewPassed && !result.committed) {
+if (todo('commit') && !todo('pr') && reviewPassed && !result.committed && !result.escalation) {
   phase('Commit')
   const c = await agent(`${CTX}\n(Override: write NO file — return your \`## GATE\` as structured output.)\nCommit and push ONLY this change's code/test/doc files${SPEC_CLAUSE} (never \`.workflow/\`${CANON_CLAUSE}, never \`git add -A\`, never unrelated edits). Use a concise why-focused message (no Claude attribution), then push the branch. Do NOT open, edit, or touch any pull request — an existing draft PR picks up the push on its own.`,
     { agentType: 'workflow:pr-author', ...opt('pr'), phase: 'Commit', label: `commit:${SCOPE}`, schema: GATE_SCHEMA })
@@ -288,7 +312,7 @@ if (todo('commit') && !todo('pr') && reviewPassed && !result.committed) {
 }
 
 if (!result.escalation && !result.committed && !result.prUrl) {
-  log('Light build complete — changes are in the working tree, uncommitted (no review, PR, or commit ran). Review, commit, and run /workflow:archive when ready.')
+  log('Light build complete — changes are in the working tree, uncommitted (no review, PR, or commit ran). Review and commit when ready.')
 }
 if (result.escalation) log(`ESCALATION → ${result.escalation.returnTo}: ${result.escalation.reason}`)
 return result

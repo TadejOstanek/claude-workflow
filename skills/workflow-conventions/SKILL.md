@@ -43,11 +43,13 @@ file for your stage instead of guessing; each is self-contained on its topic:
 
 - `${CLAUDE_PLUGIN_ROOT}/skills/workflow-conventions/reference/state-and-layout.md` — the unit-of-work model, the
   spec-triage heuristic, `.workflow/`+`openspec/` folder layout, the full `state.json` schema, and Resume/Status.
-  Read by every command that touches `state.json`: `start`, `propose`, `arch`, `design`, `build`, `archive`.
+  Read by every command that touches `state.json`: `start`, `propose`, `arch`, `design`, `build` (whose loop runs
+  the `archive` stage).
 - `${CLAUDE_PLUGIN_ROOT}/skills/workflow-conventions/reference/git-safety.md` — the checkout-safety check and branch
   provisioning. Read by `build`
 - `${CLAUDE_PLUGIN_ROOT}/skills/workflow-conventions/reference/openspec-integration.md` — the OpenSpec thin-seam
-  contract: `specRoot`, authoring, consumption, archive. Read by `propose` and `archive`.
+  contract: `specRoot`, authoring, consumption, archive. Read by `propose` and the loop's `archive` stage
+  (`agents/archiver.md`).
 - `${CLAUDE_PLUGIN_ROOT}/skills/workflow-conventions/reference/test-runner-detection.md` — how to detect a repo's
   test/lint command. Read by `build` and `review-pr`.
 - `${CLAUDE_PLUGIN_ROOT}/skills/workflow-conventions/reference/iterating.md` — going back a step without a

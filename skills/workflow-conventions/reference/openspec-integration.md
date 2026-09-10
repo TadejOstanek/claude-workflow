@@ -1,7 +1,7 @@
 # OpenSpec integration (workflow-conventions reference)
 
 Read this when your stage authors, consumes, or archives a change's OpenSpec spec — currently `/workflow:propose`
-and `/workflow:archive` (`/workflow:design` only needs the one-line consumption note below).
+and the loop's `archive` stage (`/workflow:design` only needs the one-line consumption note below).
 
 - **`<specRoot>`** is the repo-relative directory whose `openspec/` holds this change (default `"."` = repo
   root; stored per change in `state.json`). A repo may keep one root `openspec/` *or* opt into per-app/domain
@@ -35,10 +35,12 @@ Grain: **one OpenSpec change = one change = one PR.**
   **never** `<specRoot>/openspec/specs/` (the canonical library). For a **spec-less** change there is no OpenSpec
   change: `changeDir` is `null`, `code-design.md` is the whole behavioral contract, and nothing OpenSpec-related is
   read or committed.
-- **Archive is manual and deliberate** (`/workflow:archive`): run it yourself (with cwd = `<specRoot>`) when you
-  are sure the change is fully done. It merges the change's deltas into the canonical
-  `<specRoot>/openspec/specs/<capability>/` and moves the change to `<specRoot>/openspec/changes/archive/`. It is
-  **not** automated by the loop. Run it on the change's branch *before* merging (so the canonical spec ships in
-  the PR) or after — your call.
+- **Archive runs automatically, inside the loop** (the `archive` stage of `/workflow:build`, agent
+  `workflow:archiver`, cwd = `<specRoot>`): once review commits the code, archive merges the change's deltas into
+  the canonical `<specRoot>/openspec/specs/<capability>/`, moves the change to
+  `<specRoot>/openspec/changes/archive/`, and commits that merge — all on the branch, *before* the PR opens, so
+  the canonical spec ships in the same PR. Review the merged specs (the archive stage's summary, and the diff) once
+  the loop finishes, before merging the PR — the merge itself is irreversible, but nothing stops you from amending
+  the canonical spec by hand afterward if you spot a problem.
 - Requires the `openspec` CLI (`@fission-ai/openspec`, Node ≥ 20.19) and a one-time `openspec init` in each
   `specRoot` (the engine runs it automatically when a chosen `specRoot` has no `openspec/` yet).

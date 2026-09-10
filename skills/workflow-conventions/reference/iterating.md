@@ -25,5 +25,8 @@ stages you don't want. The workflow supports this, and stages are revisitable. T
   build commit` (re-implement + push to the existing draft PR, no review/PR-body rewrite). Use `only build` (no
   commit) to leave it uncommitted, or add `review`/`pr` to the `only` list when you *do* want them this round (`pr`
   re-authors the manual-QA section too).
-- **Archive last protects iteration.** The canonical merge (`/workflow:archive`) is irreversible, so iterate freely
-  *before* it; never archive a change you might still revise.
+- **Archive runs last, automatically, inside `/workflow:build`.** The canonical merge is irreversible, so it only
+  runs once `review` has cleanly committed the code — iterate on `propose`/`design`/`build` freely before that
+  point. If you re-run `/workflow:build` with `only archive` (or `skip archive`) after the fact, you're overriding
+  the default — do that only when you're deliberately re-triggering (or holding back) an already-committed change's
+  spec merge.

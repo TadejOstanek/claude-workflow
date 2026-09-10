@@ -9,12 +9,12 @@ delta conventions live in `workflow:workflow-conventions` itself.
 The unit is a **change** = one PR. A *spec-bearing* change's spec is authored by
 `/workflow:propose` (why/what + capabilities, then the requirement/scenario deltas — one session, two phases) —
 then, by default, `/workflow:arch` (the data-model & structural-fit pass; skippable) — then `/workflow:design`
-(code design) and `/workflow:build` (the autonomous loop → draft PR), and finally
-`/workflow:archive` (manual, when you're sure it's done). A *spec-less* change (`spec: "none"` — see below) skips
-the spec step and goes straight to `/workflow:design` → `/workflow:build`; there is no OpenSpec change and
-nothing to archive. When the work is too big for one PR, an **epic** groups
-several changes: `/workflow:arch` plans the breakdown — the epic has **no spec of its own**, its intent lives in
-the architecture doc — then each change runs the same propose → design → build → archive.
+(code design) and `/workflow:build` (the autonomous loop: implement+test → test/lint → review → **archive** the
+spec into the canonical library → draft PR). A *spec-less* change (`spec: "none"` — see below) skips the spec step
+and goes straight to `/workflow:design` → `/workflow:build`; there is no OpenSpec change and nothing to archive.
+When the work is too big for one PR, an **epic** groups several changes: `/workflow:arch` plans the breakdown —
+the epic has **no spec of its own**, its intent lives in the architecture doc — then each change runs the same
+propose → design → build (which now includes archive).
 
 `/workflow:start` picks the **mode**: `single` (one change, no epic architecture) or `epic` (architecture
 breakdown + multiple changes).
@@ -62,19 +62,20 @@ spec as a per-change OpenSpec change plus the accumulating canonical library (se
     tests.md          # test agent's discoveries/deviations
     test-lint.md      # test & lint run report
     review.md         # review verdict + findings
+    archive.md        # archive stage's merged/changed capabilities (spec-bearing only) + GATE
 
 <specRoot>/openspec/   # OpenSpec home for this change (one-time `openspec init` in <specRoot>)
   changes/<change-id>/          # the change's behavioral spec (authored by /workflow:propose)
     proposal.md                 # why/what + capabilities
     specs/<capability>/spec.md  # ADDED/MODIFIED/REMOVED deltas: `### Requirement:` + `#### Scenario:` (4 hashes)
-  specs/<capability>/spec.md    # CANONICAL living library — you merge into it with /workflow:archive when done
+  specs/<capability>/spec.md    # CANONICAL living library — the loop's archive stage merges into it
   changes/archive/YYYY-MM-DD-<change-id>/   # archived changes (full history)
 ```
 
 - `<feature-slug>`/`<change-slug>`: short kebab-case. `.workflow/` stage filenames are fixed and **never** contain
   the feature/change name (the folder carries it).
-- The **PR** stage writes no file — its draft-PR link is surfaced by `/workflow:build`. **Archive** is a manual
-  step (`/workflow:archive`), not part of the loop.
+- The **PR** stage writes no file — its draft-PR link is surfaced by `/workflow:build`. **Archive** runs inside the
+  loop, right before PR, and writes `archive.md`.
 
 ## state.json schema
 
@@ -93,7 +94,7 @@ spec as a per-change OpenSpec change plus the accumulating canonical library (se
       "ticket": null, "branch": null,
       "stages": {
         "propose": "pending", "architecture": "pending", "design": "pending",
-        "build": "pending", "test-lint": "pending", "review": "pending", "pr": "pending", "archive": "pending"
+        "build": "pending", "test-lint": "pending", "review": "pending", "archive": "pending", "pr": "pending"
       }
     }
   ],
@@ -128,11 +129,13 @@ spec as a per-change OpenSpec change plus the accumulating canonical library (se
 - `ticket`, `branch` live **on each change** (not top-level — a workflow can have several changes, each with its
   own branch/PR). `null` until `/workflow:build` provisions them; see `reference/git-safety.md`.
 - Per-change stages run: `propose` → `architecture` → `design` → `build` (the parallel implement + test-author pair,
-  both green = `done`) → `test-lint` → `review` → `pr` → `archive`. The `propose` stage authors the whole spec
-  (`proposal.md` + the `specs/` deltas) in one session. There is no separate docs/QA stage: an ADR (the
-  only permanent doc this workflow writes — business-process documentation is OpenSpec's job) is written directly
-  during `design` (or `architecture`) when warranted, and manual QA is authored directly by `pr`. **`archive` is
-  `done` only once you've run `/workflow:archive`** — a deliberate manual step.
+  both green = `done`) → `test-lint` → `review` → `archive` → `pr`, all inside `/workflow:build`. The `propose`
+  stage authors the whole spec (`proposal.md` + the `specs/` deltas) in one session. There is no separate docs/QA
+  stage: an ADR (the only permanent doc this workflow writes — business-process documentation is OpenSpec's job) is
+  written directly during `design` (or `architecture`) when warranted, and manual QA is authored directly by `pr`.
+  **`archive`** merges this change's OpenSpec deltas into the canonical library and commits that merge — it runs
+  automatically once `review` has cleanly committed the code, is `na` for a spec-less change, and is `done` only
+  once its `archive.md` GATE is `pass`.
 - `/workflow:build` has two modes (see `reference/iterating.md`). **Resume** (`full`/blank) runs all stages minus
   those already `done`. **Redo** (`light` / `only <stages>` / `skip <stages>`) runs exactly the named subset
   *without* subtracting `done` — for re-building against an amended spec. The implement + test-author pair

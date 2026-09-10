@@ -1,6 +1,6 @@
 ---
-description: Run the autonomous loop for a change — creates the branch, then implement+test always, then optional test/lint, review, draft PR. Launches a background Workflow; reports when it finishes.
-argument-hint: [change slug] [full | light | only <stages> | skip <stages>] — stages: test-lint review pr commit
+description: Run the autonomous loop for a change — creates the branch, then implement+test always, then optional test/lint, review, archive, draft PR. Launches a background Workflow; reports when it finishes.
+argument-hint: [change slug] [full | light | only <stages> | skip <stages>] — stages: test-lint review archive pr commit
 ---
 
 # /workflow:build
@@ -31,11 +31,14 @@ plus its reference files:
    (you're iterating), so `/workflow:build only build commit` resolves with no change name. In `epic` mode a
    fully-built change won't be auto-picked (no pending later stages) — name it to rebuild.
 2. **Choose which stages to run — and whether to *resume* or *redo*.** The stages, in order, are `build` (the
-   parallel implementer + test-author — they always run **together**), then `test-lint`, `review`, `pr` (the PR
-   stage authors its own manual-QA section — there is no separate QA stage). Two modes, picked from `$ARGUMENTS`:
+   parallel implementer + test-author — they always run **together**), then `test-lint`, `review`, `archive`
+   (spec-bearing only — merges the change's OpenSpec deltas into the canonical library and commits that merge,
+   so it ships in the same PR), `pr` (the PR stage authors its own manual-QA section — there is no separate QA
+   stage). Two modes, picked from `$ARGUMENTS`:
    - **Resume** (`full` or blank) — *finish an interrupted forward run.* Selected = all stages, then **subtract any
      already `done`** (a stage is done if `state.json` says `done` **or** its output file has a `## GATE` of
-     `status: pass`; `pr` is done if a draft PR exists via `gh pr view`).
+     `status: pass`; `pr` is done if a draft PR exists via `gh pr view`). `archive` is auto-included only for a
+     spec-bearing change (`change` id present); a spec-less change has `archive:"na"` and it's never selected.
    - **Redo** (`light` / `only <stages>` / `skip <stages>`) — *re-run an explicit subset against amended inputs*
      (the non-waterfall path). Run **exactly** the selection, **without** subtracting `done`. `light` = just
      `build`; `only <stages>` = exactly those (e.g. `only build` to re-implement, `only build commit` to
@@ -43,13 +46,15 @@ plus its reference files:
      what you name even if an upstream stage isn't built.
 
    Build `pendingStages` from the mode above and pass it to the loop; unselected stages are omitted (the loop skips
-   them). **`archive` is never in the loop** — it's the manual `/workflow:archive`.
+   them).
    - **Landing the code — who commits:** `review` commits when it runs; with `review` skipped, `pr` commits (and
-     opens/updates the draft PR, **rewriting its body**). To land re-built code **without** touching the PR
-     description, add the **`commit`** token (redo only): it commits + pushes this change's files and nothing else —
-     an existing draft PR picks up the push automatically, body untouched. `commit` is inert if `pr` is also
-     selected (pr does the commit). Select **none** of `review`/`pr`/`commit` (e.g. plain `light`) and the loop
-     leaves your changes uncommitted for you to handle.
+     opens/updates the draft PR, **rewriting its body**). `archive` (when it runs) adds its own commit on top of
+     review's, merging the canonical spec — it never opens or touches the PR. To land re-built code **without**
+     touching the PR description, add the **`commit`** token (redo only): it commits + pushes this change's files
+     and nothing else — an existing draft PR picks up the push automatically, body untouched. `commit` is inert if
+     `pr` is also selected (pr does the commit). Select **none** of `review`/`pr`/`commit` (e.g. plain `light`) and
+     the loop leaves your changes uncommitted for you to handle (and `archive` has nothing committed to build on,
+     so it won't run either).
 3. Detect the test runner per the test-runner-detection reference above — this
    must resolve to a concrete `testCmd` string (e.g. `pytest`, `npm test`, or `peel test` as a runner placeholder
    for peel — see the heuristic), never a bare flag; additionally set `isPeel:true` when the runner is peel. If no
@@ -72,7 +77,7 @@ plus its reference files:
    Once safe, the loop's git/test/PR commands run in `workdir`; resolve `changeDir` (step 1) under this same
    `workdir`.
 5. **Resolve the model-tiers config** per the model-tiers reference above: tier = `change.complexity`; read
-   `${CLAUDE_PLUGIN_ROOT}/config/model-tiers.json` and take that tier's `code`/`test`/`run`/`review`/`pr` entries
+   `${CLAUDE_PLUGIN_ROOT}/config/model-tiers.json` and take that tier's `code`/`test`/`run`/`review`/`archive`/`pr` entries
    as `models` for step 2.
 
 ## 2. Launch the loop (async — then end your turn)
@@ -88,7 +93,7 @@ Call the **Workflow** tool with `scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/au
   "baseRef": "main", "appDir": "<dir or .>",
   "testCmd": "<detected or null>", "migrateCmd": "<or null>", "isPeel": <bool>,
   "pendingStages": ["..."],
-  "models": { "code": {"model": "...", "effort": "..."}, "test": {...}, "run": {...}, "review": {...}, "pr": {...} }
+  "models": { "code": {"model": "...", "effort": "..."}, "test": {...}, "run": {...}, "review": {...}, "archive": {...}, "pr": {...} }
 }
 ```
 Set `state.json` stage `build` (and the rest of this change's pipeline) to `in_progress`, append a transition —
@@ -100,15 +105,15 @@ a task notification.
 
 ## 3. When the loop finishes (you'll be notified) — verify, don't trust
 Read the loop's returned result, then **confirm against disk**: for each stage that ran, read its output file
-(`implementation.md`, `tests.md`, `test-lint.md`, `review.md`) and mark the stage `done` only if its `## GATE` is
-`status: pass`; otherwise `failed`. The draft PR link comes from the loop result (no file). Update `state.json`
-accordingly with transitions (reuse the `sessionId` captured when launching in step 2 above).
-Report to the user: tests green / skipped, review committed?, draft PR url, open non-critical findings — and the
-reminder to run **`/workflow:archive`** when they're sure the change is done (the canonical-spec merge is manual).
-If the change was **committed** (by `review`, `pr`, or the `commit` token), say so and report the result. If
-**none** of those ran (a pure light build), the loop leaves the change uncommitted — report that and remind them to
-review, commit, and `/workflow:archive` it themselves. When a redo used `only build commit`, note that the existing
-draft PR picked up the push (its description was left as-is).
+(`implementation.md`, `tests.md`, `test-lint.md`, `review.md`, `archive.md`) and mark the stage `done` only if its
+`## GATE` is `status: pass`; otherwise `failed`. The draft PR link comes from the loop result (no file). Update
+`state.json` accordingly with transitions (reuse the `sessionId` captured when launching in step 2 above).
+Report to the user: tests green / skipped, review committed?, which capabilities the canonical spec library gained
+or changed (from `archive.md`'s summary — this is what they should read over before merging the PR), draft PR url,
+open non-critical findings. If the change was **committed** (by `review`, `pr`, or the `commit` token), say so and
+report the result. If **none** of those ran (a pure light build), the loop leaves the change uncommitted — report
+that and remind them to review and commit it themselves. When a redo used `only build commit`, note that the
+existing draft PR picked up the push (its description was left as-is).
 - If the result has an **escalation** (`returnTo`), set that stage back to `pending`. If `returnTo` is `test-lint`,
   tests could not run at all — an environment/infra problem (missing/expired credentials, Docker down, image build
   failure), not a design issue. Just describe the concrete problem from `reason` and tell the user to fix their
