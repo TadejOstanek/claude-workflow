@@ -8,13 +8,33 @@ export const meta = {
 }
 
 // ---------- args (from /workflow:insights, which has filesystem + git access) ----------
+// This script must never be invoked directly with a bare/ad-hoc args value — /workflow:insights
+// does the real work (resolving the change from state.json, collecting sessionIds, computing the
+// window) and hands this script a fully-resolved object. Fail loudly on anything else instead of
+// silently degrading to an empty-scope run.
 let A = args
-if (typeof A === 'string') { try { A = JSON.parse(A) } catch (_e) { A = {} } }
-A = A || {}
+if (typeof A === 'string') {
+  try { A = JSON.parse(A) } catch (_e) {
+    throw new Error(
+      `insights.js expects a resolved args object from /workflow:insights, not a raw string. ` +
+      `Got: ${JSON.stringify(args)}. Run the /workflow:insights slash command instead of calling ` +
+      `the Workflow tool directly.`
+    )
+  }
+}
+if (!A || typeof A !== 'object' || Array.isArray(A)) {
+  throw new Error(`insights.js expects a resolved args object from /workflow:insights. Got: ${JSON.stringify(args)}.`)
+}
+if (!A.feature || !Array.isArray(A.changes) || A.changes.length === 0) {
+  throw new Error(
+    `insights.js args missing required fields (feature, changes) — this script must be invoked ` +
+    `via /workflow:insights, which resolves them from .workflow/<feature>/state.json. Got: ${JSON.stringify(A)}.`
+  )
+}
 
-const FEATURE = A.feature || ''
+const FEATURE = A.feature
 const SCOPE = A.scope === 'epic' ? 'epic' : 'single-change'
-const CHANGES = Array.isArray(A.changes) ? A.changes : []
+const CHANGES = A.changes
 const REPORT_DIR = A.reportDir || '.'
 const REPO_ROOT = A.repoRoot || '.'
 const MODE = A.mode === 'exact' ? 'exact' : 'approximate'
