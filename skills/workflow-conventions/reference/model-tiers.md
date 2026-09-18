@@ -7,7 +7,7 @@ fixed rigor.
 
 ## The problem this solves
 
-Every subagent role (`code`, `test`, `run`, `review`, `archive`, `pr`, `spec`, `find`, `verify`, `synth`, `cost`,
+Every subagent role (`code`, `test`, `run`, `review`, `pr`, `spec`, `find`, `verify`, `synth`, `cost`,
 `quality`, `learnings`, `design-critic`) used to run on one hardcoded model, forever, regardless of the change. There's no way
 to spend more thinking on a gnarly migration than on a one-line tidy-first fix. This config makes both **model**
 and **effort** (`low|medium|high|xhigh|max` — a real, independently-tunable subagent knob, separate from model
@@ -15,8 +15,8 @@ choice) tunable per role, tiered by a change's `complexity`.
 
 ## The three tiers
 
-`light` | `standard` | `deep` — set per change as `complexity` in `state.json` (see `state-and-layout.md`), same
-recommend-then-user-confirms shape as the `spec` triage, at `/workflow:start` or `/workflow:arch`.
+`light` | `standard` | `deep` — set per change as `complexity` in `state.json` (see `state-and-layout.md`),
+recommend-then-user-confirms, at `/workflow:start` or `/workflow:arch`.
 
 ## The config file
 
@@ -29,7 +29,7 @@ per-repo override layer; this workflow has a single user/config). Shape: `tier �
 The command (not the Workflow script — scripts have no filesystem access) reads `config/model-tiers.json`, picks
 this invocation's tier, and passes only the roles its script needs as `args.models`:
 
-- `/workflow:build` → tier = `change.complexity` → `args.models` = `{code, test, run, review, archive, pr}`
+- `/workflow:build` → tier = `change.complexity` → `args.models` = `{code, test, run, review, pr}`
 - `/workflow:review-pr` → standalone (no `state.json`); tier from a `--complexity <tier>` flag, default
   `standard` → `args.models` = `{spec, find, verify, synth}`
 - `/workflow:insights` → standalone; tier from `--complexity <tier>` if given, else the single change's own

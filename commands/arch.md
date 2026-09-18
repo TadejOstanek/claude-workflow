@@ -16,8 +16,7 @@ runs in two:
   the work into changes (**plus** the data-model + fit method). Runs once, first, before any change.
 - **Per-change data-model & fit pass** — for a **single** change, or a **named epic change** whose
   `stages.architecture` is `"pending"`: scrutinize the data model + structural fit for that **one** change, after
-  its why/what are defined (`/workflow:propose`, or the feature description for a `spec:"none"` change) and before
-  `/workflow:design`. No change breakdown.
+  its why/what are defined (`/workflow:propose`'s `spec.md`) and before `/workflow:design`. No change breakdown.
 
 Dispatch: `mode:"epic"` **and** `epic.architecture != "done"` → **Epic planning**; otherwise (single mode, or an
 epic whose planning is `done` and you named a change with `architecture:"pending"`) → **Per-change pass**.
@@ -28,9 +27,8 @@ Runs for a **single**-mode change, or a **named epic change** (`$ARGUMENTS`) who
 1. Resolve the change. If its `stages.architecture` is already `"done"`, **stop**: this stage is complete and this
    command does not re-open it — any further architecture change now happens in place, during a later stage (e.g.
    `/workflow:design` editing `architecture.md` directly after confirming with you), not by re-running this
-   command. For a `spec:"openspec"` change its `stages.propose` must be `"done"` — if not, stop and tell the user to
-   run `/workflow:propose` first. Read its why/what: the OpenSpec change at `<specRoot>/openspec/changes/<change>/`
-   (`proposal.md` + `specs/**`), or the feature description for a `spec:"none"` change.
+   command. Its `stages.propose` must be `"done"` — if not, stop and tell the user to run `/workflow:propose`
+   first. Read its why/what: `spec.md`.
 2. **Skip check.** If the change plainly has **no data-model or structural dimension** (a pure content/copy tweak, a
    config flip), say so and offer to skip: set `stages.architecture="na"`, `currentStage="design"`, append a
    transition (with `sessionId`, per the state-and-layout reference above), and point the user at

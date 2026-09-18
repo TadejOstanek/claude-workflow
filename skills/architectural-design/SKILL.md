@@ -15,8 +15,11 @@ code-level design (no function/class names here; that's `/workflow:design`). Run
 `/workflow:arch` resolves the mode and applies the right shape.
 
 ## Method (both shapes) — data model & structural fit
-- Read the **code** and any **architecture/practice docs** in the repo. Use `orchestration:investigate` for
-  codebase understanding rather than grepping file-by-file.
+- Read `references.md` (seeded by `propose`) and `spec.md` — the running pointer list and the Why + Acceptance
+  Criteria this change must satisfy. Read the **code** and any **architecture/practice docs** in the repo; use
+  `orchestration:investigate` for codebase understanding rather than grepping file-by-file. As you find more
+  relevant files/symbols, append them to `references.md`, tagged `(architecture)` — never rewrite or prune another
+  stage's lines.
 - Understand the currently modelled business processes and the **delta** this work introduces.
 - Scrutinize the **data model**: store vs. compute a field? extend an existing model vs. add a new one? Cover all
   stored state — DB, cache, in-memory, browser. "No data-model change" is a valid conclusion — but reach it
@@ -26,9 +29,8 @@ code-level design (no function/class names here; that's `/workflow:design`). Run
 - Challenge the user's assumptions. Surface the big and small fit decisions — for each, **recommend** an option and
   say why, then get the user's call.
 - **Pressure-test** the chosen design against the real code when complexity warrants.
-- Input differs by shape: a **single** change's why/what is its OpenSpec change (`proposal.md` + `specs/**`, or the
-  feature description for a `spec:"none"` change); an **epic**'s intent is the workflow `title`/description (there
-  is **no** epic spec file).
+- Input differs by shape: a **single** change's why/what is its `spec.md`; an **epic**'s intent is the workflow
+  `title`/description (there is **no** epic spec file).
 
 ## Change breakdown (epic only)
 See `${CLAUDE_PLUGIN_ROOT}/skills/architectural-design/reference/epic-planning.md` for the change-breakdown
@@ -37,7 +39,7 @@ approach and the full epic planning procedure.
 ## ADRs (if warranted)
 If a decision made here is heavy enough to outlive this conversation, write the ADR directly, now, while the
 reasoning is fresh (ask the user where ADRs live if the repo has no convention yet). Most changes/epics need none —
-**under-write**. The ADR is the only permanent doc this workflow writes; behavioral documentation is OpenSpec's job.
+**under-write**. The ADR is the only permanent doc this workflow writes on its own;
 
 ## Output: `architecture.md`
 Write to the epic's `.workflow/<feature>/architecture.md` (epic) or the change's

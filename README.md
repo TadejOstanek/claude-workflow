@@ -5,33 +5,31 @@ non-trivial feature, refactor, or bug fix; it walks the work through fixed stage
 input, hands off between stages via files, and resumes cleanly after interruptions.
 
 The unit of work is a **change** = one PR. A small piece of work is a single change; bigger work is an **epic**
-that `/workflow:arch` breaks into several changes. A behavioral change carries an OpenSpec spec; a **purely
-technical change** (refactor, code org, infra/CI, deps) can opt out of OpenSpec — see "Spec-less changes" below.
+that `/workflow:arch` breaks into several changes. Every change, technical or behavioral, gets a native `spec.md`
+(Why + checkbox Acceptance Criteria).
 
 ## The pipeline (per change)
 
 | Stage | Mode | Who | Output |
 |------|------|-----|--------|
-| Propose | interactive *(spec-bearing only)* | `/workflow:propose` | OpenSpec change: `proposal.md` (why/what + capabilities) **and** `specs/<cap>/spec.md` (requirement/scenario deltas) — one session, two phases |
-| Architectural design | interactive *(data model & fit; default-on for spec-bearing, skippable)* | `/workflow:arch` | `architecture.md` (data-model & structural-fit decisions; an ADR too, if warranted) |
+| Propose | interactive | `/workflow:propose` | `spec.md` (Why + checkbox Acceptance Criteria) — one session, one phase: orient in the code, then talk it through; also seeds `references.md` |
+| Architectural design | interactive *(data model & fit; default-on, skippable)* | `/workflow:arch` | `architecture.md` (data-model & structural-fit decisions; an ADR too, if warranted) |
 | Code design | interactive (+ adversarial `design-critic` pass; default-on, skippable) | `/workflow:design` | `code-design.md` (interfaces + test behaviors; an ADR too, if warranted), `design-critique.md` |
 | Implement ‖ Test | auto (sonnet\*) | `implementer` ‖ `test-author` | code, tests |
 | Test & lint | auto (haiku\*) | `test-runner` | `test-lint.md` |
 | Review | auto (opus\*) | `reviewer` | `review.md` (+ commit) |
-| Archive | auto *(spec-bearing only)* | `archiver` | `archive.md`: canonical `openspec/specs/` merged (`openspec archive -y`) + commit |
 | Pull request | auto (sonnet\*) | `pr-author` | draft PR incl. its own manual-QA section (link reported by `/workflow:build`) |
 
 \* the `standard`-complexity default — see "Model tiers" below for how model+effort vary by change complexity.
 
 Implement → PR runs as one background **Workflow** (launched by `/workflow:build`): isolated subagents, per-stage
 models, file-based handoff, failure loops, and escalation back to you only when a decision is genuinely needed.
-**Archive always runs, right after review commits and before the PR opens**, so the canonical spec merge ships in
-the same PR — review the merged/changed capabilities it reports once the loop finishes.
+`/workflow:generate-openspec` is available any time after review commits — including after the PR is already
+open — for teams/changes that want a durable, committed OpenSpec export; see below.
 
 `/workflow:arch` above is the per-change **data-model & fit** pass (after propose, before code design; runs by
-default for a spec-bearing change — skip it when there's genuinely no data model). For an **epic** (multi-change)
-the same command *also* runs once up front — before any change — to capture the epic's intent and break the work
-into changes:
+default — skip it when there's genuinely no data model). For an **epic** (multi-change) the same command *also*
+runs once up front — before any change — to capture the epic's intent and break the work into changes:
 
 | Architectural design (epic) | interactive | `/workflow:arch` | `architecture.md` (epic intent + the change breakdown; an ADR too, if warranted) |
 
@@ -40,41 +38,30 @@ via `/workflow:propose` (and gets its own per-change data-model pass only if it 
 
 ## Model tiers (cost vs. rigor per change)
 
-Every subagent role (`implementer`, `test-author`, `test-runner`, `reviewer`, `archiver`, `pr-author`, `design-critic`, plus
+Every subagent role (`implementer`, `test-author`, `test-runner`, `reviewer`, `pr-author`, `design-critic`, plus
 `review-pr`'s and `insights`' roles) runs on a model+effort pulled from `config/model-tiers.json`, keyed by the
-change's `complexity: "light" | "standard" | "deep"`. Like the spec triage, `complexity` is recommended by the
-workflow and confirmed by you when a change is first scoped (`/workflow:start` for a single change, `/workflow:arch`
-per change for an epic) — `light` for a one-liner, `deep` for a gnarly migration, `standard` otherwise. `deep` also
-forces `design-critic` (normally `model: inherit`, riding your interactive session) onto `opus` regardless of what
-model you're in. Edit `config/model-tiers.json` directly to retune any role/tier — it's a single plugin-level file,
-not per-repo config. `/workflow:review-pr` and `/workflow:insights` (standalone, no `state.json`) take an explicit
-`--complexity <tier>` flag instead, defaulting to `standard`.
+change's `complexity: "light" | "standard" | "deep"`. `complexity` is recommended by the workflow and confirmed by
+you when a change is first scoped (`/workflow:start` for a single change, `/workflow:arch` per change for an epic)
+— `light` for a one-liner, `deep` for a gnarly migration, `standard` otherwise. `deep` also forces `design-critic`
+(normally `model: inherit`, riding your interactive session) onto `opus` regardless of what model you're in. Edit
+`config/model-tiers.json` directly to retune any role/tier — it's a single plugin-level file, not per-repo config.
+`/workflow:review-pr` and `/workflow:insights` (standalone, no `state.json`) take an explicit `--complexity <tier>`
+flag instead, defaulting to `standard`.
 
-## Spec layer: OpenSpec (thin seam)
+## OpenSpec (optional export)
 
-The behavioral spec lives in **[OpenSpec](https://github.com/Fission-AI/OpenSpec)** as one *change per PR*
-(`proposal.md` + capability requirement deltas); each change accumulates into a canonical `openspec/specs/`
-library — portable, tool-agnostic, living documentation. OpenSpec sits *under* this workflow as a passive store:
-you author the change (`/workflow:propose`), the loop reads it, then merges it into the canonical specs itself
-(the `archive` stage, once review commits) before opening the PR. We use OpenSpec's `proposal` + `specs` only — not
-its `design`/`tasks`; this workflow's architecture + code design + loop replace those.
+`spec.md` — this workflow's own native spec, produced by `propose` — is the spec of record for the whole pipeline.
+**[OpenSpec](https://github.com/Fission-AI/OpenSpec)** is a separate, optional, terminal export: run
+`/workflow:generate-openspec` any time after `review` has committed the change — including after its PR is already
+open — to author an OpenSpec change (`proposal.md` + capability requirement deltas, translated from `spec.md` and
+the build docs, grounded in what was actually shipped) and merge it into a canonical `openspec/specs/` library —
+portable, tool-agnostic, living documentation, for teams/changes that want it.
 
-### Spec-less changes (opt out of OpenSpec)
-
-Not every change has behavior to spec. A purely technical change — refactor, code organization, build/CI/infra,
-dependency bumps, performance-neutral cleanup — can skip OpenSpec entirely. When a change is first scoped
-(`/workflow:start` for a single change, `/workflow:arch` per change for an epic), the workflow **recommends**
-spec vs no-spec based on whether the change alters observable application behavior, and **you confirm** (it's your
-call per change). A spec-less change (`spec:"none"`) skips `propose`, goes straight to
-`/workflow:design`, and runs the full autonomous loop — its `code-design.md` (a short *Why/Context* + the *Tests*
-list) becomes the sole behavioral contract, and the loop's `archive` stage is `na` (nothing to merge). The default
-is still to write a spec; when in doubt, keep it.
-
-**Prerequisite** — install the CLI and initialize once per repo:
+**Prerequisite**, only if/when you use it — install the CLI and initialize once per repo:
 
 ```bash
 npm install -g @fission-ai/openspec@latest   # Node ≥ 20.19
-openspec init --tools claude                 # in the target repo — creates openspec/
+openspec init --tools claude                 # in the target repo — creates openspec/ (generate-openspec also does this on demand)
 ```
 
 ## Install (local / private)
@@ -100,28 +87,27 @@ Or add to `~/.claude/settings.json`:
 ```
 /workflow:start <what you want to build>   # scaffolds .workflow/<feature>/ ; picks single-change vs epic
 
-# single change (spec-bearing):
-/workflow:propose                           # why/what + capabilities, then requirement/scenario deltas → OpenSpec change (one session); then /clear
+# single change:
+/workflow:propose                           # orient in the code, then talk it through → spec.md (one session); then /clear
 /workflow:arch                              # data model & structural fit → architecture.md (default; skip if none); then /clear
 /workflow:design                            # interfaces + tests → code-design.md; then /clear
-# single change (spec-less / refactor): /workflow:start triages → skip propose, go straight to design:
-# /workflow:design  →  /workflow:build      # code-design.md is the whole contract; archive stage is na
-/workflow:build                             # full autonomous loop → review → archive → draft PR (blank/full = resume: skip done stages)
-/workflow:build light                       #   …or light: just implement + tests (skip test-run/review/archive/PR)
+/workflow:build                             # full autonomous loop → review → draft PR (blank/full = resume: skip done stages)
+/workflow:build light                       #   …or light: just implement + tests (skip test-run/review/PR)
 /workflow:build skip review                 #   …or full minus named stages (only/skip/light = manual control, ignores done)
+/workflow:generate-openspec                 #   …optional, any time after review commits (even after the PR is open)
 
 # epic (multi-change): run /workflow:arch right after start to break it into changes,
-# then propose → design → build (review → archive → PR) per change.
+# then propose → design → build (review → PR) per change.
 ```
 
-`/clear` between stages is lossless — each command re-reads `.workflow/` + the OpenSpec change. Run
-`/workflow:start` with no argument any time to see status and the next command.
+`/clear` between stages is lossless — each command re-reads `.workflow/`. Run `/workflow:start` with no argument
+any time to see status and the next command.
 
-`/workflow:build` runs implement‖test together (when `build` is selected); `test-lint`, `review`, `archive`, and
-`pr` are optional. **Resume** (`full`/blank) runs everything not yet `done` (`archive` is auto-included for a
-spec-bearing change). `light`/`only`/`skip` are separate manual controls — they re-run exactly what you name even
-if it's already done, for ad hoc things like forcing a lone re-run of `test-lint`. Skip `review` and the change is
-left uncommitted (or `pr` commits it, rewriting the PR body, in which case `archive` still runs first if selected).
+`/workflow:build` runs implement‖test together (when `build` is selected); `test-lint`, `review`, and `pr` are
+optional. **Resume** (`full`/blank) runs everything not yet `done`. `light`/`only`/`skip` are separate manual
+controls — they re-run exactly what you name even if it's already done, for ad hoc things like forcing a lone
+re-run of `test-lint`. Skip `review` and the change is left uncommitted (or `pr` commits it, rewriting the PR
+body).
 
 ### Iterating (going back a step)
 
@@ -132,14 +118,15 @@ surfaces a data-model problem edits `architecture.md` directly, but only after t
 confirmation. There's no separate redo command and nothing else gets invalidated.
 
 Once `review` has cleanly committed the code, treat the change as landed — a one-way street; any further fix
-belongs outside this workflow. `archive`'s merge is irreversible for the same reason, so it only fires once
-`review` has cleanly committed.
+belongs outside this workflow. `/workflow:generate-openspec`'s merge is irreversible for the same reason, so it
+only ever runs against a change whose code is already committed.
 
 ## Reviewing a PR (standalone)
 
 Separate from the change pipeline, `/workflow:review-pr <PR link or number>` reviews **any** GitHub PR — typically a
-coworker's — with special attention to any **OpenSpec spec** it carries: does the code actually satisfy the spec's
-scenarios? It also runs the full general review (correctness, conventions, concurrency/data-integrity).
+coworker's — with special attention to whether the code actually satisfies its spec, assembled from whatever's
+available: any doc/markdown files the PR changed, its PR description, and text you paste in from the story when
+asked. It also runs the full general review (correctness, conventions, concurrency/data-integrity).
 
 ```
 /workflow:review-pr 1234                    # terminal report
@@ -149,8 +136,9 @@ scenarios? It also runs the full general review (correctness, conventions, concu
 It checks the PR out into a throwaway git **worktree** (never touching your branch or working tree), fans out
 parallel finder agents by dimension, **adversarially verifies** each finding (dropping false positives), dedups, and
 prints a severity-ranked report — then removes the worktree. It's **read-only**: the only thing it ever writes is the
-optional `--comment`. If the PR has no OpenSpec change, the spec dimension is skipped and the rest still runs. This
-command keeps **no** `.workflow/` state — it's a one-shot review.
+optional `--comment`. If nothing spec-like turns up — no docs changed, an empty PR description, and you decline to
+paste anything in — the spec dimension is skipped and the rest still runs. This command keeps **no** `.workflow/`
+state — it's a one-shot review.
 
 ## Working on something small (standalone)
 
@@ -197,23 +185,25 @@ pipeline stages.
 ```
 .workflow/<feature>/                  # planning + execution state (this engine)
   state.json  architecture.md   # top-level architecture.md is epic-only (epic intent + change breakdown)
-  <NN>-<change>/  architecture.md  code-design.md  design-critique.md  implementation.md  tests.md  test-lint.md  review.md  archive.md
+  <NN>-<change>/  references.md  spec.md  architecture.md  code-design.md  design-critique.md  implementation.md  tests.md  test-lint.md  review.md  openspec-export.md
+                  # references.md = minimal append-only pointer list of relevant files/symbols, seeded by
+                  #   propose, appended to by every later stage
+                  # spec.md = this workflow's native spec of record — Why + checkbox Acceptance Criteria
                   # per-change architecture.md = data-model & fit (present when the arch stage ran)
                   # design-critique.md = adversarial design-critic findings (present when that pass ran)
-                  # archive.md = the loop's archive stage report (spec-bearing only)
+                  # openspec-export.md = present only if /workflow:generate-openspec ran for this change (optional)
 
-<specRoot>/openspec/                  # the spec layer (thin seam); <specRoot> defaults to the repo root
-  changes/<change-id>/  proposal.md  specs/<capability>/spec.md   # one change per PR
-  specs/<capability>/spec.md          # canonical living library (the loop's archive stage grows it)
+<specRoot>/openspec/                  # OPTIONAL — only exists once /workflow:generate-openspec has run
+  changes/<change-id>/  proposal.md  specs/<capability>/spec.md   # one export per exported change
+  specs/<capability>/spec.md          # canonical living library (generate-openspec grows it)
 ```
-(The PR stage writes no file — its draft-PR link is reported by `/workflow:build`. The canonical
-`<specRoot>/openspec/specs/` is updated automatically by the loop's `archive` stage, right before the PR opens.)
+(The PR stage writes no file — its draft-PR link is reported by `/workflow:build`.)
 
-**Per-app / per-domain specs.** To organize specs by app/domain in a monorepo, give each its own `openspec/` root
-(`goods/openspec/`, `packages/api/openspec/`, …); each change records a **`specRoot`** (default `"."` = repo root)
-that `/workflow:propose` discovers and targets. Cross-cutting changes use the repo root. The plugin never hardcodes
-app names — a repo opts in purely by creating `openspec/` dirs. See the `workflow-conventions` skill for the full
-mechanic.
+**Per-app / per-domain specs (OpenSpec only).** To organize OpenSpec exports by app/domain in a monorepo, give
+each its own `openspec/` root (`goods/openspec/`, `packages/api/openspec/`, …); each exported change records a
+**`specRoot`** (default `"."` = repo root) that `/workflow:generate-openspec` discovers and targets. Cross-cutting
+changes use the repo root. The plugin never hardcodes app names — a repo opts in purely by creating `openspec/`
+dirs. See the `workflow-conventions` skill for the full mechanic.
 
 `state.json` is the source of truth for resume; run `/workflow:start` with no argument for a human-readable status
 (mode, current stage, next command). See the `workflow-conventions` skill for the full contract.

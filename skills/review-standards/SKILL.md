@@ -42,20 +42,25 @@ Every finding must name a **concrete failure**: the input/state → the wrong ou
 
 ## Judging spec-satisfaction
 
-When the change carries a behavioral spec (an OpenSpec change: `### Requirement:` blocks with `#### Scenario:`
-WHEN/THEN acceptance criteria — see `workflow:workflow-conventions` for the delta format), verify the code actually
-satisfies **every** scenario. There are two ways to establish the scenario → code/test mapping:
+The format of "the spec" depends on **which context** you're reviewing in:
 
-- **(a) Via the code-design coverage map** — for a workflow-internal change that has a `code-design.md`. Its
-  **scenario coverage map** is the traceability contract: for each row, verify the listed test behavior(s) exist and
-  cover the scenario. Emit the map with `✓` (covered) / `✗` (gap). Any `✗` = critical.
-- **(b) Derived directly from the delta + the diff** — for an external PR with **no `code-design.md`**. Build the
-  mapping yourself: for each scenario in the change's `specs/**/*.md`, find the code and test in the diff that
-  implement it. `ADDED` → the new behavior and a covering test are present; `MODIFIED` → the behavior actually
-  changed as specified and its test was updated; `REMOVED` → the behavior/code is actually gone. A scenario with no
-  corresponding code/test, or code that contradicts the scenario, = **critical** (unmet spec).
+- **(a) Workflow-internal review (`reviewer`)** — the change carries its own `spec.md` (`## Why` + checkbox
+  `## Acceptance Criteria`) and a `code-design.md`. Its **acceptance-criteria coverage map** is the traceability
+  contract: for each row, verify the listed test behavior(s) exist and actually cover that criterion. Emit the map
+  with `✓` (covered) / `✗` (gap). Any `✗` = critical.
+- **(b) Reviewing a PR with no `code-design.md`** (`spec-auditor`, invoked from `workflow:review-pr`) — there's no
+  single authoritative spec file here, so assemble "the spec" from whatever's actually available: any doc/spec/
+  markdown file the PR changed (read its content), the PR's own description (title + body), and anything the user
+  pasted in from the story/ticket when `/workflow:review-pr` asked for it. None of these need a particular format
+  — extract the discrete, testable claims each source makes (an OpenSpec `### Requirement:`/`#### Scenario:`
+  block, a checkbox list, a plain prose sentence — whatever form it takes), then build the claim → code/test
+  mapping yourself, derived directly from that combined spec + the diff: for each claim, find the code and test
+  that implement it. A claim with no corresponding code/test, or code that contradicts it, = **critical** (unmet
+  spec). If nothing spec-like exists anywhere — no docs changed, an empty/trivial PR description, and the user has
+  nothing to paste in — this dimension is simply **N/A**, not a finding.
 
-Either way: an unmet or unverifiable scenario is a `critical` finding — the spec is the authoritative contract.
+Either way an unmet or unverifiable criterion/claim is a `critical` finding — the spec is the authoritative
+contract.
 
 ## Judging conventions & architectural fit
 

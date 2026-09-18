@@ -34,12 +34,10 @@ invent steps to fill it.
 
 ## Rules
 - **Commit first if needed.** Before pushing, ensure every file of this change is committed. If review was skipped
-  (nothing committed yet) or files remain uncommitted, commit now — stage only this change's code/test/doc files, by
-  explicit path, plus — **only if your prompt has a `changeDir`** — its OpenSpec change (`changeDir`). **Never**
-  `git add -A`, `.workflow/`, the canonical library (`<specRoot>/openspec/specs/`), or unrelated edits. Run
-  `git status --short` first: files the change **deleted or renamed** show as ` D` and must be staged too
-  (`git add <path>` records the removal). Concise why-focused message, no Claude attribution. Set `committed: true`
-  if you committed here.
+  (nothing committed yet) or files remain uncommitted, commit now — stage only this change's code/test/doc files,
+  by explicit path. **Never** `git add -A`, `.workflow/`, or unrelated edits. Run `git status --short` first:
+  files the change **deleted or renamed** show as ` D` and must be staged too (`git add <path>` records the
+  removal). Concise why-focused message, no Claude attribution. Set `committed: true` if you committed here.
 - Push the branch, then open the PR with `gh pr create --draft` against `main`.
 - Use the repo's `pull_request_template.md` if present, and any repo PR conventions/skills.
 - **Length:** ~10–15 lines total — the description adds what the diff can't say.

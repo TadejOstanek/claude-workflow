@@ -129,7 +129,7 @@ const LEARNINGS_SCHEMA = {
 }
 
 // ---------- shared prompt context ----------
-const changeList = CHANGES.map((c) => `${c.slug} ("${c.title}") — files under ${c.phaseDir}${c.changeDir ? `, OpenSpec change at ${c.changeDir}` : ''}`).join('\n')
+const changeList = CHANGES.map((c) => `${c.slug} ("${c.title}") — files under ${c.phaseDir}`).join('\n')
 const CTX = `Analyzing ${SCOPE === 'epic' ? `the WHOLE EPIC "${FEATURE}"` : `change "${CHANGES[0]?.slug}"`} in repo ${REPO_ROOT}.
 Changes in scope:
 ${changeList}

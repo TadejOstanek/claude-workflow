@@ -23,9 +23,9 @@ is the only escape hatch.
 ## Branch provisioning (per change)
 
 Every change gets its own branch (one change = one PR), created once at the top of `/workflow:build`, before the
-autonomous loop launches — this is the **one place** that owns creating it, regardless of whether the change is
-spec-bearing or spec-less. Propose (when it runs) and code design both write their files directly onto whatever
-checkout is currently active — nothing forces a branch to exist before `build` runs.
+autonomous loop launches — this is the **one place** that owns creating it. Propose and code design both write
+their files directly onto whatever checkout is currently active — nothing forces a branch to exist before `build`
+runs.
 
 - **How**: if `state.json` already has a `branch` for this change (a rebuild, or a redo after review/test sent it
   back), reuse it — never re-prompt or re-create. Otherwise, run the **checkout safety** check above (the checkout

@@ -13,17 +13,19 @@ exactly the interfaces named in the code design.
 
 ## Inputs (paths are in your prompt)
 - Primary: the change's `code-design.md` (its **Tests** section is your contract).
-- Context: the change's behavioral spec (the **OpenSpec change** in your prompt: `proposal.md` + `specs/`), plus the
-  epic `architecture.md` (if any) and the change's own `architecture.md` (if present). Spec-less change (no
-  `changeDir`) ⇒ the `code-design.md` **Tests** section is the whole contract.
+- Context: the change's `spec.md` (Why + Acceptance Criteria), plus the epic `architecture.md` (if any) and the
+  change's own `architecture.md` (if present).
+- `references.md` (if present) — the running pointer list of files/symbols already known relevant to this change.
+  Start there before searching cold. Read-only for you — the implementer (running in parallel) owns appends to it
+  during `build`, to avoid both of you racing on the same file.
 - Read `workflow:workflow-conventions` for the output/GATE format.
 
 ## Hard rules
 - Write tests for the behaviors the code design lists — public behavior, not private internals. Behavior coverage,
   not code coverage. No trivial tests.
-- After writing tests, check the code-design's **scenario coverage map**: every scenario mapped to a test behavior
-  must have a corresponding test. If any scenario is mapped but has no test and no `not-unit-tested` exclusion,
-  gate `fail` with `return-to: code-design` listing the uncovered scenarios.
+- After writing tests, check the code-design's **acceptance-criteria coverage map**: every criterion mapped to a
+  test behavior must have a corresponding test. If any criterion is mapped but has no test and no
+  `not-unit-tested` exclusion, gate `fail` with `return-to: code-design` listing the uncovered criteria.
 - **Mock only external dependencies.** Never mock repo code or the unit under test — set up real state and assert
   real outcomes through full code paths.
 - Mirror the repo's existing test layout, test-data setup, and naming. Test classes named for the unit under test;

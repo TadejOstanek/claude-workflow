@@ -16,10 +16,11 @@ before they approve the design, not to fix it yourself.
 - The change's freshly-drafted `code-design.md` (the thing you're critiquing).
 - The change's `architecture.md` (its own, and the epic's if any) — the data-model & structural-fit decisions
   `code-design.md` treats as given; don't re-litigate these, but do flag if `code-design.md` contradicts them.
-- The change's behavioral spec — the OpenSpec change (`proposal.md` + `specs/**/*.md`) — if spec-bearing. A
-  spec-less change has no OpenSpec change; `code-design.md`'s own Why/Context + Tests section is the contract.
+- The change's `spec.md` — Why + Acceptance Criteria, its whole behavioral contract.
 - Real sibling code in the target repo — the canonical files `code-design.md`'s Conventions section names, plus
   whatever else you need to judge fit.
+- `references.md` (if present) — the running pointer list of files/symbols already known relevant to this change.
+  Read-only: you never edit any file but your own output, so don't append your own findings here.
 
 ## Method
 Apply `workflow:review-standards`' severity vocabulary and false-positive discipline so findings stay concrete —
@@ -28,9 +29,9 @@ breaks, what's harder to change later, or what an implementer would have to gues
 
 - **Fit** — are the chosen interfaces/layering idiomatic for this repo, or do they fight patterns visible in
   sibling files? Name the sibling file(s) you compared against.
-- **Coverage** — does the design actually cover every scenario in the spec (or behavior in the Tests list), or is
-  there a gap an implementer would silently paper over?
-- **Right-sizing** — over-engineered relative to the stated Why/Context (a large interface for little behavior), or
+- **Coverage** — does the design actually cover every checkbox in `spec.md`'s Acceptance Criteria, or is there a
+  gap an implementer would silently paper over?
+- **Right-sizing** — over-engineered relative to the stated Why (a large interface for little behavior), or
   under-engineered (missing an edge case the spec/Why implies)?
 - **Feasibility** — any red flag against the real code that the interactive design session likely missed?
 

@@ -2,7 +2,7 @@ export const meta = {
   name: 'pr-review',
   description: 'Standalone adversarial PR review: parallel finder dimensions (spec-satisfaction, correctness, conventions, concurrency) → per-finding adversarial verify (drop REFUTED) → dedup + rank. Reviews an arbitrary GitHub PR from an isolated worktree; never edits or commits.',
   phases: [
-    { title: 'Finders', detail: 'parallel dimension finders over the PR diff (spec dim skipped if the PR has no OpenSpec change)', model: 'opus + sonnet' },
+    { title: 'Finders', detail: 'parallel dimension finders over the PR diff (spec dim skipped if no spec material is available)', model: 'opus + sonnet' },
     { title: 'Verify', detail: 'one adversarial verifier per finding — CONFIRMED / PLAUSIBLE / REFUTED; drop REFUTED', model: 'sonnet' },
     { title: 'Synthesis', detail: 'dedup near-duplicates across dimensions + overall summary', model: 'opus' },
   ],
@@ -20,8 +20,10 @@ const WORKDIR = A.workdir || '.'          // the PR checkout (a git worktree) �
 const BASE_REF = A.baseRef || 'main'      // the PR's actual base branch — never assume main
 const HEAD_SHA = A.headSha || 'HEAD'
 const REPO = A.repo || ''                 // owner/repo of the base
-const SPEC_TARGETS = Array.isArray(A.specTargets) ? A.specTargets : []
-const HAS_SPEC = SPEC_TARGETS.length > 0
+const SPEC_DOCS = Array.isArray(A.specDocs) ? A.specDocs : []
+const PR_BODY = (A.prBody || '').trim()
+const USER_SPEC = (A.userSpec || '').trim()
+const HAS_SPEC = SPEC_DOCS.length > 0 || !!PR_BODY || !!USER_SPEC
 const TEST_CMD = A.testCmd || null        // best-effort; the finders may run it, never required
 
 // Model + effort per role, resolved by /workflow:review-pr from config/model-tiers.json (see
@@ -45,7 +47,7 @@ const FINDING_ITEM = {
     endLine: { type: 'integer', description: 'end line (same as line for a single-line finding)' },
     title: { type: 'string' },
     detail: { type: 'string', description: 'the concrete failure: input/state → wrong outcome' },
-    scenario: { type: 'string', description: 'spec dimension only: the #### Scenario this maps to' },
+    criterion: { type: 'string', description: 'spec dimension only: the discrete claim this maps to' },
   },
 }
 const FINDER_SCHEMA = {
@@ -84,7 +86,7 @@ ${TEST_CMD ? `Optional: the repo's tests can be run with \`${TEST_CMD}\` (from $
 
 // ============ FINDERS (parallel) ============
 phase('Finders')
-log(`Reviewing PR #${PR}: ${HAS_SPEC ? SPEC_TARGETS.length + ' spec target(s) + ' : 'no OpenSpec change — '}3 general dimensions`)
+log(`Reviewing PR #${PR}: ${HAS_SPEC ? 'spec dimension active + ' : 'no spec material — '}3 general dimensions`)
 
 const DIMENSIONS = [
   { key: 'correctness', focus: 'CORRECTNESS: logic errors, edge cases, error handling, null/boundary, API misuse, migration correctness. Be adversarial about invariants and data integrity.' },
@@ -94,12 +96,12 @@ const DIMENSIONS = [
 
 const finderThunks = []
 if (HAS_SPEC) {
-  for (const t of SPEC_TARGETS) {
-    const label = t.changeId || t.capability || 'spec'
-    finderThunks.push(() => agent(
-      `${CTX}\nAudit SPEC-SATISFACTION for the OpenSpec spec target at ${t.specDir} (specRoot: ${t.specRoot}${t.changeId ? `, change id: ${t.changeId}` : ''}). Read its spec files, parse the scenarios, and verify this PR's code+tests satisfy every one (variant b — there is no code-design.md). Tag each finding's \`scenario\`.`,
-      { agentType: 'workflow:spec-auditor', ...opt('spec'), phase: 'Finders', label: `spec:${label}`, schema: FINDER_SCHEMA }))
-  }
+  const docsLine = SPEC_DOCS.length ? `Spec doc(s) to read: ${SPEC_DOCS.join(', ')}` : 'No spec docs were changed by this PR.'
+  const bodyBlock = PR_BODY ? `\nPR description:\n${PR_BODY}` : ''
+  const userBlock = USER_SPEC ? `\nUser-provided spec/acceptance criteria (from the story):\n${USER_SPEC}` : ''
+  finderThunks.push(() => agent(
+    `${CTX}\nAudit SPEC-SATISFACTION. ${docsLine}${bodyBlock}${userBlock}\nCombine all of the above into "the spec," extract every discrete testable claim, and verify this PR's code+tests satisfy each one (variant b — there is no code-design.md). Tag each finding's \`criterion\`.`,
+    { agentType: 'workflow:spec-auditor', ...opt('spec'), phase: 'Finders', label: 'spec', schema: FINDER_SCHEMA }))
 }
 for (const d of DIMENSIONS) {
   finderThunks.push(() => agent(
@@ -124,7 +126,7 @@ let survivors = []
 if (findings.length) {
   phase('Verify')
   const verdicts = await parallel(findings.map((f) => () => agent(
-    `${CTX}\nAdversarially VERIFY this finding — try to refute it; default to skepticism. Return CONFIRMED / PLAUSIBLE / REFUTED.\nFinding (${f.dimension}, severity ${f.severity}):\n${JSON.stringify({ file: f.file, line: f.line, title: f.title, detail: f.detail, scenario: f.scenario }, null, 2)}`,
+    `${CTX}\nAdversarially VERIFY this finding — try to refute it; default to skepticism. Return CONFIRMED / PLAUSIBLE / REFUTED.\nFinding (${f.dimension}, severity ${f.severity}):\n${JSON.stringify({ file: f.file, line: f.line, title: f.title, detail: f.detail, criterion: f.criterion }, null, 2)}`,
     { agentType: 'workflow:pr-reviewer', ...opt('verify'), phase: 'Verify', label: `verify:${f.id}`, schema: VERDICT_SCHEMA })))
 
   // parallel() preserves order → zip verdicts back onto findings.
@@ -161,12 +163,13 @@ const clean = !kept.some((f) => f.severity === 'critical' && !f.possible)
 
 return {
   pr: PR, url: URL, baseRef: BASE_REF, headSha: HEAD_SHA, repo: REPO,
-  specAudited: HAS_SPEC, specTargets: SPEC_TARGETS.map((t) => t.changeId || t.capability),
+  specAudited: HAS_SPEC,
+  specSources: { docs: SPEC_DOCS.length, prDescription: !!PR_BODY, userProvided: !!USER_SPEC },
   testsAvailable: !!TEST_CMD,
   clean, summary,
   candidateCount: findings.length,
   findings: kept.map((f) => ({
     severity: f.severity, dimension: f.dimension, file: f.file, line: f.line, endLine: f.endLine,
-    title: f.title, detail: f.detail, scenario: f.scenario, possible: !!f.possible,
+    title: f.title, detail: f.detail, criterion: f.criterion, possible: !!f.possible,
   })),
 }

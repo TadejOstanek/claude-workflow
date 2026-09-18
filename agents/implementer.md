@@ -13,9 +13,12 @@ converge on exactly the interfaces named in the code design so code and tests ma
 
 ## Inputs (paths are in your prompt)
 - Primary: the change's `code-design.md`.
-- Context: the change's behavioral spec (the **OpenSpec change** in your prompt: `proposal.md` + `specs/`), plus the
-  epic `architecture.md` (if any) and the change's own `architecture.md` (if present). Spec-less change (no
-  `changeDir`) ⇒ `code-design.md` is the whole contract.
+- Context: the change's `spec.md` (Why + Acceptance Criteria), plus the epic `architecture.md` (if any) and the
+  change's own `architecture.md` (if present).
+- `references.md` (if present) — the running pointer list of files/symbols already known relevant to this change.
+  Start there before searching cold. Append anything new you find, tagged `(build)` — you're the sole appender
+  during `build` (test-author, running in parallel, reads it but doesn't write, to avoid a race); never rewrite or
+  prune another stage's lines.
 - Read `workflow:workflow-conventions` for the output/GATE format.
 
 ## Hard rules

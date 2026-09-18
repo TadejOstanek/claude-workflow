@@ -9,13 +9,11 @@ Goal: specify the **exact** code so the non-interactive implement + test agents 
 is the last interactive stage — the user approves before the autonomous loop runs.
 
 ## Method
-- **Spec-bearing change (`spec:"openspec"`):** read the change's behavioral spec — its **OpenSpec change**
-  (`<specRoot>/openspec/changes/<change>/`: `proposal.md` + `specs/**/*.md`; `specRoot` from `state.json`, default
-  `"."`) — plus the change's `architecture.md` (its own per-change one from `/workflow:arch`, and the epic's if any).
-- **Spec-less change (`spec:"none"`):** there is no OpenSpec change — take the intent from the feature description
-  and the epic/per-change `architecture.md`. Because there is no `proposal.md` to carry the rationale downstream,
-  capture a short **Why / Context** in `code-design.md` (below); for a refactor, also note the externally-observable
-  behavior that must stay unchanged.
+- Read `references.md` (seeded by `propose`) — the running pointer list of files/symbols already known relevant.
+  Append anything new you find (via `codegraph_explore`/`mcp__codegraph` when available, else
+  `orchestration:lookup`/`investigate` or grep), tagged `(design)`. Never rewrite or prune another stage's lines.
+- Read the change's **`spec.md`** (Why + Acceptance Criteria — its whole behavioral contract) plus the change's
+  `architecture.md` (its own per-change one from `/workflow:arch`, and the epic's if any).
 - **Data model is decided input.** If this change has an `architecture.md` (its own per-change one, or the epic's),
   read it and treat its data-model + structural-fit decisions as **given** — `code-design` specifies interfaces and
   tests, it does **not** re-model. If a data-model question is genuinely still open, **stop and return to
@@ -39,7 +37,7 @@ is the last interactive stage — the user approves before the autonomous loop r
 If a decision here is heavy enough to outlive this change's memory — a real tradeoff between viable alternatives,
 not "the obvious way" — write an ADR directly, now, while the why is fresh (ask the user where ADRs live if the
 repo has no convention; use its template if one exists). **Under-write** — most changes need none. It's the only
-permanent doc this stage writes; behavioral documentation lives in the OpenSpec spec.
+permanent doc this stage writes on its own;
 
 ## Adversarial critique (default-on, skippable)
 Before the user approves, run the drafted `code-design.md` past the `workflow:design-critic` agent — an independent
@@ -49,26 +47,21 @@ not a gate — the `## GATE` reflects the user's approval, not the critic's verd
 design (re-running the critic if the revision was substantial) before approval.
 
 ## Output: `code-design.md`
-- **Why / Context** — **required for a `spec:"none"` change** (there is no `proposal.md`): one short paragraph on
-  why the change is made and, for a refactor, the observable behavior that must stay unchanged. Omit for a
-  spec-bearing change — its `proposal.md` already carries this.
 - **Interfaces** — exact methods/classes/functions, parameters, return shapes, and what each does. Mark file
   ownership: which are CODE files vs TEST files.
 - **Components** — core pieces and responsibilities.
-- **Tests** — functions/methods under test + the behaviors each must verify (the test agent's contract). For a
-  spec-less change this is the **sole** behavioral contract — cover the public behavior the refactor must preserve
-  (or the new internal behavior).
-- **Scenario coverage map** — **spec-bearing changes only.** One row per scenario in the OpenSpec change's
-  `specs/**/*.md`: scenario title → the test behavior(s) covering it, or `not-unit-tested: <reason>` (e.g., manual
-  QA, integration, pure UI). Every scenario must appear; none silently omitted. This map is the downstream agents'
-  traceability contract. A `spec:"none"` change has no scenarios — omit this section entirely; the **Tests** list
-  is the contract instead.
+- **Tests** — functions/methods under test + the behaviors each must verify (the test agent's contract).
+- **Acceptance-criteria coverage map** — one row per checkbox in `spec.md`'s Acceptance Criteria: criterion →
+  the test behavior(s) covering it, or `not-unit-tested: <reason>` (e.g., manual QA, integration, pure UI). Every
+  criterion must appear; none silently omitted. This map is the downstream agents' (and `review`'s) traceability
+  contract, required for every change.
 - **Conventions** — the repo patterns/conventions you discovered, so downstream agents don't re-derive them
   (saves tokens). Name the canonical files to mirror. Include verified structural facts too (import-cycle checks,
-  encoding/parsing conventions) — not just style patterns.
+  encoding/parsing conventions) — not just style patterns. The raw file/symbol pointer list lives in
+  `references.md`, not here — don't duplicate it.
 - **ADR** — if you wrote one (see above), its path. Omit this line otherwise.
-Use checkboxes only for the **Tests** list (each behavior to verify); the scenario coverage map and other sections
-are concise prose/plain lists. End with the standard `## GATE`.
+Use checkboxes only for the **Tests** list (each behavior to verify); the coverage map and other sections are
+concise prose/plain lists. End with the standard `## GATE`.
 
 ## Done when
 The user approves the design (nothing to provision here — `/workflow:build` creates or reuses the branch as its

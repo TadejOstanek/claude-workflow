@@ -6,7 +6,6 @@ export const meta = {
     { title: 'Migrate', detail: 'optional pre-test command; skipped when migrateCmd absent' },
     { title: 'Test', detail: 'scoped test+lint (haiku); reconcile → re-run, bounded' },
     { title: 'Review', detail: 'opus review of the diff; commits on pass; fix loop, bounded' },
-    { title: 'Archive', detail: 'spec-bearing only: merge the change spec into the canonical library, commit' },
     { title: 'PR', detail: 'draft pull request, including its own manual QA section' },
   ],
 }
@@ -19,18 +18,7 @@ A = A || {}
 const TITLE = A.title || A.scope || 'change'
 const SCOPE = A.scope || TITLE
 const FEATURE_DIR = A.featureDir   // .workflow/<feature>/   (epic architecture.md lives here in epic mode)
-const PHASE_DIR = A.phaseDir       // .workflow/<feature>/<NN>-slug/  (this phase's stage files)
-const CHANGE_DIR = A.changeDir || null  // <specRoot>/openspec/changes/<change-id>/ — this change's behavioral spec (OpenSpec change)
-// Canonical spec library for this change's OpenSpec root (sibling of changes/). Derived from CHANGE_DIR so it is
-// correct whether specRoot is the repo root or an app/domain sub-dir — never staged during the loop (merges only at archive).
-const CANON_SPECS = CHANGE_DIR ? CHANGE_DIR.replace(/\/changes\/[^/]+\/?$/, '/specs') : 'openspec/specs'
-// Archive stage inputs, derived from CHANGE_DIR — the abs specRoot dir (openspec's cwd) and the change id.
-const SPEC_ROOT_DIR = CHANGE_DIR ? CHANGE_DIR.replace(/\/openspec\/changes\/[^/]+\/?$/, '') : null
-const CHANGE_ID = CHANGE_DIR ? CHANGE_DIR.replace(/\/$/, '').split('/').pop() : null
-// OpenSpec-change clauses spliced into the review/commit/PR instructions. Empty for a spec-less change (no
-// CHANGE_DIR) so we never tell an agent to stage an `openspec/changes/<change>` path that doesn't exist.
-const SPEC_CLAUSE = CHANGE_DIR ? ` plus the phase's OpenSpec change at ${CHANGE_DIR}` : ''
-const CANON_CLAUSE = CHANGE_DIR ? `, never the canonical library \`${CANON_SPECS}\` (it merges only at archive)` : ''
+const PHASE_DIR = A.phaseDir       // .workflow/<feature>/<NN>-slug/  (this phase's stage files: spec.md, code-design.md, ...)
 const WORKDIR = A.workdir || '.'   // absolute repo root — ALL git/test/gh commands run here
 const BASE_REF = A.baseRef || 'main'
 const APP_DIR = A.appDir || '.'
@@ -113,14 +101,10 @@ const PR_SCHEMA = {
 }
 
 // ---------- shared prompt context ----------
-const SPEC_LINE = CHANGE_DIR
-  ? `Behavioral spec: ${CHANGE_DIR}/  (OpenSpec change — read proposal.md + specs/**/*.md; the requirement
-  scenarios there ARE the acceptance criteria this change must satisfy)`
-  : `Behavioral spec: see ${PHASE_DIR}/code-design.md`
 const CTX = `Workflow change "${TITLE}" (scope: ${SCOPE}).
 Epic arch:   ${FEATURE_DIR}/architecture.md  (epic mode only; may be absent)
-${SPEC_LINE}
-Change docs: ${PHASE_DIR}/  (this change's code-design.md + an optional architecture.md)
+Behavioral spec: ${PHASE_DIR}/spec.md  (Why + checkbox Acceptance Criteria — the contract this change must satisfy)
+Change docs: ${PHASE_DIR}/  (this change's spec.md + code-design.md + an optional architecture.md)
 Working dir: ${WORKDIR}  — run ALL shell/git/test/gh commands here (use \`git -C ${WORKDIR}\` or cd first).
 Read your role's agent instructions; read only what you need. Write your output file in ${PHASE_DIR}/ and end it
 with a \`## GATE\`. Your final structured output IS that gate.`
@@ -215,10 +199,10 @@ if (todo('test-lint') && !result.escalation) {
 let review = null
 if (todo('review') && !result.escalation) {
   phase('Review')
-  const RUN = `${CTX}\nStrict senior review. Inspect \`git -C ${WORKDIR} diff ${BASE_REF} -- ${APP_DIR}\` plus new untracked files. Judge: (1) no regressions/bugs, (2) every spec + code-design criterion met. Write ${PHASE_DIR}/review.md. If clean, COMMIT the change (stage only this change's files — the code/test/doc files${SPEC_CLAUSE}, including any ADR noted in code-design.md/architecture.md — never \`.workflow/\`${CANON_CLAUSE}, never unrelated edits). If a fix is a design decision, set escalate=true.`
+  const RUN = `${CTX}\nStrict senior review. Inspect \`git -C ${WORKDIR} diff ${BASE_REF} -- ${APP_DIR}\` plus new untracked files. Judge: (1) no regressions/bugs, (2) every spec.md + code-design acceptance criterion met. Write ${PHASE_DIR}/review.md. If clean, COMMIT the change (stage only this change's files — the code/test/doc files, including any ADR noted in code-design.md/architecture.md — never \`.workflow/\`, never unrelated edits). If a fix is a design decision, set escalate=true.`
   // After a fix round, re-check ONLY the fixed findings instead of a full re-review — the first pass already
-  // derived the spec/scenario coverage map, and the harness already re-runs tests below.
-  const verifyRun = (crits) => `${CTX}\nFocused re-check, not a full review: a fix was applied for the CRITICAL findings below. Re-inspect only the touched files/lines in \`git -C ${WORKDIR} diff ${BASE_REF} -- ${APP_DIR}\` to confirm each is actually resolved and the fix didn't introduce an obvious new critical nearby. Do not re-derive the full spec/scenario coverage map — the first pass already did that. Write ${PHASE_DIR}/review.md. If resolved, COMMIT the change (stage only this change's files — the code/test/doc files${SPEC_CLAUSE}, including any ADR noted in code-design.md/architecture.md — never \`.workflow/\`${CANON_CLAUSE}, never unrelated edits). If a fix is a design decision, set escalate=true.\nFindings to verify:\n${JSON.stringify(crits, null, 2)}`
+  // derived the acceptance-criteria coverage map, and the harness already re-runs tests below.
+  const verifyRun = (crits) => `${CTX}\nFocused re-check, not a full review: a fix was applied for the CRITICAL findings below. Re-inspect only the touched files/lines in \`git -C ${WORKDIR} diff ${BASE_REF} -- ${APP_DIR}\` to confirm each is actually resolved and the fix didn't introduce an obvious new critical nearby. Do not re-derive the full acceptance-criteria coverage map — the first pass already did that. Write ${PHASE_DIR}/review.md. If resolved, COMMIT the change (stage only this change's files — the code/test/doc files, including any ADR noted in code-design.md/architecture.md — never \`.workflow/\`, never unrelated edits). If a fix is a design decision, set escalate=true.\nFindings to verify:\n${JSON.stringify(crits, null, 2)}`
   const MAX = 2
   let prevCriticals = null
   for (let i = 1; i <= MAX; i++) {
@@ -266,32 +250,12 @@ if (todo('review') && review && review.clean && !review.committed) {
   log('Review clean but commit did NOT happen — holding the PR. Investigate before shipping.')
 }
 
-// ============ ARCHIVE (spec-bearing only: merge into the canonical library, commit) ============
-// Runs on the branch, after review's commit and before the PR is opened, so the canonical spec merge ships in
-// the same PR. Inert for a spec-less change (no CHANGE_DIR) — nothing to archive.
-let archiveResult = null
-if (todo('archive') && CHANGE_DIR && reviewPassed) {
-  phase('Archive')
-  const ARCHIVE_RUN = `${CTX}\nMerge this change's OpenSpec deltas into the canonical library.
-Spec root: ${SPEC_ROOT_DIR}  (run \`openspec\` with this as cwd)
-Change id: ${CHANGE_ID}
-Write ${PHASE_DIR}/archive.md.`
-  archiveResult = await agent(ARCHIVE_RUN, { agentType: 'workflow:archiver', ...opt('archive'), phase: 'Archive', label: `archive:${SCOPE}`, schema: GATE_SCHEMA })
-  result.stageGates.archive = archiveResult
-  if (archiveResult && archiveResult.gate === 'fail') {
-    escalate(archiveResult.returnTo || 'propose', archiveResult.reason || 'archive agent could not merge the spec deltas cleanly')
-  } else if (archiveResult) {
-    log(`Archive: ${archiveResult.summary}`)
-  }
-}
-result.archived = !!(archiveResult && archiveResult.gate === 'pass')
-
 // ============ PR (draft, authors its own QA section) ============
 if (todo('pr') && reviewPassed && !result.escalation) {
   phase('PR')
   const COMMIT_NOTE = result.committed
-    ? `First ensure every file of this change is committed — if any change files are still uncommitted, commit them now (scoped to this change's code/test/doc files${SPEC_CLAUSE}; never \`.workflow/\`${CANON_CLAUSE}, never unrelated edits). Then `
-    : `Nothing has been committed yet (the review stage was skipped). FIRST commit this change yourself — stage only this change's code/test/doc files${SPEC_CLAUSE} (never \`.workflow/\`${CANON_CLAUSE}, never \`git add -A\`, never unrelated edits) and commit with a concise why-focused message (no Claude attribution). Then `
+    ? `First ensure every file of this change is committed — if any change files are still uncommitted, commit them now (scoped to this change's code/test/doc files; never \`.workflow/\`, never unrelated edits). Then `
+    : `Nothing has been committed yet (the review stage was skipped). FIRST commit this change yourself — stage only this change's code/test/doc files (never \`.workflow/\`, never \`git add -A\`, never unrelated edits) and commit with a concise why-focused message (no Claude attribution). Then `
   const pr = await agent(`${CTX}\n(Override: the PR stage writes NO file — return opened+committed+url as your structured output.)\n${COMMIT_NOTE}push the branch and open a DRAFT PR against main using the repo's pull_request_template.md. Why-first description; changes in plain English (no file paths); decide and write your own manual-QA section per your instructions.`,
     { agentType: 'workflow:pr-author', ...opt('pr'), phase: 'PR', label: `pr:${SCOPE}`, schema: PR_SCHEMA })
   if (pr && pr.committed) result.committed = true

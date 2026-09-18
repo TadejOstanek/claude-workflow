@@ -10,18 +10,13 @@ reference files:
 - `${CLAUDE_PLUGIN_ROOT}/skills/workflow-conventions/reference/state-and-layout.md` — file layout + `state.json` schema
 - `${CLAUDE_PLUGIN_ROOT}/skills/workflow-conventions/reference/model-tiers.md` — `design-critic`'s per-tier model
 
-1. Resolve the active workflow from `state.json`. Read `state.json` and the epic `architecture.md` if present.
-   For a **spec-bearing** change (`spec:"openspec"`), also read **this change's behavioral spec — the OpenSpec
-   change at `<specRoot>/openspec/changes/<change>/`** (`proposal.md` + `specs/**/*.md`; the `change` id and
-   `specRoot` (default `"."`) are in `state.json`). For a **spec-less** change (`spec:"none"`) there is no OpenSpec
-   change — its intent comes from the feature description / epic `architecture.md`. Use the change in
-   `$ARGUMENTS`, else the lowest-`order`
-   change whose `code-design` stage is `pending` (respect `depends_on`). If the resolved change's `code-design`
-   stage is already `"done"`, **stop**: this stage is complete and this command does not re-open it — tell the
-   user any further design change now happens outside the workflow. For a spec-bearing change, its
-   `stages.propose` must be `done` (the OpenSpec change must exist) — if not, stop and tell the user to run
-   `/workflow:propose` first. A `spec:"none"` change has no spec prerequisite (`propose` is `na`) — proceed. Also
-   read the change's own `architecture.md` if present.
+1. Resolve the active workflow from `state.json`. Read `state.json`, the epic `architecture.md` if present, and
+   **this change's `spec.md`** (its whole behavioral contract — Why + Acceptance Criteria). Use the change in
+   `$ARGUMENTS`, else the lowest-`order` change whose `code-design` stage is `pending` (respect `depends_on`). If
+   the resolved change's `code-design` stage is already `"done"`, **stop**: this stage is complete and this command
+   does not re-open it — tell the user any further design change now happens outside the workflow. Its
+   `stages.propose` must be `done` (`spec.md` must exist) — if not, stop and tell the user to run
+   `/workflow:propose` first. Also read the change's own `architecture.md` if present.
 2. **Data model must be decided first.** Check this change's `stages.architecture`:
    - **`pending`** — the data-model & structural-fit pass hasn't run. **Stop** and tell the user to run
      `/workflow:arch` first; that stage owns the data model, and `code-design` treats it as decided input.
@@ -39,8 +34,8 @@ reference files:
    this change's model tier (`change.complexity`) per the model-tiers reference above: for tier
    `deep`, spawn the agent with an explicit `model: "opus"` override (guaranteeing full rigor regardless of your
    own session's model); for `light`/`standard`, spawn it with no model override (it keeps `model: inherit` —
-   identical to today). Spawn it with this change's `code-design.md`, `architecture.md` (if any), and OpenSpec
-   change (if spec-bearing) — it writes `.workflow/<feature>/<change>/design-critique.md` and returns findings.
+   identical to today). Spawn it with this change's `code-design.md`, `architecture.md` (if any), and `spec.md` —
+   it writes `.workflow/<feature>/<change>/design-critique.md` and returns findings.
    Present any findings to the user next to the design. This is advisory, not a gate: if a finding reveals a real
    problem, revise `code-design.md` (re-running the critic afterward if the revision was substantial); proceeding
    without addressing a finding is the user's call, not yours.

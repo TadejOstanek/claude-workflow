@@ -41,10 +41,10 @@ Input: `$ARGUMENTS`
    - Zero matches and exactly one `.workflow/*/` exists in single mode → default to its sole change.
    - Otherwise → list every active workflow/epic/change (mirror `/workflow:start`'s blank-argument status listing)
      and ask the user to pick.
-4. Read whichever of `architecture.md`, `code-design.md`, `design-critique.md`, `implementation.md`, `tests.md`,
-   `test-lint.md`, `review.md` exist under each resolved change's `.workflow/<feature>/<NN-slug>/` — one dir for
-   `scope:"single-change"`, every change's dir for `scope:"epic"`, plus the epic's own top-level `architecture.md`.
-   Also each change's OpenSpec change dir (`<specRoot>/openspec/changes/<change>/`) when `spec:"openspec"`.
+4. Read whichever of `spec.md`, `architecture.md`, `code-design.md`, `design-critique.md`, `implementation.md`,
+   `tests.md`, `test-lint.md`, `review.md`, `openspec-export.md` exist under each resolved change's
+   `.workflow/<feature>/<NN-slug>/` — one dir for `scope:"single-change"`, every change's dir for `scope:"epic"`,
+   plus the epic's own top-level `architecture.md`.
 
 ## 3. Collect session IDs
 
@@ -70,8 +70,7 @@ exactly — the script reads them):
 {
   "feature": "<feature-slug>", "scope": "single-change|epic",
   "changes": [ { "slug": "<NN-change-slug>", "title": "<change title>",
-                 "phaseDir": "<abs .workflow/<feature>/<NN-change>/>",
-                 "changeDir": "<abs OpenSpec change dir, or null>" } ],
+                 "phaseDir": "<abs .workflow/<feature>/<NN-change>/>" } ],
   "reportDir": "<abs .workflow/<feature>/<NN-change>/ for single-change, or abs .workflow/<feature>/ for epic>",
   "repoRoot": "<abs repo root>",
   "mode": "exact|approximate",
