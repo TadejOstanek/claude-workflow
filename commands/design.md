@@ -8,7 +8,7 @@ argument-hint: [change slug] — blank to use the next change needing design
 Apply the `workflow:code-design` skill. Read `workflow:workflow-conventions` for the GATE format, plus its
 reference files:
 - `${CLAUDE_PLUGIN_ROOT}/skills/workflow-conventions/reference/state-and-layout.md` — file layout + `state.json` schema
-- `${CLAUDE_PLUGIN_ROOT}/skills/workflow-conventions/reference/model-tiers.md` — `design-critic`'s per-tier model
+- `${CLAUDE_PLUGIN_ROOT}/skills/workflow-conventions/reference/models.md` — `design-critic`'s model
 
 1. Resolve the active workflow from `state.json`. Read `state.json`, the epic `architecture.md` if present, and
    **this change's `spec.md`** (its whole behavioral contract — Why + Acceptance Criteria). Use the change in
@@ -31,10 +31,8 @@ reference files:
 4. Write `.workflow/<feature>/<change>/code-design.md` (interfaces, components, tests, conventions; checkboxes + `## GATE`).
 5. **Adversarial critique — default-on, skippable.** Ask the user whether to run the `workflow:design-critic` agent
    against the drafted `code-design.md` (default: yes; skip only for a trivial/low-risk change). If run, resolve
-   this change's model tier (`change.complexity`) per the model-tiers reference above: for tier
-   `deep`, spawn the agent with an explicit `model: "opus"` override (guaranteeing full rigor regardless of your
-   own session's model); for `light`/`standard`, spawn it with no model override (it keeps `model: inherit` —
-   identical to today). Spawn it with this change's `code-design.md`, `architecture.md` (if any), and `spec.md` —
+   its model per the models reference above: if `change.models["design-critic"]` exists, spawn the agent with that
+   `model` override; if none (the default), spawn it with no override (it keeps `model: inherit`). Effort isn't settable for this agent. Spawn it with this change's `code-design.md`, `architecture.md` (if any), and `spec.md` —
    it writes `.workflow/<feature>/<change>/design-critique.md` and returns findings.
    Present any findings to the user next to the design. This is advisory, not a gate: if a finding reveals a real
    problem, revise `code-design.md` (re-running the critic afterward if the revision was substantial); proceeding

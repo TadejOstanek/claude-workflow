@@ -10,7 +10,7 @@ plus its reference files:
 - `${CLAUDE_PLUGIN_ROOT}/skills/workflow-conventions/reference/state-and-layout.md`
 - `${CLAUDE_PLUGIN_ROOT}/skills/workflow-conventions/reference/git-safety.md` — checkout safety + branch provisioning
 - `${CLAUDE_PLUGIN_ROOT}/skills/workflow-conventions/reference/test-runner-detection.md`
-- `${CLAUDE_PLUGIN_ROOT}/skills/workflow-conventions/reference/model-tiers.md` — the per-role model+effort config
+- `${CLAUDE_PLUGIN_ROOT}/skills/workflow-conventions/reference/models.md` — the per-role model+effort defaults and per-change `models`
 
 ## 1. Resolve the change + compute what's left (you have filesystem access — the loop does not)
 1. Find the active workflow under `.workflow/` from `state.json`. Pick the change from `$ARGUMENTS`, else the
@@ -61,9 +61,7 @@ plus its reference files:
      record `ticket`, `branch` on this change in `state.json`.
 
    Once safe, the loop's git/test/PR commands run in `workdir`.
-5. **Resolve the model-tiers config** per the model-tiers reference above: tier = `change.complexity`; read
-   `${CLAUDE_PLUGIN_ROOT}/config/model-tiers.json` and take that tier's `code`/`test`/`run`/`review`/`pr` entries
-   as `models` for step 2.
+5. **Models:** take `code`/`test`/`run`/`review`/`pr` from `change.models` in `state.json` as `models` for step 2.
 
 ## 2. Launch the loop (async — then end your turn)
 Call the **Workflow** tool with `scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/autonomous-loop.js"` and `args`

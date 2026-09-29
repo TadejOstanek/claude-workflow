@@ -44,5 +44,5 @@ file for your stage instead of guessing; each is self-contained on its topic:
   pipeline touches OpenSpec.
 - `${CLAUDE_PLUGIN_ROOT}/skills/workflow-conventions/reference/test-runner-detection.md` — how to detect a repo's
   test/lint command. Read by `build` and `review-pr`.
-- `${CLAUDE_PLUGIN_ROOT}/skills/workflow-conventions/reference/model-tiers.md` — the per-role model+effort tier
-  config, keyed by a change's `complexity`. Read by `build`, `review-pr`, `insights`, `design`.
+- `${CLAUDE_PLUGIN_ROOT}/skills/workflow-conventions/reference/models.md` — the per-role model+effort defaults and
+  each change's editable `models` in `state.json`. Read by `build`, `insights`, `design`.

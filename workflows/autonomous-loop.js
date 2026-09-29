@@ -30,7 +30,7 @@ const IS_PEEL = A.isPeel === true || (TEST_CMD || '').startsWith('peel')
 const PENDING = Array.isArray(A.pendingStages) ? A.pendingStages : null
 const todo = (name) => !PENDING || PENDING.includes(name)
 
-// Model + effort per role, resolved by /workflow:build from config/model-tiers.json (see reference/model-tiers.md)
+// Model + effort per role, resolved by /workflow:build from config/default-models.json (see reference/models.md)
 // and passed in as args.models.
 const M = A.models || {}
 const opt = (role) => {

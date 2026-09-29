@@ -15,13 +15,9 @@ Input: `$ARGUMENTS`
 
 ## 1. Parse arguments
 
-- `feature[/NN-change]` (optional), `--write-memory` (boolean flag), and `--complexity <light|standard|deep>`
-  (optional) — any may appear anywhere in `$ARGUMENTS`.
+- `feature[/NN-change]` (optional), and `--write-memory` (boolean flag) — either may appear anywhere in `$ARGUMENTS`.
 - Without `--write-memory`, the Learnings phase only **drafts** proposed memories/amendments — nothing is written
   outside the repo. Pass it to actually persist them. This mirrors `/workflow:review-pr`'s `--comment` opt-in.
-- `--complexity`, when given, always wins for the model-tiers config (see step 4). When omitted and scope is
-  `single-change`, default to that change's own stored `complexity` (already read in step 2) if present; otherwise
-  (including `scope:"epic"`, which mixes changes) default `standard`.
 
 ## 2. Resolve scope + change(s)
 
@@ -82,9 +78,9 @@ exactly — the script reads them):
 ```
 
 `changes` has one entry for `scope:"single-change"`, all of the epic's for `scope:"epic"`. `models` is resolved
-per the model-tiers reference (`${CLAUDE_PLUGIN_ROOT}/skills/workflow-conventions/reference/model-tiers.md`): read
-`${CLAUDE_PLUGIN_ROOT}/config/model-tiers.json` and take the resolved tier's (step 1) `cost`/`quality`/`learnings`
-entries.
+per the models reference (`${CLAUDE_PLUGIN_ROOT}/skills/workflow-conventions/reference/models.md`): the
+`cost`/`quality`/`learnings` entries come from that change's `models` for `scope:"single-change"`, else from
+`${CLAUDE_PLUGIN_ROOT}/config/default-models.json`.
 
 ## 5. Write `insights.md` and print the terminal report
 

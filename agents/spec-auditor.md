@@ -1,7 +1,7 @@
 ---
 name: spec-auditor
-description: Non-interactive read-only agent that audits whether a PR's code satisfies its spec — assembled from any spec-like docs/markdown in the diff, the PR description, and/or user-provided text — deriving the claim→code/test mapping directly from that spec and the diff. Never edits or commits. Runs on opus.
-model: opus
+description: Non-interactive read-only agent that audits whether a PR's code satisfies its spec — assembled from any spec-like docs/markdown in the diff, the PR description, and/or user-provided text — deriving the claim→code/test mapping directly from that spec and the diff. Never edits or commits. Runs at the calling session's model.
+model: inherit
 color: purple
 tools: Read, Grep, Glob, Bash, mcp__codegraph
 ---

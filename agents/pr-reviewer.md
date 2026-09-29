@@ -1,7 +1,7 @@
 ---
 name: pr-reviewer
-description: Non-interactive read-only agent that reviews an external PR along one named dimension (correctness, conventions, concurrency), adversarially verifies a finding, or synthesizes surviving findings. Never edits or commits. Runs on sonnet (opus for synthesis).
-model: sonnet
+description: Non-interactive read-only agent that reviews an external PR along one named dimension (correctness, conventions, concurrency), adversarially verifies a finding, or synthesizes surviving findings. Never edits or commits. Runs at the calling session's model.
+model: inherit
 color: cyan
 tools: Read, Grep, Glob, Bash, Agent, Skill, mcp__codegraph
 ---

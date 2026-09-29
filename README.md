@@ -20,7 +20,7 @@ that `/workflow:arch` breaks into several changes. Every change, technical or be
 | Review | auto (opus\*) | `reviewer` | `review.md` (+ commit) |
 | Pull request | auto (sonnet\*) | `pr-author` | draft PR incl. its own manual-QA section (link reported by `/workflow:build`) |
 
-\* the `standard`-complexity default — see "Model tiers" below for how model+effort vary by change complexity.
+\* the default — see "Models" below; editable per change in `state.json`.
 
 Implement → PR runs as one background **Workflow** (launched by `/workflow:build`): isolated subagents, per-stage
 models, file-based handoff, failure loops, and escalation back to you only when a decision is genuinely needed.
@@ -36,17 +36,12 @@ runs once up front — before any change — to capture the epic's intent and br
 The epic has no spec of its own — its intent lives in the epic `architecture.md`; each change it spawns is specced
 via `/workflow:propose` (and gets its own per-change data-model pass only if it needs one).
 
-## Model tiers (cost vs. rigor per change)
+## Models (per change, editable)
 
 Every subagent role (`implementer`, `test-author`, `test-runner`, `reviewer`, `pr-author`, `design-critic`, plus
-`review-pr`'s and `insights`' roles) runs on a model+effort pulled from `config/model-tiers.json`, keyed by the
-change's `complexity: "light" | "standard" | "deep"`. `complexity` is recommended by the workflow and confirmed by
-you when a change is first scoped (`/workflow:start` for a single change, `/workflow:arch` per change for an epic)
-— `light` for a one-liner, `deep` for a gnarly migration, `standard` otherwise. `deep` also forces `design-critic`
-(normally `model: inherit`, riding your interactive session) onto `opus` regardless of what model you're in. Edit
-`config/model-tiers.json` directly to retune any role/tier — it's a single plugin-level file, not per-repo config.
-`/workflow:review-pr` and `/workflow:insights` (standalone, no `state.json`) take an explicit `--complexity <tier>`
-flag instead, defaulting to `standard`.
+and `insights`' roles) runs on a model+effort. Defaults live in `config/default-models.json`. When a
+change is first scoped (`/workflow:start` for a single change, `/workflow:arch` per change for an epic), the defaults
+are **copied into the change's `state.json` as `models`** — edit it there to override any role for that one change.
 
 ## OpenSpec (optional export)
 
@@ -131,6 +126,7 @@ asked. It also runs the full general review (correctness, conventions, concurren
 ```
 /workflow:review-pr 1234                    # terminal report
 /workflow:review-pr <pr-url> --comment      # …and post the findings back to the PR
+/workflow:review-pr 1234 --model sonnet      # agents inherit your session's model; this drops them all to sonnet
 ```
 
 It checks the PR out into a throwaway git **worktree** (never touching your branch or working tree), fans out

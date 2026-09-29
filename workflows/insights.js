@@ -43,8 +43,8 @@ const WINDOW_START = A.windowStart || null
 const WINDOW_END = A.windowEnd || null
 const WRITE_MEMORY = !!A.writeMemory
 
-// Model + effort per role, resolved by /workflow:insights from config/model-tiers.json (see
-// reference/model-tiers.md) and passed in as args.models.
+// Model + effort per role, resolved by /workflow:insights from config/default-models.json (see
+// reference/models.md) and passed in as args.models.
 const M = A.models || {}
 const opt = (role) => {
   const cfg = M[role] || {}

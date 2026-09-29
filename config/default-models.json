@@ -1,0 +1,26 @@
+{
+  "code": {
+    "model": "sonnet"
+  },
+  "test": {
+    "model": "sonnet"
+  },
+  "run": {
+    "model": "haiku"
+  },
+  "review": {
+    "model": "opus"
+  },
+  "pr": {
+    "model": "sonnet"
+  },
+  "cost": {
+    "model": "sonnet"
+  },
+  "quality": {
+    "model": "opus"
+  },
+  "learnings": {
+    "model": "sonnet"
+  }
+}

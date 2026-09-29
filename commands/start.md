@@ -21,13 +21,12 @@ Do not read code or design anything — only scaffold:
 1. Derive a short kebab-case `<feature-slug>` from the description. Get the date with `date +%Y-%m-%d`.
 2. **Pick the mode.** If the work is one self-contained change (one PR), use `single`; if it clearly spans
    multiple PRs/areas, use `epic`. If it's not obvious, **ask the user** (single change vs. multi-change epic).
-3. **(single mode) Triage: how much rigor does this change need?** From the description alone, apply the "How
-   much rigor does a change need?" heuristic in the state-and-layout reference above → `complexity:"light"`,
-   `"standard"`, or `"deep"`. State the recommendation and **ask the user to confirm** (their call). For `epic`
-   mode, skip this — `/workflow:arch` triages each change.
+3. **(single mode) Seed `models`:** copy `${CLAUDE_PLUGIN_ROOT}/config/default-models.json` into the change as `models`
+   (see `reference/models.md` in the conventions skill). For `epic`
+   mode, skip this — `/workflow:arch` seeds each change.
 4. Create `.workflow/<feature-slug>/` and write `state.json` per the conventions schema (field list + per-mode
    stage defaults live there). Mode-specific specifics:
-   - **single:** `currentStage:"propose"`; one change entry `slug:"01-<feature-slug>"`, `complexity` from step 3,
+   - **single:** `currentStage:"propose"`; one change entry `slug:"01-<feature-slug>"`, `models` from step 3,
      all stages `pending`. `architecture` stays `pending` (data modeling runs by default); if the user already
      knows this change touches no data model, offer to **pre-skip** it (`architecture:"na"`). If the user already
      knows this change is trivial enough to need no spec at all, offer to **pre-skip** `propose` too

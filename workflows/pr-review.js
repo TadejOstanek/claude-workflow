@@ -2,9 +2,9 @@ export const meta = {
   name: 'pr-review',
   description: 'Standalone adversarial PR review: parallel finder dimensions (spec-satisfaction, correctness, conventions, concurrency) → per-finding adversarial verify (drop REFUTED) → dedup + rank. Reviews an arbitrary GitHub PR from an isolated worktree; never edits or commits.',
   phases: [
-    { title: 'Finders', detail: 'parallel dimension finders over the PR diff (spec dim skipped if no spec material is available)', model: 'opus + sonnet' },
-    { title: 'Verify', detail: 'one adversarial verifier per finding — CONFIRMED / PLAUSIBLE / REFUTED; drop REFUTED', model: 'sonnet' },
-    { title: 'Synthesis', detail: 'dedup near-duplicates across dimensions + overall summary', model: 'opus' },
+    { title: 'Finders', detail: 'parallel dimension finders over the PR diff (spec dim skipped if no spec material is available)'},
+    { title: 'Verify', detail: 'one adversarial verifier per finding — CONFIRMED / PLAUSIBLE / REFUTED; drop REFUTED'},
+    { title: 'Synthesis', detail: 'dedup near-duplicates across dimensions + overall summary'},
   ],
 }
 
@@ -26,13 +26,8 @@ const USER_SPEC = (A.userSpec || '').trim()
 const HAS_SPEC = SPEC_DOCS.length > 0 || !!PR_BODY || !!USER_SPEC
 const TEST_CMD = A.testCmd || null        // best-effort; the finders may run it, never required
 
-// Model + effort per role, resolved by /workflow:review-pr from config/model-tiers.json (see
-// reference/model-tiers.md) and passed in as args.models.
-const M = A.models || {}
-const opt = (role) => {
-  const cfg = M[role] || {}
-  return { ...(cfg.model ? { model: cfg.model } : {}), ...(cfg.effort ? { effort: cfg.effort } : {}) }
-}
+// Agents inherit the calling session's model; args.model (from --model) explicitly overrides it for all of them.
+const MODEL = A.model ? { model: A.model } : {}
 
 const SEV_RANK = { critical: 0, major: 1, minor: 2, nit: 3 }
 
@@ -101,12 +96,12 @@ if (HAS_SPEC) {
   const userBlock = USER_SPEC ? `\nUser-provided spec/acceptance criteria (from the story):\n${USER_SPEC}` : ''
   finderThunks.push(() => agent(
     `${CTX}\nAudit SPEC-SATISFACTION. ${docsLine}${bodyBlock}${userBlock}\nCombine all of the above into "the spec," extract every discrete testable claim, and verify this PR's code+tests satisfy each one (variant b — there is no code-design.md). Tag each finding's \`criterion\`.`,
-    { agentType: 'workflow:spec-auditor', ...opt('spec'), phase: 'Finders', label: 'spec', schema: FINDER_SCHEMA }))
+    { agentType: 'workflow:spec-auditor', ...MODEL, phase: 'Finders', label: 'spec', schema: FINDER_SCHEMA }))
 }
 for (const d of DIMENSIONS) {
   finderThunks.push(() => agent(
     `${CTX}\nYou are the ${d.key.toUpperCase()} finder. ${d.focus}\nReturn structured findings for the "${d.key}" dimension only.`,
-    { agentType: 'workflow:pr-reviewer', ...opt('find'), phase: 'Finders', label: `find:${d.key}`, schema: FINDER_SCHEMA }))
+    { agentType: 'workflow:pr-reviewer', ...MODEL, phase: 'Finders', label: `find:${d.key}`, schema: FINDER_SCHEMA }))
 }
 
 const finderResults = (await parallel(finderThunks)).filter(Boolean)
@@ -127,7 +122,7 @@ if (findings.length) {
   phase('Verify')
   const verdicts = await parallel(findings.map((f) => () => agent(
     `${CTX}\nAdversarially VERIFY this finding — try to refute it; default to skepticism. Return CONFIRMED / PLAUSIBLE / REFUTED.\nFinding (${f.dimension}, severity ${f.severity}):\n${JSON.stringify({ file: f.file, line: f.line, title: f.title, detail: f.detail, criterion: f.criterion }, null, 2)}`,
-    { agentType: 'workflow:pr-reviewer', ...opt('verify'), phase: 'Verify', label: `verify:${f.id}`, schema: VERDICT_SCHEMA })))
+    { agentType: 'workflow:pr-reviewer', ...MODEL, phase: 'Verify', label: `verify:${f.id}`, schema: VERDICT_SCHEMA })))
 
   // parallel() preserves order → zip verdicts back onto findings.
   findings.forEach((f, i) => {
@@ -149,7 +144,7 @@ if (survivors.length > 1) {
   phase('Synthesis')
   const synth = await agent(
     `${CTX}\nSynthesize this PR review. Below are the verified findings (CONFIRMED + PLAUSIBLE). Drop only NEAR-DUPLICATES (same underlying issue surfaced by more than one dimension) by omitting their ids from keepIds; keep everything else. Also write a 2-3 sentence overall \`summary\`.\nFindings:\n${JSON.stringify(survivors.map((f) => ({ id: f.id, dimension: f.dimension, severity: f.severity, file: f.file, title: f.title })), null, 2)}`,
-    { agentType: 'workflow:pr-reviewer', ...opt('synth'), phase: 'Synthesis', label: `synth:pr-${PR}`, schema: SYNTH_SCHEMA })
+    { agentType: 'workflow:pr-reviewer', ...MODEL, phase: 'Synthesis', label: `synth:pr-${PR}`, schema: SYNTH_SCHEMA })
   if (synth) {
     summary = synth.summary || summary
     const keep = new Set(synth.keepIds || survivors.map((f) => f.id))

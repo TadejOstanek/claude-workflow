@@ -16,17 +16,6 @@ architecture doc — then each change runs the same propose → design → build
 `/workflow:start` picks the **mode**: `single` (one change, no epic architecture) or `epic` (architecture
 breakdown + multiple changes).
 
-## How much rigor does a change need? (the complexity triage)
-
-Classified `complexity: "light" | "standard" | "deep"` when the change is first scoped (`/workflow:start` for a
-single change, per change in `/workflow:arch` for an epic) — the workflow **recommends** from breadth/blast-radius
-language in the change's own description ("one function"/"quick fix" → `light`; "migration"/"new subsystem"/
-"cross-cutting" → `deep`; anything else → `standard`), the **user always confirms**. `type` is a soft signal only in
-epic mode (`tidy-first`/`tidy-after` skew `light`; a stated-large `feature` skews `deep`) — never a hard mapping.
-This tier selects the model+effort each build/review-pr/insights/design-critic subagent runs at — see
-`reference/model-tiers.md`; it has no other effect (a `light` change still gets the full stage sequence, including
-`propose` — every change gets acceptance criteria, just phrased at domain or technical altitude as fits).
-
 ## Folder layout
 
 ```
@@ -67,7 +56,7 @@ This tier selects the model+effort each build/review-pr/insights/design-critic s
   "changes": [
     {
       "slug": "01-data-model", "type": "feature", "order": 1, "depends_on": [],
-      "complexity": "standard",
+      "models": { "code": { "model": "sonnet" }, "review": { "model": "opus" } },
       "ticket": null, "branch": null,
       "stages": {
         "propose": "pending", "architecture": "pending", "design": "pending",
@@ -89,8 +78,9 @@ This tier selects the model+effort each build/review-pr/insights/design-critic s
 - `propose` defaults to `"pending"` for every change.
 - `architecture` is the per-change data-model & structural-fit stage (`/workflow:arch` in single mode), run **after
   `propose` and before `design`**. Default status when a change is first scoped: **single mode** → `"pending"`
-- `complexity` is `"light" | "standard" | "deep"` — see "How much rigor does a change need?" above. Set when the
-  change is first scoped; required from then on.
+- `models` is the change's editable model+effort per role — `{role: {model, effort?}}`, copied
+  from `config/default-models.json` (all roles; the example above is truncated) when the change is first scoped.
+  Hand-edit freely. See `reference/models.md`.
 - `ticket`, `branch` live **on each change** (not top-level — a workflow can have several changes, each with its
   own branch/PR). `null` until `/workflow:build` provisions them; see `reference/git-safety.md`.
 - Per-change stages run: `propose` → `architecture` → `design` → `build` (the parallel implement + test-author pair,

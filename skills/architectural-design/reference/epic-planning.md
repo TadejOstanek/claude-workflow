@@ -11,10 +11,6 @@ change runs the full pipeline from its `/workflow:propose` and code-design on.
 - **Feature** changes: the work itself, marked independent / parallel / sequential.
 - **Tidy-after**: cleanup enabled once the feature lands → final change(s).
 
-Also triage each change's `complexity` (`"light" | "standard" | "deep"`) per the "How much rigor does a change
-need?" heuristic in the same reference — `type` is a soft signal (tidy-first/tidy-after skew `light`; a
-stated-large feature skews `deep`), never a hard mapping. Recommend per change and confirm with the user.
-
 ## Epic planning procedure
 1. Resolve the active workflow from `state.json` (expects `mode:"epic"`). The epic intent is the feature
    `title`/description — there is no epic spec file.
@@ -28,8 +24,8 @@ stated-large feature skews `deep`), never a hard mapping. Recommend per change a
    - set `epic.architecture="done"`, append a `transitions` entry (with `sessionId`, per the state-and-layout
      reference), and set `currentStage="propose"` for the first change (every change starts with `propose` now);
    - populate `changes[]` from the agreed breakdown per the conventions schema (field defaults there) — each with
-     the breakdown-specific `slug` (`<NN>-<name>`), `type`, `order`, `depends_on`, and a `complexity` you triaged
-     per its heuristic (recommend per change, **confirm with the user**). Set all stages `pending` **except**
+     the breakdown-specific `slug` (`<NN>-<name>`), `type`, `order`, `depends_on`, and `models` seeded
+     from `config/default-models.json`. Set all stages `pending` **except**
      `architecture:"na"` (the epic-level data model is decided here; a complex change can opt back in by flipping it
      to `pending` and running `/workflow:arch <change>`);
    - create each change folder `.workflow/<feature>/<NN>-<slug>/`.
