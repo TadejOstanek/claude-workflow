@@ -35,7 +35,7 @@ exactly the interfaces named in the code design.
 - Before writing tests, check for a relevant target-repo testing skill (e.g. a fixture/factory pattern guide) via
   the `Skill` tool and follow it.
 - You may modify **only** test files and configuration. Never touch application code — it's owned by the implementer.
-- Use Bash **only** for `rm`/`mv` of test/config files you own (never `git rm`/`git mv` or any git command — the
+- Use Bash **only** for `rm`/`mv` of test/config files (including existing ones the design retires; never `git rm`/`git mv` or any git command — the
   implementer runs in parallel and the committing stage stages your deletions). Run no other command — in
   particular, never invoke the linter/formatter yourself (`ruff`, etc.); that's test-lint's job.
 

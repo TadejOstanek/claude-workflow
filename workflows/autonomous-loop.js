@@ -113,6 +113,10 @@ const PEEL_NOTE = IS_PEEL ? `
 PEEL: first run after a Docker (re)start builds the container (minutes) — not a failure, wait. peel can exit 0 even
 when it never ran (Docker down / expired AWS session) — judge by OUTPUT and set ran=false in that case.` : ''
 
+const MIGRATE_NOTE = MIGRATE_CMD
+  ? `\nMIGRATIONS: a separate Migrate step runs \`${MIGRATE_CMD}\` after you finish. Change the models but do NOT run any migration command or write migration files yourself.`
+  : `\nMIGRATIONS: there is no Migrate step in this run. If the models change, hand-write the migration file.`
+
 // ---------- result accumulator ----------
 const result = {
   scope: SCOPE, committed: false, prUrl: null, testsVerified: false,
@@ -135,7 +139,7 @@ if (todo('build') && !result.escalation) {
   phase('Build')
   log(`${TITLE}: implementing code + tests in parallel`)
   const [impl, tst] = await parallel([
-    () => agent(`${CTX}\nImplement the application CODE for this phase from ${PHASE_DIR}/code-design.md.`,
+    () => agent(`${CTX}\nImplement the application CODE for this phase from ${PHASE_DIR}/code-design.md.${MIGRATE_NOTE}`,
       { agentType: 'workflow:implementer', ...opt('code'), phase: 'Build', label: `code:${SCOPE}`, schema: GATE_SCHEMA }),
     () => agent(`${CTX}\nWrite the TESTS for this phase from ${PHASE_DIR}/code-design.md (its Tests section).`,
       { agentType: 'workflow:test-author', ...opt('test'), phase: 'Build', label: `tests:${SCOPE}`, schema: GATE_SCHEMA }),

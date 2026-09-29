@@ -46,8 +46,10 @@ plus its reference files:
    must resolve to a concrete `testCmd` string (e.g. `pytest`, `npm test`, or `peel test` as a runner placeholder
    for peel — see the heuristic), never a bare flag; additionally set `isPeel:true` when the runner is peel. If no
    runner can be detected, **ask the user** for a command instead
-   of passing `testCmd: null` — a null `testCmd` silently skips the whole test-lint stage. Detect a migrate command
-   only if the change touches models (e.g. `peel makemigrations <app>`).
+   of passing `testCmd: null` — a null `testCmd` silently skips the whole test-lint stage. If the change touches models,
+   resolve a `migrateCmd` (e.g. `peel makemigrations <app>`) — **ask the user** if it can't be detected. It runs as
+   its own Migrate step after the build, and the implementer is told not to generate migrations itself; with no
+   `migrateCmd` it hand-writes them.
    `baseRef` = `main`; `appDir` = the change's primary directory **to test/migrate** if obvious, else `.`.
 4. Determine `workdir` — the **absolute** repo root path (there is no worktree). **Provision or verify this
    change's branch** (the git-safety reference above) before launching — the background loop can't pause to ask:

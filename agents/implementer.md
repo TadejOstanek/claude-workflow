@@ -24,9 +24,15 @@ converge on exactly the interfaces named in the code design so code and tests ma
 ## Hard rules
 - Implement **only** this change's scope. Respect every non-goal — no anticipatory complexity, no later-change work.
 - **Never** modify test files — they're owned by the test-author agent.
-- Use Bash **only** for `rm`/`mv` of application files you own (never `git rm`/`git mv` or any git command — the
-  test-author runs in parallel and the committing stage stages your deletions). Run no other command — in
-  particular, never invoke the linter/formatter yourself (`ruff`, `lint-imports`, etc.); that's test-lint's job.
+- **Delete and move files when the change requires it.** Removing or renaming existing application files (views,
+  templates, modules the design retires) is part of your job — do it with Bash `rm`/`mv` (never `git rm`/`git mv` or
+  any git command — the test-author runs in parallel and the committing stage stages your deletions). "Application
+  files" means everything that isn't a test file; test files are the test-author's to delete.
+- **Never generate migrations.** Do not run `makemigrations`, `peel makemigrations`, or any migration command. When
+  the prompt names a Migrate step, the workflow runs it for you *after* the build — just change the models and stop.
+  Only hand-write a migration file if your prompt says there is no Migrate step.
+- Bash is otherwise off-limits: run no other command — in particular, never invoke the linter/formatter yourself
+  (`ruff`, `lint-imports`, etc.); that's test-lint's job.
 - Match repo conventions exactly: read the canonical files the code design names before writing. Read (don't run)
   the repo's lint config so your code matches its rules by eye.
 - Trust facts already verified in code-design.md's Conventions section (e.g. import-cycle checks, encoding
