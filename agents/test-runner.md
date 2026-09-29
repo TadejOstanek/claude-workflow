@@ -42,7 +42,7 @@ You run the tests and linters affected by this change and report results precise
 3. **Capture output to a file** — test output regularly exceeds the Bash tool's output buffer and gets silently
    truncated. Always tee to a temp file with a done-sentinel:
    ```bash
-   OUTFILE=$(mktemp /tmp/test-runner-XXXXX.txt)
+   OUTFILE=$(mktemp /tmp/test-runner.XXXXXX)
    echo "OUTFILE=$OUTFILE"
    <test command> 2>&1 | tee "$OUTFILE"; echo "TEST_DONE=$?" | tee -a "$OUTFILE"
    ```
