@@ -54,6 +54,6 @@ Write to the epic's `.workflow/<feature>/architecture.md` (epic) or the change's
 Concise prose and plain bullets — no checkboxes here. End with the standard `## GATE`.
 
 ## Done when
-User agrees the approach. Then `/clear`, and:
+User agrees the approach. Then:
 - **Single change:** run `/workflow:design` (the data model is now decided input).
 - **Epic:** see `${CLAUDE_PLUGIN_ROOT}/skills/architectural-design/reference/epic-planning.md`'s "Next steps".

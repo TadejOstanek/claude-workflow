@@ -65,4 +65,4 @@ concise prose/plain lists. End with the standard `## GATE`.
 
 ## Done when
 The user approves the design (nothing to provision here — `/workflow:build` creates or reuses the branch as its
-first step). Then `/clear` and run `/workflow:build` to start the autonomous loop for this change.
+first step).

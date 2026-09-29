@@ -39,4 +39,3 @@ reference files:
    without addressing a finding is the user's call, not yours.
 6. Update `state.json` (change `stages["code-design"]="done"`, `currentStage="build"`, append a transition with
    `sessionId`, per the state-and-layout reference above).
-7. Get the user's explicit approval. Then tell them to `/clear` and run `/workflow:build` for this change.

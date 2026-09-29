@@ -12,7 +12,7 @@ Input: `$ARGUMENTS`
 
 ## No argument → status / resume
 Find every `.workflow/*/state.json` in the repo. For each active workflow report: title, `mode`, `currentStage`,
-and the **exact next command** (e.g. "`/clear`, then `/workflow:propose`"; `currentStage:"architecture"` maps to
+and the **exact next command** (e.g. "`/workflow:propose`"; `currentStage:"architecture"` maps to
 `/workflow:arch`). Name the change if mid-pipeline. If
 none exist, say so and explain that `/workflow:start <what you want to build>` begins one.
 
@@ -35,4 +35,4 @@ Do not read code or design anything — only scaffold:
    - all: one `transitions` entry `{from:"init", to:<currentStage>, reason:"workflow created (<mode>)"}` (include
      this session's `sessionId`, per the state-and-layout reference above).
 5. Tell the user the next command — **single →** `/workflow:propose` (or `/workflow:design` if `propose` was
-   pre-skipped); **epic →** `/workflow:arch` (no `/clear` needed; it's the first stage).
+   pre-skipped); **epic →** `/workflow:arch`.

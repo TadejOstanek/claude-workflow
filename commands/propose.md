@@ -25,6 +25,6 @@ through and write `spec.md`.
 Set this change's `stages.propose = "done"` and append a transition (include this session's `sessionId`, per the
 state-and-layout reference above). Route by this change's `stages.architecture`:
 - **`pending`** (the default — data modeling comes next): set `currentStage="architecture"` and tell the user to
-  `/clear`, then run `/workflow:arch` (the data-model & structural-fit pass) and then `/workflow:design`.
-- **`na`** (the user pre-skipped the architecture step): set `currentStage="design"` and tell the user to `/clear`,
-  then run `/workflow:design`.
+  run `/workflow:arch` (the data-model & structural-fit pass) and then `/workflow:design`.
+- **`na`** (the user pre-skipped the architecture step): set `currentStage="design"` and tell the user to
+  run `/workflow:design`.

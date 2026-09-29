@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SessionStart hook: if the repo has any active workflow, print a one-line resume banner.
-# stdout is injected into the session context, so a freshly /clear'd or reopened session knows where to pick up.
+# stdout is injected into the session context, so a freshly cleared or reopened session knows where to pick up.
 set -euo pipefail
 shopt -s nullglob
 for f in .workflow/*/state.json; do
@@ -13,7 +13,7 @@ except Exception:
 title=d.get("title") or d.get("feature","?")
 stage=d.get("currentStage","?")
 nxt={"spec":"/workflow:spec","architecture":"/workflow:arch","design":"/workflow:design","build":"/workflow:build"}.get(stage,"/workflow:start")
-print(f'[workflow] "{title}" — stage: {stage}. Resume with {nxt} (after /clear).')
+print(f'[workflow] "{title}" — stage: {stage}. Resume with {nxt}.')
 PY
 done
 exit 0

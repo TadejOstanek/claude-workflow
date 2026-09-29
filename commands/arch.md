@@ -41,7 +41,7 @@ Runs for a **single**-mode change, or a **named epic change** (`$ARGUMENTS`) who
    hard decisions, patterns the code design must follow; ADR path if one was written) ending with a `## GATE`.
 5. Update `state.json`: set this change's `stages.architecture="done"`, `currentStage="design"`, append a
    transition (with `sessionId`, per the state-and-layout reference above).
-6. Tell the user to `/clear`, then run `/workflow:design` for this change.
+6. Tell the user to run `/workflow:design` for this change.
 
 ## Epic planning (`mode:"epic"`, `epic.architecture` not yet `"done"`)
 This is the epic planning stage; the epic intent + the change breakdown live here, and each resulting change is

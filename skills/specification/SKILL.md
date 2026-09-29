@@ -90,5 +90,4 @@ Later stages append their own findings the same way, tagged with their own stage
 another stage's lines.
 
 ## Done when
-The user agrees, and `spec.md` and `references.md` both exist. Then `/clear`, and run the change's next step (its
-architecture step if it needs one, else `/workflow:design`).
+`spec.md` and `references.md` both exist.

@@ -29,7 +29,6 @@ change runs the full pipeline from its `/workflow:propose` and code-design on.
      `architecture:"na"` (the epic-level data model is decided here; a complex change can opt back in by flipping it
      to `pending` and running `/workflow:arch <change>`);
    - create each change folder `.workflow/<feature>/<NN>-<slug>/`.
-6. Tell the user to `/clear`, then run `/workflow:propose` for the first change.
 
 ## Output: `architecture.md` (epic)
 On top of the shared output requirements (data-model modifications, how the work fits, hard decisions, patterns,

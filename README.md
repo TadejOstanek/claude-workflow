@@ -83,9 +83,9 @@ Or add to `~/.claude/settings.json`:
 /workflow:start <what you want to build>   # scaffolds .workflow/<feature>/ ; picks single-change vs epic
 
 # single change:
-/workflow:propose                           # orient in the code, then talk it through → spec.md (one session); then /clear
-/workflow:arch                              # data model & structural fit → architecture.md (default; skip if none); then /clear
-/workflow:design                            # interfaces + tests → code-design.md; then /clear
+/workflow:propose                           # orient in the code, then talk it through → spec.md (one session)
+/workflow:arch                              # data model & structural fit → architecture.md (default; skip if none)
+/workflow:design                            # interfaces + tests → code-design.md
 /workflow:build                             # full autonomous loop → review → draft PR (blank/full = resume: skip done stages)
 /workflow:build light                       #   …or light: just implement + tests (skip test-run/review/PR)
 /workflow:build skip review                 #   …or full minus named stages (only/skip/light = manual control, ignores done)
@@ -95,7 +95,7 @@ Or add to `~/.claude/settings.json`:
 # then propose → design → build (review → PR) per change.
 ```
 
-`/clear` between stages is lossless — each command re-reads `.workflow/`. Run `/workflow:start` with no argument
+Each command re-reads `.workflow/`, so stages don't depend on session context. Run `/workflow:start` with no argument
 any time to see status and the next command.
 
 `/workflow:build` runs implement‖test together (when `build` is selected); `test-lint`, `review`, and `pr` are
