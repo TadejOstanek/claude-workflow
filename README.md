@@ -208,8 +208,8 @@ dirs. See the `workflow-conventions` skill for the full mechanic.
 
 - Plugin commands/skills are namespaced under the plugin name (`/workflow:propose`, skill `workflow:specification`);
   agents are `workflow:reviewer` etc. If your Claude Code version surfaces them un-namespaced, adjust accordingly.
-- The autonomous loop is launched by absolute path (`${CLAUDE_PLUGIN_ROOT}/workflows/autonomous-loop.js`); plugin
-  `workflows/` are not auto-discovered by name.
+- Bundled workflows are launched by registered name (`workflow:workflow-autonomous-loop`, `workflow:insights`,
+  `workflow:pr-review`).
 - This repo dogfoods its own process — see `.workflow/build-workflow-plugin/spec.md` for the original acceptance
   contract.
 - All workflow agents can invoke `Skill` (target-repo skills, plus `orchestration:lookup`/`investigate`) and

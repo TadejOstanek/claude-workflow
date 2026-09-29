@@ -59,7 +59,7 @@ From the resolved workflow's `state.json.transitions`:
 ## 4. Launch the Workflow (synchronous)
 
 Determine `repoRoot` (`git rev-parse --show-toplevel`). Call the **Workflow** tool with
-`scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/insights.js"`, `run_in_background: false`, and `args` (keep the keys
+`name: "workflow:insights"`, `run_in_background: false`, and `args` (keep the keys
 exactly — the script reads them):
 
 ```json

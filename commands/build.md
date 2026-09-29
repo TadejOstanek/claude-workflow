@@ -50,7 +50,8 @@ plus its reference files:
    resolve a `migrateCmd` (e.g. `peel makemigrations <app>`) — **ask the user** if it can't be detected. It runs as
    its own Migrate step after the build, and the implementer is told not to generate migrations itself; with no
    `migrateCmd` it hand-writes them.
-   `baseRef` = `main`; `appDir` = the change's primary directory **to test/migrate** if obvious, else `.`.
+   `baseRef` = `main`; `appDir` = the change's primary directory **to test/migrate** — the app/module dir the change lives in (e.g. `goods`);
+   with peel the loop passes it as `--arg` to scope the tests, so use `.` only if the change truly spans apps.
 4. Determine `workdir` — the **absolute** repo root path (there is no worktree). **Provision or verify this
    change's branch** (the git-safety reference above) before launching — the background loop can't pause to ask:
    - **`branch` already set** on this change (a rebuild, or a redo after review sent it back) — run **checkout
@@ -66,8 +67,8 @@ plus its reference files:
 5. **Models:** take `code`/`test`/`run`/`review`/`pr` from `change.models` in `state.json` as `models` for step 2.
 
 ## 2. Launch the loop (async — then end your turn)
-Call the **Workflow** tool with `scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/autonomous-loop.js"` and `args`
-(keep the arg keys exactly — the loop reads them):
+Call the **Workflow** tool with `name: "workflow:workflow-autonomous-loop"` and `args` (keep the arg keys exactly —
+the loop reads them):
 ```json
 {
   "title": "<feature + change title>", "scope": "<change title>",
@@ -80,8 +81,9 @@ Call the **Workflow** tool with `scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/au
   "models": { "code": {"model": "...", "effort": "..."}, "test": {...}, "run": {...}, "review": {...}, "pr": {...} }
 }
 ```
-Set `state.json` stage `build` (and the rest of this change's pipeline) to `in_progress`, append a transition —
-capture this session's `sessionId` once now (the `CLAUDE_CODE_SESSION_ID` env var, per the state-and-layout
+**Only after the Workflow call returns a task ID** (a failed or interrupted launch must leave `state.json`
+untouched), set `state.json` stage `build` (and the rest of this change's pipeline) to `in_progress`, and append a
+transition that records the task ID — capture this session's `sessionId` once now (the `CLAUDE_CODE_SESSION_ID` env var, per the state-and-layout
 reference above) and reuse the same value for every transitions entry this command appends,
 including step 3 below, since it's the same session finishing the loop it launched — then tell the user the loop
 is running in the background (they can watch with `/workflows`) and **end your turn**. The loop returns later via

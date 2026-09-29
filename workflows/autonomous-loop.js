@@ -113,6 +113,10 @@ const PEEL_NOTE = IS_PEEL ? `
 PEEL: first run after a Docker (re)start builds the container (minutes) — not a failure, wait. peel can exit 0 even
 when it never ran (Docker down / expired AWS session) — judge by OUTPUT and set ran=false in that case.` : ''
 
+// Test scoping for peel: `--arg` applies to EVERY -t in the invocation, and CI runs the full suite, so scope to the app.
+const PEEL_SCOPE = IS_PEEL && APP_DIR !== '.' ? `
+SCOPE: this change lives in \`${APP_DIR}\`. Add \`--arg ${APP_DIR}\` to the \`peel test\` invocation — never run a bare unscoped \`peel test\`. \`--arg\` is passed to ALL the -t targets at once, so a target that can't take that path (e.g. a JS tool for another tree) goes in a second invocation without \`--arg\`. If the diff clearly touches code outside \`${APP_DIR}\`, say so in your summary and widen the scope deliberately. State the exact command(s) you ran.` : ''
+
 const MIGRATE_NOTE = MIGRATE_CMD
   ? `\nMIGRATIONS: a separate Migrate step runs \`${MIGRATE_CMD}\` after you finish. Change the models but do NOT run any migration command or write migration files yourself.`
   : `\nMIGRATIONS: there is no Migrate step in this run. If the models change, hand-write the migration file.`
@@ -165,9 +169,9 @@ if (todo('test-lint') && !result.escalation) {
   } else {
     phase('Test')
     const RUN_INSTR = IS_PEEL
-      ? 'This repo uses peel. Decide which peel targets apply to this change (test framework + linters for the changed languages only, per your own scoping) and run them together in ONE `peel test -t ...` invocation — never call peel once per tool.'
+      ? 'This repo uses peel. Decide which peel targets apply to this change (test framework + linters for the changed languages only) and run them together in ONE `peel test -t ...` invocation — never call peel once per tool.'
       : `Run \`${TEST_CMD}\` (plus this repo's linters)`
-    const RUN = `${CTX}\n${RUN_INSTR} for this change and write ${PHASE_DIR}/test-lint.md.${PEEL_NOTE}\nReport every real failure precisely (target + test + error).`
+    const RUN = `${CTX}\n${RUN_INSTR} for this change and write ${PHASE_DIR}/test-lint.md.${PEEL_NOTE}${PEEL_SCOPE}\nReport every real failure precisely (target + test + error).`
     const MAX = 2
     for (let i = 1; i <= MAX; i++) {
       test = await agent(RUN, { agentType: 'workflow:test-runner', ...opt('run'), phase: 'Test', label: `test #${i}:${SCOPE}`, schema: TEST_SCHEMA })
@@ -225,7 +229,7 @@ if (todo('review') && !result.escalation) {
       const RERUN_INSTR = IS_PEEL
         ? 'This repo uses peel. Re-determine which peel targets apply (same scoping as before) and re-run them together in ONE `peel test -t ...` invocation'
         : `Re-run \`${TEST_CMD}\``
-      const t = await agent(`${CTX}\n${RERUN_INSTR} after the fix; write ${PHASE_DIR}/test-lint.md.${PEEL_NOTE}`,
+      const t = await agent(`${CTX}\n${RERUN_INSTR} after the fix; write ${PHASE_DIR}/test-lint.md.${PEEL_NOTE}${PEEL_SCOPE}`,
         { agentType: 'workflow:test-runner', ...opt('run'), phase: 'Review', label: `re-test #${i}:${SCOPE}`, schema: TEST_SCHEMA })
       if (t && t.ran && !t.passed) {
         const tDomains = fixDomains(t.failures)

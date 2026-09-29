@@ -9,6 +9,7 @@ when a runner was actually found:
 - `peel.yml` present → `testCmd: "peel test"` and `isPeel:true`. This is a placeholder that confirms **peel** is
   the runner — it does not name the target(s) to run. The test-runner agent decides the actual `-t`/`--target`
   list itself per change (see `workflow:test-runner`), combining every applicable tool into one invocation.
+  The loop passes the change's `appDir`, which the runner uses as `--arg` (applied to every `-t` target at once).
   Detection has no visibility into which languages a given change touches, so don't guess a single target here.
 - else a `Makefile` `test` target → `testCmd: "make test"`.
 - else `pyproject.toml`/`pytest.ini` present → `testCmd: "pytest"`.

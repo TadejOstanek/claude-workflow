@@ -27,11 +27,13 @@ You run the tests and linters affected by this change and report results precise
      a placeholder confirming the runner — decide the targets yourself: from step 1's language/module scoping,
      list every applicable tool (test framework + linters for the changed languages only) and issue **one single**
      `peel test -t <a> -t <b> ...` invocation with all of them — never call peel once per tool. If the repo has its
-     own `peel` skill, follow whatever scoping it documents. Otherwise, when all of a tool's changed files (e.g.
-     `pytest`) sit under one app/module (the innermost directory containing all of them, per step 1), add
-     `--arg <that app/module path>` to scope that tool to just the changed code — CI already runs the full suite,
-     so this avoids re-running unrelated tests. If a tool's changes span multiple top-level apps/modules, omit
-     `--arg` for that tool and let it run unscoped rather than guessing a target.
+     own `peel` skill, follow whatever scoping it documents.
+     **Scope it — never run a bare `peel test` for a change confined to one app/module** (CI already runs the full
+     suite). If your prompt has a `SCOPE:` line, use that path; otherwise take the innermost directory containing
+     every changed file (step 1). Add `--arg <that path>`. **`--arg` applies to ALL `-t` targets in the
+     invocation**, not just pytest — so a target that can't take that path (e.g. a JS tool for another tree) goes in
+     a second invocation without `--arg`. If changes genuinely span multiple top-level apps, run unscoped and say
+     why. Always state the exact command you ran in your summary.
    - Only when no command is named at all, discover the runner yourself by scanning the repo:
      - IF `peel.yml` present → ALWAYS use **peel**, same one-invocation and `--arg`-scoping rules as above (prefer
        a `peel` skill if the repo has one).

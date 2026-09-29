@@ -65,7 +65,7 @@ add` fails (e.g. path exists), pick a `mktemp -d` path instead.
   only if they can. Don't block on it.
 
 ## 5. Launch the Workflow (synchronous)
-Call the **Workflow** tool with `scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/pr-review.js"`,
+Call the **Workflow** tool with `name: "workflow:pr-review"`,
 `run_in_background: false`, and `args` (keep the keys exactly — the script reads them):
 ```json
 {
