@@ -1,5 +1,5 @@
 ---
-name: generate-openspec
+name: openspec-export
 description: Methodology for the workflow's optional, terminal OpenSpec export — translate a landed change's spec.md + build docs into an OpenSpec change and merge it into the canonical library. Use when running /workflow:generate-openspec.
 ---
 
@@ -33,12 +33,15 @@ format is a genuine judgment call, so it runs as a **conversation**, not a silen
 - Run the usual checkout-safety check (`workflow:workflow-conventions`' git-safety reference) before committing —
   this adds a commit to the change's **existing** branch, whether it's still just a draft PR or already merged
   work-in-progress under review.
+- When done, tell the user what the canonical library gained/changed, and that it's committed onto the change's
+  existing branch — if that branch already has an open PR, the commit just landed on it; if the PR already merged,
+  say the commit is only local until they push/merge it themselves.
 
 ## Output: `openspec-export.md`
 Write `.workflow/<feature>/<change>/openspec-export.md`: which capabilities the canonical library gained (new) or
 changed (modified requirements) — this is what the user reviews before merging the PR (or, if the PR already
 merged, just for their own record). No `## GATE` — this is not a pipeline stage with a pass/fail the loop checks;
-it's a standalone action's report.
+it's a standalone action's report. This file, not `state.json`, is the record that the change was exported.
 
 ## Done when
 The user agrees the exported spec is right, `openspec validate` passes, and the merge is committed.
