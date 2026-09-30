@@ -38,8 +38,7 @@ via `/workflow:propose` (and gets its own per-change data-model pass only if it 
 
 ## Models (per change, editable)
 
-Every subagent role (`implementer`, `test-author`, `test-runner`, `reviewer`, `pr-author`, `design-critic`, plus
-and `insights`' roles) runs on a model+effort. Defaults live in `config/default-models.json`. When a
+Every subagent role (`implementer`, `test-author`, `test-runner`, `reviewer`, `pr-author`, `design-critic`) runs on a model+effort. Defaults live in `config/default-models.json`. When a
 change is first scoped (`/workflow:start` for a single change, `/workflow:arch` per change for an epic), the defaults
 are **copied into the change's `state.json` as `models`** — edit it there to override any role for that one change.
 
@@ -157,25 +156,6 @@ Opening the PR itself is `/workflow:creating-pull-requests` — a generic, repo-
 /workflow:creating-pull-requests ready   # open non-draft
 ```
 
-## Getting insights on a change (standalone)
-
-`/workflow:insights [feature[/NN-change]] [--write-memory]` analyzes the Claude Code sessions behind one change —
-or, given just a feature in epic mode, the whole epic — for workflow-process quality (review efficacy, design-doc
-accuracy, gate friction/rework), cost/token stats scoped to exactly those sessions (via the separate
-`session-report` plugin), and explicit learnings extraction into project memory. Blank picks the change matching
-your current git branch.
-
-```
-/workflow:insights                          # the change on your current branch
-/workflow:insights add-foo/01-data-model    # a specific change
-/workflow:insights add-foo --write-memory   # whole epic, and actually persist drafted memories
-```
-
-It never touches `.workflow/state.json` — no stage, no GATE. Learnings only **drafts** proposed memories by
-default; nothing is written outside the repo until you pass `--write-memory`. It writes `insights.md` and a scoped
-`session-report-<date>.html` into the change's (or epic's) own `.workflow/` folder — informational artifacts, not
-pipeline stages.
-
 ## Layout (created in the target repo)
 
 ```
@@ -208,8 +188,7 @@ dirs. See the `workflow-conventions` skill for the full mechanic.
 
 - Plugin commands/skills are namespaced under the plugin name (`/workflow:propose`, skill `workflow:specification`);
   agents are `workflow:reviewer` etc. If your Claude Code version surfaces them un-namespaced, adjust accordingly.
-- Bundled workflows are launched by registered name (`workflow:workflow-autonomous-loop`, `workflow:workflow-insights`,
-  `workflow:pr-review`).
+- Bundled workflows are launched by registered name (`workflow:workflow-autonomous-loop`, `workflow:pr-review`).
 - This repo dogfoods its own process — see `.workflow/build-workflow-plugin/spec.md` for the original acceptance
   contract.
 - All workflow agents can invoke `Skill` (target-repo skills, plus `orchestration:lookup`/`investigate`) and

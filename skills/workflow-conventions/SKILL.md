@@ -45,4 +45,4 @@ file for your stage instead of guessing; each is self-contained on its topic:
 - `${CLAUDE_PLUGIN_ROOT}/skills/workflow-conventions/reference/test-runner-detection.md` — how to detect a repo's
   test/lint command. Read by `build` and `review-pr`.
 - `${CLAUDE_PLUGIN_ROOT}/skills/workflow-conventions/reference/models.md` — the per-role model+effort defaults and
-  each change's editable `models` in `state.json`. Read by `build`, `insights`, `design`.
+  each change's editable `models` in `state.json`. Read by `build`, `design`.

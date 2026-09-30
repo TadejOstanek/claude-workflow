@@ -37,5 +37,4 @@ reference files:
    Present any findings to the user next to the design. This is advisory, not a gate: if a finding reveals a real
    problem, revise `code-design.md` (re-running the critic afterward if the revision was substantial); proceeding
    without addressing a finding is the user's call, not yours.
-6. Update `state.json` (change `stages["code-design"]="done"`, `currentStage="build"`, append a transition with
-   `sessionId`, per the state-and-layout reference above).
+6. Update `state.json` (change `stages["code-design"]="done"`, `currentStage="build"`).

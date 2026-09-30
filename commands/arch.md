@@ -30,8 +30,7 @@ Runs for a **single**-mode change, or a **named epic change** (`$ARGUMENTS`) who
    command. Its `stages.propose` must be `"done"` — if not, stop and tell the user to run `/workflow:propose`
    first. Read its why/what: `spec.md`.
 2. **Skip check.** If the change plainly has **no data-model or structural dimension** (a pure content/copy tweak, a
-   config flip), say so and offer to skip: set `stages.architecture="na"`, `currentStage="design"`, append a
-   transition (with `sessionId`, per the state-and-layout reference above), and point the user at
+   config flip), say so and offer to skip: set `stages.architecture="na"`, `currentStage="design"`, and point the user at
    `/workflow:design`.
    Otherwise continue — the data-model conversation is the point of this stage.
 3. Run the stage interactively per the skill (single shape) — scrutinize the data model, challenge assumptions,
@@ -39,8 +38,7 @@ Runs for a **single**-mode change, or a **named epic change** (`$ARGUMENTS`) who
    *explicit* outcome.
 4. Write `.workflow/<feature>/<NN>-<slug>/architecture.md` per the skill (data-model modifications, how it fits,
    hard decisions, patterns the code design must follow; ADR path if one was written) ending with a `## GATE`.
-5. Update `state.json`: set this change's `stages.architecture="done"`, `currentStage="design"`, append a
-   transition (with `sessionId`, per the state-and-layout reference above).
+5. Update `state.json`: set this change's `stages.architecture="done"`, `currentStage="design"`.
 6. Tell the user to run `/workflow:design` for this change.
 
 ## Epic planning (`mode:"epic"`, `epic.architecture` not yet `"done"`)

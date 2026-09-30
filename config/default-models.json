@@ -13,14 +13,5 @@
   },
   "pr": {
     "model": "sonnet"
-  },
-  "cost": {
-    "model": "sonnet"
-  },
-  "quality": {
-    "model": "opus"
-  },
-  "learnings": {
-    "model": "sonnet"
   }
 }

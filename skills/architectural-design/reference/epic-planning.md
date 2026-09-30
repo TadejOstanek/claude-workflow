@@ -21,8 +21,7 @@ change runs the full pipeline from its `/workflow:propose` and code-design on.
 4. Write `.workflow/<feature>/architecture.md` per the skill — including the epic intent (why/what), since there is
    no separate epic spec — ending with a `## GATE`.
 5. Update `state.json`:
-   - set `epic.architecture="done"`, append a `transitions` entry (with `sessionId`, per the state-and-layout
-     reference), and set `currentStage="propose"` for the first change (every change starts with `propose` now);
+   - set `epic.architecture="done"`, and set `currentStage="propose"` for the first change (every change starts with `propose` now);
    - populate `changes[]` from the agreed breakdown per the conventions schema (field defaults there) — each with
      the breakdown-specific `slug` (`<NN>-<name>`), `type`, `order`, `depends_on`, and `models` seeded
      from `config/default-models.json`. Set all stages `pending` **except**

@@ -15,9 +15,9 @@ any other stage's status. It exists purely because the user asked for it, right 
 
 ## 1. Resolve the change
 Find the active workflow under `.workflow/` from `state.json`. Use the change in `$ARGUMENTS`, else resolve via the
-current branch (`git rev-parse --abbrev-ref HEAD`, matched against `changes[].branch`) — mirror
-`/workflow:insights`' blank-argument resolution, including its "ask the user to pick" fallback when ambiguous. The
-change's `stages.review` must be `"done"` (its code must already be committed) — if not, **stop**: there's nothing
+current branch (`git rev-parse --abbrev-ref HEAD`, matched against `changes[].branch`); if no change
+matches or several do, list the active workflows/changes (mirror `/workflow:start`'s blank-argument status listing)
+and ask the user to pick. The change's `stages.review` must be `"done"` (its code must already be committed) — if not, **stop**: there's nothing
 built yet to export.
 
 ## 2. Confirm

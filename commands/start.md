@@ -32,7 +32,5 @@ Do not read code or design anything — only scaffold:
      knows this change is trivial enough to need no spec at all, offer to **pre-skip** `propose` too
      (`propose:"na"`, `currentStage:"design"`) — this is a manual override, not a recommendation you make.
    - **epic:** `mode:"epic"`, `epic:{architecture:"pending"}`, `currentStage:"architecture"`, `changes:[]`.
-   - all: one `transitions` entry `{from:"init", to:<currentStage>, reason:"workflow created (<mode>)"}` (include
-     this session's `sessionId`, per the state-and-layout reference above).
 5. Tell the user the next command — **single →** `/workflow:propose` (or `/workflow:design` if `propose` was
    pre-skipped); **epic →** `/workflow:arch`.

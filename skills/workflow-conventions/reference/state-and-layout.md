@@ -63,9 +63,6 @@ breakdown + multiple changes).
         "build": "pending", "test-lint": "pending", "review": "pending", "pr": "pending"
       }
     }
-  ],
-  "transitions": [
-    { "at": "2026-06-17T10:00:00Z", "from": "init", "to": "propose", "reason": "workflow created (single)", "sessionId": "9493afd2-7fcf-497e-9813-355c67d2a79f" }
   ]
 }
 ```
@@ -97,11 +94,7 @@ breakdown + multiple changes).
   runs, else by `pr`; pick neither and the loop leaves it uncommitted. Once `review` has cleanly committed a change
   it's treated as landed — this workflow doesn't re-land already-committed code; redo it outside this workflow.
   Unselected stages keep their prior status (run them in a later build, or mark `na` if never wanted).
-- A stage is marked `done` only when its output file exists and its GATE is `pass` (where it has one). Append a
-  `transitions` entry on every status change with a one-line reason **and this session's `sessionId`** — the
-  value of the `CLAUDE_CODE_SESSION_ID` env var (fetch it once per session and reuse the same value for every
-  entry you append that session). It identifies which session transcript
-  (`~/.claude/projects/<project-slug>/<sessionId>.jsonl`) performed the transition.
+- A stage is marked `done` only when its output file exists and its GATE is `pass` (where it has one).
 
 
 ## Resume

@@ -82,10 +82,7 @@ the loop reads them):
 }
 ```
 **Only after the Workflow call returns a task ID** (a failed or interrupted launch must leave `state.json`
-untouched), set `state.json` stage `build` (and the rest of this change's pipeline) to `in_progress`, and append a
-transition that records the task ID — capture this session's `sessionId` once now (the `CLAUDE_CODE_SESSION_ID` env var, per the state-and-layout
-reference above) and reuse the same value for every transitions entry this command appends,
-including step 3 below, since it's the same session finishing the loop it launched — then tell the user the loop
+untouched), set `state.json` stage `build` (and the rest of this change's pipeline) to `in_progress` — then tell the user the loop
 is running in the background (they can watch with `/workflows`) and **end your turn**. The loop returns later via
 a task notification.
 
@@ -93,7 +90,7 @@ a task notification.
 Read the loop's returned result, then **confirm against disk**: for each stage that ran, read its output file
 (`implementation.md`, `tests.md`, `test-lint.md`, `review.md`) and mark the stage `done` only if its
 `## GATE` is `status: pass`; otherwise `failed`. The draft PR link comes from the loop result (no file). Update
-`state.json` accordingly with transitions (reuse the `sessionId` captured when launching in step 2 above).
+`state.json` accordingly.
 Report to the user: tests green / skipped, review committed?, draft PR url, open non-critical findings. If the
 change was **committed** (by `review` or `pr`), say so and report the result, and mention
 `/workflow:generate-openspec` is available whenever they want an OpenSpec export of it. If **neither** ran (a pure
