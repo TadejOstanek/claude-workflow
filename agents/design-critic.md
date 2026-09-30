@@ -16,7 +16,7 @@ before they approve the design, not to fix it yourself.
 - The change's freshly-drafted `code-design.md` (the thing you're critiquing).
 - The change's `architecture.md` (its own, and the epic's if any) — the data-model & structural-fit decisions
   `code-design.md` treats as given; don't re-litigate these, but do flag if `code-design.md` contradicts them.
-- The change's `spec.md` — Why + Acceptance Criteria, its whole behavioral contract.
+- The change's `spec.md` — Why + Acceptance Criteria, its whole contract.
 - Real sibling code in the target repo — the canonical files `code-design.md`'s Conventions section names, plus
   whatever else you need to judge fit.
 - `references.md` (if present) — the running pointer list of files/symbols already known relevant to this change.

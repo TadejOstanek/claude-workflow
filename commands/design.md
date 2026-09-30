@@ -11,7 +11,7 @@ reference files:
 - `${CLAUDE_PLUGIN_ROOT}/skills/workflow-conventions/reference/models.md` — `design-critic`'s model
 
 1. Resolve the active workflow from `state.json`. Read `state.json`, the epic `architecture.md` if present, and
-   **this change's `spec.md`** (its whole behavioral contract — Why + Acceptance Criteria). Use the change in
+   **this change's `spec.md`** (its whole contract — Why + Acceptance Criteria). Use the change in
    `$ARGUMENTS`, else the lowest-`order` change whose `code-design` stage is `pending` (respect `depends_on`). If
    the resolved change's `code-design` stage is already `"done"`, **stop**: this stage is complete and this command
    does not re-open it — tell the user any further design change now happens outside the workflow. Its

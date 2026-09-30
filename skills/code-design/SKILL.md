@@ -12,7 +12,7 @@ is the last interactive stage — the user approves before the autonomous loop r
 - Read `references.md` (seeded by `propose`) — the running pointer list of files/symbols already known relevant.
   Append anything new you find (via `codegraph_explore`/`mcp__codegraph` when available, else
   `orchestration:lookup`/`investigate` or grep), tagged `(design)`. Never rewrite or prune another stage's lines.
-- Read the change's **`spec.md`** (Why + Acceptance Criteria — its whole behavioral contract) plus the change's
+- Read the change's **`spec.md`** (Why + Acceptance Criteria — its whole contract) plus the change's
   `architecture.md` (its own per-change one from `/workflow:arch`, and the epic's if any).
 - **Data model is decided input.** If this change has an `architecture.md` (its own per-change one, or the epic's),
   read it and treat its data-model + structural-fit decisions as **given** — `code-design` specifies interfaces and

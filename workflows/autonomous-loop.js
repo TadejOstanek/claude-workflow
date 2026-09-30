@@ -103,7 +103,7 @@ const PR_SCHEMA = {
 // ---------- shared prompt context ----------
 const CTX = `Workflow change "${TITLE}" (scope: ${SCOPE}).
 Epic arch:   ${FEATURE_DIR}/architecture.md  (epic mode only; may be absent)
-Behavioral spec: ${PHASE_DIR}/spec.md  (Why + checkbox Acceptance Criteria — the contract this change must satisfy)
+Spec:        ${PHASE_DIR}/spec.md  (Why + checkbox Acceptance Criteria — the contract this change must satisfy)
 Change docs: ${PHASE_DIR}/  (this change's spec.md + code-design.md + an optional architecture.md)
 Working dir: ${WORKDIR}  — run ALL shell/git/test/gh commands here (use \`git -C ${WORKDIR}\` or cd first).
 Read your role's agent instructions; read only what you need. Write your output file in ${PHASE_DIR}/ and end it
