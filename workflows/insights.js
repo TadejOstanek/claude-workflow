@@ -1,5 +1,5 @@
 export const meta = {
-  name: 'insights',
+  name: 'workflow-insights',
   description: 'Analyzes one change (or a whole epic): process-quality insights (review efficacy, design-doc accuracy, gate friction/rework), cost/token stats via the session-report plugin scoped to exactly those sessions, and explicit learnings extraction into project memory.',
   phases: [
     { title: 'Cost + Quality', detail: "scope this change's (or epic's) sessions and run the session-report analyzer, in parallel with process-quality analysis", model: 'sonnet + opus' },

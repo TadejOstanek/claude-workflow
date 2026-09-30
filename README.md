@@ -208,7 +208,7 @@ dirs. See the `workflow-conventions` skill for the full mechanic.
 
 - Plugin commands/skills are namespaced under the plugin name (`/workflow:propose`, skill `workflow:specification`);
   agents are `workflow:reviewer` etc. If your Claude Code version surfaces them un-namespaced, adjust accordingly.
-- Bundled workflows are launched by registered name (`workflow:workflow-autonomous-loop`, `workflow:insights`,
+- Bundled workflows are launched by registered name (`workflow:workflow-autonomous-loop`, `workflow:workflow-insights`,
   `workflow:pr-review`).
 - This repo dogfoods its own process — see `.workflow/build-workflow-plugin/spec.md` for the original acceptance
   contract.
