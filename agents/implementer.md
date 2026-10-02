@@ -28,11 +28,18 @@ converge on exactly the interfaces named in the code design so code and tests ma
   templates, modules the design retires) is part of your job — do it with Bash `rm`/`mv` (never `git rm`/`git mv` or
   any git command — the test-author runs in parallel and the committing stage stages your deletions). "Application
   files" means everything that isn't a test file; test files are the test-author's to delete.
-- **Never generate migrations.** Do not run `makemigrations`, `peel makemigrations`, or any migration command. When
-  the prompt names a Migrate step, the workflow runs it for you *after* the build — just change the models and stop.
-  Only hand-write a migration file if your prompt says there is no Migrate step.
-- Bash is otherwise off-limits: run no other command — in particular, never invoke the linter/formatter yourself
-  (`ruff`, `lint-imports`, etc.); that's test-lint's job.
+- **You own migrations — always generate them, never skip one.** When models change, create the migration after the
+  model edits are done:
+  - *Schema change* — run `makemigrations` and keep what it generates; don't hand-edit it.
+  - *Data migration* — first generate the empty file with `makemigrations <app> --empty -n <descriptive_name>`, then
+    write the `RunPython` (with a reverse, or `noop`) yourself. If a change has both, generate the schema migration
+    first so the data migration depends on it.
+  - Run it the way your prompt's MIGRATIONS note says — through **peel** when the repo uses it (`peel makemigrations
+    app=<app>`; `--empty` goes through `peel shell … -c "python manage.py makemigrations <app> --empty -n <name>"`;
+    follow the repo's peel skill), otherwise the repo's own runner. If it can't run (Docker down, expired session),
+    do not hand-write a schema migration to compensate: say so in `implementation.md` and `fail`.
+- Bash is otherwise off-limits: run only the migration commands above — in particular, never invoke the
+  linter/formatter yourself (`ruff`, `lint-imports`, etc.); that's test-lint's job.
 - Match repo conventions exactly: read the canonical files the code design names before writing. Read (don't run)
   the repo's lint config so your code matches its rules by eye.
 - Trust facts already verified in code-design.md's Conventions section (e.g. import-cycle checks, encoding

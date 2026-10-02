@@ -46,10 +46,7 @@ plus its reference files:
    must resolve to a concrete `testCmd` string (e.g. `pytest`, `npm test`, or `peel test` as a runner placeholder
    for peel — see the heuristic), never a bare flag; additionally set `isPeel:true` when the runner is peel. If no
    runner can be detected, **ask the user** for a command instead
-   of passing `testCmd: null` — a null `testCmd` silently skips the whole test-lint stage. If the change touches models,
-   resolve a `migrateCmd` (e.g. `peel makemigrations <app>`) — **ask the user** if it can't be detected. It runs as
-   its own Migrate step after the build, and the implementer is told not to generate migrations itself; with no
-   `migrateCmd` it hand-writes them.
+   of passing `testCmd: null` — a null `testCmd` silently skips the whole test-lint stage. The implementer generates any migrations itself (through peel when `isPeel`), so there is no migrate command to resolve.
    `baseRef` = `main`; `appDir` = the change's primary directory **to test/migrate** — the app/module dir the change lives in (e.g. `goods`);
    with peel the loop passes it as `--arg` to scope the tests, so use `.` only if the change truly spans apps.
 4. Determine `workdir` — the **absolute** repo root path (there is no worktree). **Provision or verify this
@@ -76,7 +73,7 @@ the loop reads them):
   "phaseDir": "<abs path to the change folder .workflow/<feature>/<NN>-<change>/>",
   "workdir": "<abs repo root>",
   "baseRef": "main", "appDir": "<dir or .>",
-  "testCmd": "<detected or null>", "migrateCmd": "<or null>", "isPeel": <bool>,
+  "testCmd": "<detected or null>", "isPeel": <bool>,
   "pendingStages": ["..."],
   "models": { "code": {"model": "...", "effort": "..."}, "test": {...}, "run": {...}, "review": {...}, "pr": {...} }
 }

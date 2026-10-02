@@ -3,7 +3,6 @@ export const meta = {
   description: 'Autonomous tail of the dev workflow for one change: parallel implement+test → test/lint → opus review (commits) → draft PR (with its own QA section). File-based handoff; loops on failure; escalates the unresolvable.',
   phases: [
     { title: 'Build', detail: 'parallel implementer + test-author from the code design' },
-    { title: 'Migrate', detail: 'optional pre-test command; skipped when migrateCmd absent' },
     { title: 'Test', detail: 'scoped test+lint (haiku); reconcile → re-run, bounded' },
     { title: 'Review', detail: 'opus review of the diff; commits on pass; fix loop, bounded' },
     { title: 'PR', detail: 'draft pull request, including its own manual QA section' },
@@ -23,7 +22,6 @@ const WORKDIR = A.workdir || '.'   // absolute repo root — ALL git/test/gh com
 const BASE_REF = A.baseRef || 'main'
 const APP_DIR = A.appDir || '.'
 const TEST_CMD = A.testCmd || null
-const MIGRATE_CMD = A.migrateCmd || null
 const IS_PEEL = A.isPeel === true || (TEST_CMD || '').startsWith('peel')
 
 // Stages still to do (command computed this from state.json + on-disk GATEs). Empty/absent → run all.
@@ -117,9 +115,9 @@ when it never ran (Docker down / expired AWS session) — judge by OUTPUT and se
 const PEEL_SCOPE = IS_PEEL && APP_DIR !== '.' ? `
 SCOPE: this change lives in \`${APP_DIR}\`. Add \`--arg ${APP_DIR}\` to the \`peel test\` invocation — never run a bare unscoped \`peel test\`. \`--arg\` is passed to ALL the -t targets at once, so a target that can't take that path (e.g. a JS tool for another tree) goes in a second invocation without \`--arg\`. If the diff clearly touches code outside \`${APP_DIR}\`, say so in your summary and widen the scope deliberately. State the exact command(s) you ran.` : ''
 
-const MIGRATE_NOTE = MIGRATE_CMD
-  ? `\nMIGRATIONS: a separate Migrate step runs \`${MIGRATE_CMD}\` after you finish. Change the models but do NOT run any migration command or write migration files yourself.`
-  : `\nMIGRATIONS: there is no Migrate step in this run. If the models change, hand-write the migration file.`
+const MIGRATE_NOTE = IS_PEEL
+  ? `\nMIGRATIONS: you own them, schema and data. Run migration commands through peel (\`peel makemigrations app=<app>\`, or \`peel shell ... -c "python manage.py makemigrations <app> --empty -n <name>"\` for data migrations — follow the repo's peel skill), never bare \`manage.py\` on the host. App: \`${APP_DIR}\`.`
+  : `\nMIGRATIONS: you own them, schema and data. Run the repo's own \`makemigrations\` (plain \`manage.py\` or its documented wrapper). App: \`${APP_DIR}\`.`
 
 // ---------- result accumulator ----------
 const result = {
@@ -151,13 +149,6 @@ if (todo('build') && !result.escalation) {
   result.stageGates.build = { impl, tst }
   const failed = [impl, tst].find((g) => g && g.gate === 'fail')
   if (failed) { escalate(failed.returnTo || 'code-design', failed.reason || 'build agent reported the design is not implementable'); }
-}
-
-// ============ MIGRATE (optional) ============
-if (MIGRATE_CMD && todo('test-lint') && !result.escalation) {
-  phase('Migrate')
-  await agent(`${CTX}\nRun \`${MIGRATE_CMD}\` and report.${PEEL_NOTE}\nSet ran=false if the runner is unavailable. Do not hand-edit generated files.`,
-    { agentType: 'workflow:test-runner', ...opt('run'), phase: 'Migrate', label: `migrate:${SCOPE}`, schema: TEST_SCHEMA })
 }
 
 // ============ TEST + LINT (haiku; bounded reconcile) ============
