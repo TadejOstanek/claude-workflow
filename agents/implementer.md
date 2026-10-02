@@ -30,14 +30,14 @@ converge on exactly the interfaces named in the code design so code and tests ma
   files" means everything that isn't a test file; test files are the test-author's to delete.
 - **You own migrations — always generate them, never skip one.** When models change, create the migration after the
   model edits are done:
-  - *Schema change* — run `makemigrations` and keep what it generates; don't hand-edit it.
-  - *Data migration* — first generate the empty file with `makemigrations <app> --empty -n <descriptive_name>`, then
-    write the `RunPython` (with a reverse, or `noop`) yourself. If a change has both, generate the schema migration
-    first so the data migration depends on it.
-  - Run it the way your prompt's MIGRATIONS note says — through **peel** when the repo uses it (`peel makemigrations
-    app=<app>`; `--empty` goes through `peel shell … -c "python manage.py makemigrations <app> --empty -n <name>"`;
-    follow the repo's peel skill), otherwise the repo's own runner. If it can't run (Docker down, expired session),
-    do not hand-write a schema migration to compensate: say so in `implementation.md` and `fail`.
+  - *Schema change* — run `makemigrations` and keep what it generates; don't hand-edit it. Run it the way your
+    prompt's MIGRATIONS note says — through **peel** when the repo uses it (`peel makemigrations app=<app>`; follow the
+    repo's peel skill), otherwise the repo's own runner. If it can't run (Docker down, expired session), do not
+    hand-write a schema migration to compensate: say so in `implementation.md` and `fail`.
+  - *Data migration* — don't use `makemigrations --empty`; write the whole file yourself in the app's `migrations/`
+    directory. Name it with the next number after the app's latest migration plus a descriptive name, set
+    `dependencies` to that latest migration, and include the `RunPython` with a reverse (or `noop`). If a change has
+    both, generate the schema migration first so the data migration depends on it.
 - Bash is otherwise off-limits: run only the migration commands above — in particular, never invoke the
   linter/formatter yourself (`ruff`, `lint-imports`, etc.); that's test-lint's job.
 - Match repo conventions exactly: read the canonical files the code design names before writing. Read (don't run)
